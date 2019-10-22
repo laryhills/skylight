@@ -1,0 +1,41 @@
+swagger: "2.0"
+info:
+  title: Student Management System Api
+  description: A REST api that manages the student's database
+  version: 1.0.0
+
+basePath: /api
+
+consumes:
+  - application/json
+produces:
+  - application/json
+
+paths:
+  /login:
+    post:
+      tags: [Login]
+      operationId: sms.users.login
+      summary: User authentication
+      description: Tries to login in the user while returning a token
+      parameters:
+        - in: body
+          name: user
+          schema:
+            type: object
+            required:
+              - username
+              - password
+            properties:
+              username:
+                type: string
+              password:
+                type: string
+      responses:
+        200:
+          description: Returns the user specific token
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
