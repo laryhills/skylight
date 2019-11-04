@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Result Update</title>
+    <link rel=stylesheet href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+    <p>Hello, {{ name }}!</p>
+    <nav>
+        <a href="{{ url_for('hello_pdf', name=name) }}">Get as PDF</a>
+    </nav>
+</body>
+</html>
