@@ -33,7 +33,7 @@ def hello_html(name):
 @app.route('/update_<mat_no>_<session>.pdf')
 def get_pdf(mat_no, session, results=[]):
     # Make a PDF from another view
-    return render_pdf(url_for('get_name', name=mat_no, results=results))
+    return render_pdf(url_for('get_name', mat_no=mat_no, session=session))
 
 # def get_pdf(name):
 #     # Make a PDF straight from HTML in a string.
