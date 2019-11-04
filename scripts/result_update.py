@@ -15,14 +15,13 @@ db_path = os.path.join(base_dir, 'database')
 @app.route('/update/<mat_no>/<session>')
 def get_name(mat_no, session):
     results = []
-    row_number, column_number = 0, 1
-    with open(os.path.join(base_dir,'templates', 'Score_Sheet.csv'), 'r') as scores:
-        row = next(itertools.islice(csv.reader(scores), row_number, row_number + 1))
-        print('1')
+    row_number, column_number = 0, 0
+    scores = open(os.path.join(base_dir,'templates', 'Score_Sheet.csv'), 'r')
+    csv_reader = csv.reader(scores, delimiter=',')
+    for row in csv_reader:
         if (row[column_number+2] == mat_no) and (row[column_number+1] == session):
             results.append((row[column_number], row[column_number+3]))
-            print(results)
-    return render_template('result_update.html', name=mat_no, results=results[0])
+    return render_template('result_update.html', name=mat_no, results=results)
 
 
 @app.route('/hello/', defaults={'name': 'World'})
@@ -31,11 +30,15 @@ def hello_html(name):
     return render_template('result_update.html', name=name)
 
 
-@app.route('/hello_<name>.pdf')
-def hello_pdf(name):
-    # Make a PDF straight from HTML in a string.
-    html = render_template('result_update.html', name=name)
-    return render_pdf(HTML(string=html))
+@app.route('/update_<mat_no>_<session>.pdf')
+def get_pdf(mat_no, session, results=[]):
+    # Make a PDF from another view
+    return render_pdf(url_for('get_name', name=mat_no, results=results))
+
+# def get_pdf(name):
+#     # Make a PDF straight from HTML in a string.
+#     html = render_template('result_update.html', name=name)
+#     return render_pdf(HTML(string=html))
 
 
 if __name__ == '__main__':
