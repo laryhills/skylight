@@ -39,3 +39,68 @@ paths:
             properties:
               token:
                 type: string
+
+  /personal_info:
+    get:
+      operationId: sms.personal_info.get
+      summary: Personal_info query
+      description: Gets a student or a group of students bio data
+      parameters:
+        - name: mat_no
+          in: query
+          type: string
+          required: false
+      responses:
+        200:
+          description: Returns the bio data for the student or group of students
+          schema:
+            $ref: '#/definitions/PersonalInfo'
+        404:
+          description: Mat no does not exist
+
+    post:
+      operationId: sms.personal_info.post
+      parameters:
+        - name: student_data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/PersonalInfo'
+      responses:
+        200:
+          description: Record successfully added
+
+
+
+definitions:
+  PersonalInfo:
+    type: object
+    properties:
+      mat_no:
+        type: string
+      surname:
+        type: string
+      othernames:
+        type: string
+      mode_of_entry:
+        type: integer
+      session_admitted:
+        type: integer
+      current_level:
+        type: integer
+      sex:
+        type: string
+      date_of_birth:
+        type: string
+      state_of_origin:
+        type: string
+      phone_no:
+        type: string
+      email_address:
+        type: string
+      sponsor_phone_no:
+        type: string
+      sponsor_email_address:
+        type: string
+      grad_stats:
+        type: integer
