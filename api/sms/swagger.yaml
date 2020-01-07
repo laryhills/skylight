@@ -70,6 +70,31 @@ paths:
         200:
           description: Record successfully added
 
+  /course_details:
+    get:
+      operationId: sms.course_details.get
+      parameters:
+        - in: query
+          name: course_code
+          type: string
+          required: true
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/CourseDetails'
+
+    post:
+      operationId: sms.course_details.post
+      parameters:
+        - in: body
+          name: course
+          schema:
+            $ref: '#/definitions/CourseDetails'
+      responses:
+        200:
+          description: Success
+
 
 
 definitions:
@@ -104,3 +129,19 @@ definitions:
         type: string
       grad_stats:
         type: integer
+
+  CourseDetails:
+    type: object
+    properties:
+      course_code:
+        type: string
+      course_title:
+        type: string
+      course_credit:
+        type: integer
+      course_semester:
+        type: integer
+      course_level:
+        type: integer
+      teaching_dept:
+        type: string
