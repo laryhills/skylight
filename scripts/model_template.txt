@@ -24,8 +24,189 @@ class PersonalInfo(db.Model):
     database = db.Column('DATABASE', db.String(12), nullable=False)
 
 
+class Result100(db.Model):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'Result100'
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    CHM111 = db.Column(db.Integer)
+    CHM113 = db.Column(db.Integer)
+    CHM122 = db.Column(db.Integer)
+    CHM124 = db.Column(db.Integer)
+    GST111 = db.Column(db.Integer)
+    GST112 = db.Column(db.Integer)
+    GST121 = db.Column(db.Integer)
+    GST122 = db.Column(db.Integer)
+    GST123 = db.Column(db.Integer)
+    MTH110 = db.Column(db.Integer)
+    MTH112 = db.Column(db.Integer)
+    MTH123 = db.Column(db.Integer)
+    MTH125 = db.Column(db.Integer)
+    PHY109 = db.Column(db.Integer)
+    PHY111 = db.Column(db.Integer)
+    PHY113 = db.Column(db.Integer)
+    PHY124 = db.Column(db.Integer)
+    category = db.Column('CATEGORY', db.Text)
+
+
+class Result200(db.Model):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'Result200'
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    CHE222 = db.Column(db.Integer)
+    CVE211 = db.Column(db.Integer)
+    ECP281 = db.Column(db.Integer)
+    EEE211 = db.Column(db.Integer)
+    EEE212 = db.Column(db.Integer)
+    ELA201 = db.Column(db.Integer)
+    ELA202 = db.Column(db.Integer)
+    GST122 = db.Column(db.Integer)
+    GST123 = db.Column(db.Integer)
+    EMA281 = db.Column(db.Integer)
+    EMA282 = db.Column(db.Integer)
+    ENS211 = db.Column(db.Integer)
+    MEE211 = db.Column(db.Integer)
+    MEE212 = db.Column(db.Integer)
+    MEE221 = db.Column(db.Integer)
+    MEE222 = db.Column(db.Integer)
+    carryovers = db.column('CARRYOVERS', db.TEXT)
+    category = db.Column('CATEGORY', db.Text)
+
+
+class Result300(db.Model):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'Result300'
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    CVE311 = db.Column(db.Integer)
+    EEE317 = db.Column(db.Integer)
+    EEE318 = db.Column(db.Integer)
+    ELA301 = db.Column(db.Integer)
+    ELA302 = db.Column(db.Integer)
+    EMA381 = db.Column(db.Integer)
+    EMA382 = db.Column(db.Integer)
+    MEE311 = db.Column(db.Integer)
+    MEE312 = db.Column(db.Integer)
+    MEE321 = db.Column(db.Integer)
+    MEE322 = db.Column(db.Integer)
+    MEE332 = db.Column(db.Integer)
+    MEE342 = db.Column(db.Integer)
+    MEE351 = db.Column(db.Integer)
+    MEE352 = db.Column(db.Integer)
+    MEE361 = db.Column(db.Integer)
+    MEE362 = db.Column(db.Integer)
+    MEE372 = db.Column(db.Integer)
+    PRE311 = db.Column(db.Integer)
+    carryovers = db.column('CARRYOVERS', db.TEXT)
+    category = db.Column('CATEGORY', db.Text)
+
+
+class Result400(db.Model):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'Result400'
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    CED300 = db.Column(db.Integer)
+    ELA401 = db.Column(db.Integer)
+    EMA481 = db.Column(db.Integer)
+    MEE411 = db.Column(db.Integer)
+    MEE421 = db.Column(db.Integer)
+    MEE431 = db.Column(db.Integer)
+    MEE441 = db.Column(db.Integer)
+    MEE451 = db.Column(db.Integer)
+    MEE461 = db.Column(db.Integer)
+    MEE471 = db.Column(db.Integer)
+    UBT400 = db.Column(db.Integer)
+    carryovers = db.column('CARRYOVERS', db.TEXT)
+    category = db.Column('CATEGORY', db.Text)
+
+
+class Result500(db.Model):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'Result500'
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    MEE500 = db.Column(db.Integer)
+    MEE501 = db.Column(db.Integer)
+    MEE502 = db.Column(db.Integer)
+    MEE505 = db.Column(db.Integer)
+    MEE506 = db.Column(db.Integer)
+    MEE511 = db.Column(db.Integer)
+    MEE512 = db.Column(db.Integer)
+    MEE521 = db.Column(db.Integer)
+    MEE522 = db.Column(db.Integer)
+    MEE531 = db.Column(db.Integer)
+    MEE532 = db.Column(db.Integer)
+    MEE541 = db.Column(db.Integer)
+    MEE542 = db.Column(db.Integer)
+    MEE551 = db.Column(db.Integer)
+    MEE552 = db.Column(db.Integer)
+    MEE561 = db.Column(db.Integer)
+    MEE562 = db.Column(db.Integer)
+    MEE571 = db.Column(db.Integer)
+    MEE572 = db.Column(db.Integer)
+    MEE581 = db.Column(db.Integer)
+    MEE582 = db.Column(db.Integer)
+    MEE591 = db.Column(db.Integer)
+    MEE592 = db.Column(db.Integer)
+    PRE571 = db.Column(db.Integer)
+    PRE572 = db.Column(db.Integer)
+    carryovers = db.column('CARRYOVERS', db.TEXT)
+    category = db.Column('CATEGORY', db.Text)
+
+
+class Result600(db.Model):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'Result600'
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    carryovers = db.Column('CARRYOVERS', db.TEXT)
+    category = db.Column('CATEGORY', db.Text)
+
+
+class Result700(db.Model):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'Result700'
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    carryovers = db.Column('CARRYOVERS', db.TEXT)
+    category = db.Column('CATEGORY', db.Text)
+
+
+class Result800(db.Model):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'Result800'
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    carryovers = db.Column('CARRYOVERS', db.TEXT)
+    category = db.Column('CATEGORY', db.Text)
+
+
 class PersonalInfoSchema(ma.ModelSchema):
     class Meta:
         model = PersonalInfo
         exclude = ('is_symlink', 'database')
+        sqla_session = db.session
+
+
+class Result200Schema(ma.ModelSchema):
+    class Meta:
+        model = Result200
+        sqla_session = db.session
+
+
+class Result300Schema(ma.ModelSchema):
+    class Meta:
+        model = Result300
+        sqla_session = db.session
+
+
+class Result400Schema(ma.ModelSchema):
+    class Meta:
+        model = Result400
+        sqla_session = db.session
+
+
+class Result500Schema(ma.ModelSchema):
+    class Meta:
+        model = Result500
+        sqla_session = db.session
+
+
+class ResultSchema(ma.ModelSchema):
+    class Meta:
+        model = Result600
         sqla_session = db.session
