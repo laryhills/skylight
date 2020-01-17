@@ -34,7 +34,7 @@ class Result100(db.Model):
     CHM113 = db.Column(db.Integer)
     CHM122 = db.Column(db.Integer)
     CHM124 = db.Column(db.Integer)
-    GST111 = db.Column(db.Integer)
+    GST111 = db.Column(db.String)
     GST112 = db.Column(db.Integer)
     GST121 = db.Column(db.Integer)
     GST122 = db.Column(db.Integer)
@@ -62,8 +62,6 @@ class Result200(db.Model):
     EEE212 = db.Column(db.Integer)
     ELA201 = db.Column(db.Integer)
     ELA202 = db.Column(db.Integer)
-    GST122 = db.Column(db.Integer)
-    GST123 = db.Column(db.Integer)
     EMA281 = db.Column(db.Integer)
     EMA282 = db.Column(db.Integer)
     ENS211 = db.Column(db.Integer)
@@ -71,7 +69,7 @@ class Result200(db.Model):
     MEE212 = db.Column(db.Integer)
     MEE221 = db.Column(db.Integer)
     MEE222 = db.Column(db.Integer)
-    carryovers = db.column('CARRYOVERS', db.TEXT)
+    carryovers = db.column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
 
 
@@ -99,7 +97,7 @@ class Result300(db.Model):
     MEE362 = db.Column(db.Integer)
     MEE372 = db.Column(db.Integer)
     PRE311 = db.Column(db.Integer)
-    carryovers = db.column('CARRYOVERS', db.TEXT)
+    carryovers = db.column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
 
 
@@ -119,7 +117,7 @@ class Result400(db.Model):
     MEE461 = db.Column(db.Integer)
     MEE471 = db.Column(db.Integer)
     UBT400 = db.Column(db.Integer)
-    carryovers = db.column('CARRYOVERS', db.TEXT)
+    carryovers = db.column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
 
 
@@ -153,7 +151,7 @@ class Result500(db.Model):
     MEE592 = db.Column(db.Integer)
     PRE571 = db.Column(db.Integer)
     PRE572 = db.Column(db.Integer)
-    carryovers = db.column('CARRYOVERS', db.TEXT)
+    carryovers = db.column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
 
 
@@ -162,7 +160,7 @@ class Result600(db.Model):
     __tablename__ = 'Result600'
     __table_args__ = {'extend_existing' : True}
     mat_no = db.Column('MATNO', db.String(10), primary_key=True)
-    carryovers = db.Column('CARRYOVERS', db.TEXT)
+    carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
 
 
@@ -171,7 +169,7 @@ class Result700(db.Model):
     __tablename__ = 'Result700'
     __table_args__ = {'extend_existing' : True}
     mat_no = db.Column('MATNO', db.String(10), primary_key=True)
-    carryovers = db.Column('CARRYOVERS', db.TEXT)
+    carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
 
 
@@ -180,7 +178,7 @@ class Result800(db.Model):
     __tablename__ = 'Result800'
     __table_args__ = {'extend_existing' : True}
     mat_no = db.Column('MATNO', db.String(10), primary_key=True)
-    carryovers = db.Column('CARRYOVERS', db.TEXT)
+    carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
 
 
@@ -188,6 +186,12 @@ class PersonalInfoSchema(ma.ModelSchema):
     class Meta:
         model = PersonalInfo
         exclude = ('is_symlink', 'database')
+        sqla_session = db.session
+
+
+class Result100Schema(ma.ModelSchema):
+    class Meta:
+        model = Result100
         sqla_session = db.session
 
 
@@ -212,6 +216,24 @@ class Result400Schema(ma.ModelSchema):
 class Result500Schema(ma.ModelSchema):
     class Meta:
         model = Result500
+        sqla_session = db.session
+
+
+class Result600Schema(ma.ModelSchema):
+    class Meta:
+        model = Result600
+        sqla_session = db.session
+
+
+class Result700Schema(ma.ModelSchema):
+    class Meta:
+        model = Result700
+        sqla_session = db.session
+
+
+class Result800Schema(ma.ModelSchema):
+    class Meta:
+        model = Result800
         sqla_session = db.session
 
 
