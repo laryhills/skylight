@@ -4,6 +4,7 @@ from sms.models.master import Master, MasterSchema
 
 
 def get(mat_no=None):
+
     if mat_no:
         # Lookup the student's details in the master db
         student = Master.query.filter_by(mat_no=mat_no).first_or_404()
@@ -12,9 +13,9 @@ def get(mat_no=None):
         db_name = db_name.replace('-', '_')
 
         # Gets the student's details
-        exec('from sms.models._{} import PersonalInfo, PersonalInfoSchema'.format(db_name[:-3]))
-        PersonalInfo = locals()['PersonalInfo']
-        PersonalInfoSchema = locals()['PersonalInfoSchema']
+        exec('from sms.models import _{}'.format(db_name[:-3]))
+        PersonalInfo = locals()['_{}'.format(db_name[:-3])].PersonalInfo
+        PersonalInfoSchema = locals()['_{}'.format(db_name[:-3])].PersonalInfoSchema
         student_data = PersonalInfo.query.filter_by(mat_no=mat_no).first_or_404()
         personalinfo_schema = PersonalInfoSchema()
 
