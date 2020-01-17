@@ -69,7 +69,7 @@ class Result200(db.Model):
     MEE212 = db.Column(db.Integer)
     MEE221 = db.Column(db.Integer)
     MEE222 = db.Column(db.Integer)
-    carryovers = db.column('CARRYOVERS', db.Text)
+    carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
 
 
@@ -97,7 +97,7 @@ class Result300(db.Model):
     MEE362 = db.Column(db.Integer)
     MEE372 = db.Column(db.Integer)
     PRE311 = db.Column(db.Integer)
-    carryovers = db.column('CARRYOVERS', db.Text)
+    carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
 
 
@@ -117,7 +117,7 @@ class Result400(db.Model):
     MEE461 = db.Column(db.Integer)
     MEE471 = db.Column(db.Integer)
     UBT400 = db.Column(db.Integer)
-    carryovers = db.column('CARRYOVERS', db.Text)
+    carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
 
 
@@ -151,7 +151,7 @@ class Result500(db.Model):
     MEE592 = db.Column(db.Integer)
     PRE571 = db.Column(db.Integer)
     PRE572 = db.Column(db.Integer)
-    carryovers = db.column('CARRYOVERS', db.Text)
+    carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
 
 
