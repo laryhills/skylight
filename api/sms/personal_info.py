@@ -2,12 +2,8 @@ from flask import abort
 from sms.config import db
 from sms.models.master import Master, MasterSchema
 
-PersonalInfo = None
-PersonalInfoSchema = None
-
 
 def get(mat_no=None):
-    global PersonalInfo, PersonalInfoSchema
     if mat_no:
         # Lookup the student's details in the master db
         student = Master.query.filter_by(mat_no=mat_no).first_or_404()
