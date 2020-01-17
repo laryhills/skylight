@@ -1,7 +1,10 @@
+from sys import modules
 from flask import abort
 from sms.config import db
+from importlib import reload
 from sms.models.master import Master, MasterSchema
 
+lastLoaded = None
 
 def get(mat_no=None):
 
@@ -13,7 +16,14 @@ def get(mat_no=None):
         db_name = db_name.replace('-', '_')
 
         # Gets the student's details
-        exec('from sms.models import _{}'.format(db_name[:-3]))
+        global lastLoaded
+        if ('sms.models._{}'.format(db_name[:-3]) in modules) and (lastLoaded!=db_name):
+            exec('from sms.models import _{}'.format(db_name[:-3]))
+            exec('reload(_{})'.format(db_name[:-3]))
+            lastLoaded = db_name
+        else:
+            exec('from sms.models import _{}'.format(db_name[:-3]))
+            lastLoaded = db_name
         PersonalInfo = eval('_{}.PersonalInfo'.format(db_name[:-3]))
         PersonalInfoSchema = eval('_{}.PersonalInfoSchema'.format(db_name[:-3]))
         student_data = PersonalInfo.query.filter_by(mat_no=mat_no).first_or_404()
