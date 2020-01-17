@@ -14,8 +14,8 @@ def get(mat_no=None):
 
         # Gets the student's details
         exec('from sms.models import _{}'.format(db_name[:-3]))
-        PersonalInfo = locals()['_{}'.format(db_name[:-3])].PersonalInfo
-        PersonalInfoSchema = locals()['_{}'.format(db_name[:-3])].PersonalInfoSchema
+        PersonalInfo = eval('_{}.PersonalInfo'.format(db_name[:-3]))
+        PersonalInfoSchema = eval('_{}.PersonalInfoSchema'.format(db_name[:-3]))
         student_data = PersonalInfo.query.filter_by(mat_no=mat_no).first_or_404()
         personalinfo_schema = PersonalInfoSchema()
 
