@@ -12,13 +12,10 @@ def get(mat_no):
     db_name = master_poll.getDB(mat_no)[:-3]
     #Import model and force import override if necessary (session changes)
     global lastLoaded
+    exec('from sms.models import _{}'.format(db_name))
     if ('sms.models._{}'.format(db_name) in modules) and (lastLoaded!=db_name):
-        exec('from sms.models import _{}'.format(db_name))
         exec('reload(_{})'.format(db_name))
-        lastLoaded = db_name
-    else:
-        exec('from sms.models import _{}'.format(db_name))
-        lastLoaded = db_name
+    lastLoaded = db_name
     #Get PersonalInfo
     PersonalInfo = eval('_{}.PersonalInfo'.format(db_name))
     PersonalInfoSchema = eval('_{}.PersonalInfoSchema'.format(db_name))
