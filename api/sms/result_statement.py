@@ -47,3 +47,16 @@ def get(mat_no):
             student_details["credits"].append((credits_total,credits_passed,credits_failed))
     student_details["results"] = finalResults
     return dumps(student_details)
+
+def get_carryovers(mat_no):
+    first_sem, second_sem, carryovers = {}, {}, {}
+    for result in loads(get(mat_no))["results"]:
+        for record in result["first_sem"]:
+            (course, grade) = (record[1], record[5])
+            first_sem[course] = grade
+        for record in result["second_sem"]:
+            (course, grade) = (record[1], record[5])
+            second_sem[course] = grade
+    carryovers["first_sem"] = [course for course in first_sem if first_sem[course]=="F"]
+    carryovers["second_sem"] = [course for course in second_sem if second_sem[course]=="F"]
+    return dumps(carryovers)

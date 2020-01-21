@@ -113,6 +113,24 @@ paths:
         404:
           description: Mat no does not exist
 
+  /carryovers:
+    get:
+      operationId: sms.result_statement.get_carryovers
+      summary: carryover query
+      description: Gets a student carryover as at present time
+      parameters:
+        - name: mat_no
+          in: query
+          type: string
+          required: true
+      responses:
+        200:
+          description: Returns the carryover course codes for a student
+          schema:
+            $ref: '#/definitions/Carryovers'
+        404:
+          description: Mat no does not exist
+
 definitions:
   PersonalInfo:
     type: object
@@ -194,3 +212,15 @@ definitions:
         type: integer
       grad_session:
         type: string
+
+  Carryovers:
+    type: object
+    properties:
+        first_sem:
+            type: array
+            items:
+                type: string
+        second_sem:
+            type: array
+            items:
+                type: string
