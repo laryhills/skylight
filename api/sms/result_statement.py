@@ -20,13 +20,13 @@ def get(mat_no):
             category = result.pop('category')
             if lvl:
                 carryovers = result.pop('carryovers')
-                if (carryovers==None or carryovers != "nan, F"):
+                if (carryovers != "nan, F"):
                     carryovers = carryovers.split(',')
                     for co in carryovers:
                         (course, score, grade) = co.split()
                         result[course] = ",".join([score,grade])
             credits_passed = credits_failed = credits_total = 0
-            lvlResult=[[],[]]
+            lvlResult={"first":[],"second":[]}
             for course in result:
                 if result[course]:
                     course_props = loads(course_details.get(course))
@@ -41,7 +41,7 @@ def get(mat_no):
                         credits_passed +=credit
                     credits_total += credit
 
-                    lvlResult[sem-1].append(((lvl+1)*100,course,title,credit,score,grade))
+                    lvlResult[["first_sem","second_sem"][sem-1]].append(((lvl+1)*100,course,title,credit,score,grade))
 
             finalResults.append(lvlResult)
             student_details["credits"].append((credits_total,credits_passed,credits_failed))
