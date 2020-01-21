@@ -49,7 +49,7 @@ paths:
         - name: mat_no
           in: query
           type: string
-          required: false
+          required: true
       responses:
         200:
           description: Returns the bio data for the student or group of students
@@ -95,7 +95,23 @@ paths:
         200:
           description: Success
 
-
+  /result_statement:
+    get:
+      operationId: sms.result_statement.get
+      summary: Result_statement query
+      description: Gets a student result statement till date
+      parameters:
+        - name: mat_no
+          in: query
+          type: string
+          required: true
+      responses:
+        200:
+          description: Returns the result statement data for a student
+          schema:
+            $ref: '#/definitions/ResultStatement'
+        404:
+          description: Mat no does not exist
 
 definitions:
   PersonalInfo:
@@ -144,4 +160,37 @@ definitions:
       course_level:
         type: integer
       teaching_dept:
+        type: string
+
+  ResultStatement:
+    type: object
+    properties:
+      name:
+        type: string
+      depat:
+        type: string
+      dob:
+        type: string
+      mode_of_entry:
+        type: integer
+      results:
+        type: array
+        items:
+            type: object
+            properties:
+                first:
+                    type: array
+                    items: {}
+                second:
+                    type: array
+                    items: {}
+      credits:
+        type: array
+        items:
+            type: array
+            items:
+                type: integer
+      entry_session:
+        type: integer
+      grad_session:
         type: string
