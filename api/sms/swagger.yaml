@@ -178,10 +178,10 @@ definitions:
         items:
             type: object
             properties:
-                first:
+                first_sem:
                     type: array
                     items: {}
-                second:
+                second_sem:
                     type: array
                     items: {}
       credits:
