@@ -83,7 +83,6 @@ paths:
           description: Success
           schema:
             $ref: '#/definitions/CourseDetails'
-
     post:
       operationId: sms.course_details.post
       parameters:
@@ -130,6 +129,22 @@ paths:
             $ref: '#/definitions/Carryovers'
         404:
           description: Mat no does not exist
+
+  /course_reg:
+    get:
+      operationId: sms.course_reg.get
+      parameters:
+        - in: query
+          name: mat_no
+          type: string
+          required: true
+        - in: query
+          name: session
+          type: integer
+          required: true
+      responses:
+        200:
+          description: Success
 
 definitions:
   PersonalInfo:
