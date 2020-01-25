@@ -5,17 +5,19 @@ import pandas as pd
 curr_session = 2018
 courses = []        # List of course codes
 courses_dict = []   # List of course codes and credit dictionaries
-db_base_dir = os.path.join(os.path.dirname(__file__), '..', 'api', 'sms', 'database')
 
-if not os.path.exists(db_base_dir) and not os.path.exists(os.path.join(db_base_dir, 'master.db')):
+db_base_dir = os.path.join(os.path.dirname(__file__), '..', 'api', 'sms', 'database')
+if not os.path.exists(os.path.join(db_base_dir, 'master.db')):
     os.sys.exit('Run the personal_info.py script first')
+if not os.path.exists(os.path.join(db_base_dir, 'courses.db')):
+    os.sys.exit('Run the course_details.py script first')
 
 
 def create_table_schema():
     global courses_dict, courses
     # Generate result and course reg tables
     stmt = 'SELECT COURSE_CODE, COURSE_CREDIT FROM Courses{}'
-    conn = sqlite3.connect(os.path.join(os.getcwd(), 'database', 'Courses.db'))
+    conn = sqlite3.connect(os.path.join(db_base_dir, 'courses.db'))
     courses = [conn.execute(stmt.format(x)).fetchall() for x in range(100, 600, 100)]
     courses_dict = [dict(x) for x in courses]
     courses = [list(x.keys()) for x in courses_dict]
@@ -29,15 +31,14 @@ def create_table_schema():
         curr_db = '{}-{}.db'.format(session, session + 1)
         result_stmt = 'CREATE TABLE Result{}(MATNO TEXT PRIMARY_KEY, {}, CATEGORY TEXT)'
         course_reg_stmt = 'CREATE TABLE CourseReg{}(MATNO TEXT PRIMARY_KEY, {}, PROBATION INTEGER, OTHERS TEXT)'
-        conn = sqlite3.connect(os.path.join(os.getcwd(), 'database', curr_db))
-        for result_session in range(session, session + 10):
-            if result_session == curr_session: break
+        conn = sqlite3.connect(os.path.join(db_base_dir, curr_db))
+        for result_session in range(session, session + 8):
             if result_session - session > 4:
                 # spill over students
                 arg = 'CARRYOVERS TEXT'
             else:
                 course_list = [str(x) for x in courses[result_session - session]]
-                arg = ' INTEGER, '.join(course_list[: -1]) + ' INTEGER, ' + course_list[-1] + ' TEXT'
+                arg = ' TEXT, '.join(course_list[:]) + ' TEXT'
             try:
                 conn.execute(result_stmt.format(((result_session - session + 1) * 100), arg))
                 conn.execute(course_reg_stmt.format(((result_session - session + 1) * 100), arg))
@@ -50,14 +51,13 @@ def generate_table_dtype():
     result_dtype = []
     course_reg_dtype = []
     
-    for num in range(10):
+    for num in range(8):
         if num > 4:
             result_dtype.append({'MATNO': 'TEXT', 'CARRYOVERS': 'TEXT', 'CATEGORY': 'TEXT'})
             course_reg_dtype.append({'MATNO': 'TEXT', 'CARRYOVERS': 'TEXT', 'PROBATION': 'INTEGER', 'OTHERS': 'TEXT'})
         else:
             course_list = courses[num]
-            dtype = ['INTEGER'] * (len(course_list) - 1)
-            dtype.append('TEXT')
+            dtype = ['TEXT'] * len(course_list)
             tbl_dtype = dict(list(zip(course_list, dtype)))
             tbl_dtype['MATNO'] = 'TEXT'
             tbl_dtype['CATEGORY'] = 'TEXT'
@@ -156,6 +156,19 @@ def get_category(entry_session, level, result_df, course_reg_df):
             else: return 'E'
 
 
+def get_grade(score, entry_session):
+    if not score: return ''
+    if score >= 70: return 'A'
+    elif score >= 60: return 'B'
+    elif score >= 50: return 'C'
+    elif score >= 45: return 'D'
+    else:
+        if entry_session >= 2013: return 'F'
+        else:
+            if score >= 40: return 'E'
+            else: return 'F'
+
+
 def store_unusual_students(mat_no, entry_session):
     fd = open(os.path.join(os.getcwd(), 'error.txt'), 'a')
     fd.write('{} ==> {}\n'.format(mat_no, entry_session))
@@ -170,7 +183,7 @@ def populate_db(conn, mat_no, entry_session, mod):
     groups = [curr_frame_group.get_group(x) for x in curr_frame_group.groups]
     groups = sorted(groups, key=lambda x: x.SESSION.iloc[0])
     levels = [groups[num].SESSION.iloc[0] for num in range(len(groups))]
-    if not levels or levels[0] != entry_session or len(groups) > 8:
+    if not levels or levels[0] != entry_session or len(groups) > (9 - mod):
         store_unusual_students(mat_no, entry_session)
         return
     progressive_sum = int(len(levels) / 2.0 * (2 * levels[0] + len(levels) - 1))
@@ -211,14 +224,40 @@ def populate_db(conn, mat_no, entry_session, mod):
         course_reg_df['PROBATION'] = on_probation
         student_result['CATEGORY'] = get_category(entry_session, count, student_result, course_reg_df)
         bool_df = student_result['CATEGORY'] == 'C'
-        if bool_df.all(): on_probation = 1
+        if bool_df.all() : on_probation = 1
         else: on_probation = 0
         
-        # store result and course_reg in the database
-        result_tbl_name = 'Result{}'.format(count * 100)
-        course_reg_tbl_name = 'CourseReg{}'.format(count * 100)
-        student_result.to_sql(result_tbl_name, conn, index=False, if_exists='append', dtype=result_dtype)
-        course_reg_df.to_sql(course_reg_tbl_name, conn, index=False, if_exists='append', dtype=course_reg_dtype)
+        for col_name, series in student_result.items():
+            if col_name in ['MATNO', 'CATEGORY']: continue
+            if col_name == 'CARRYOVERS' and bool(series[0]):
+                items = series[0].split(',')
+                new_items_list = []
+                for item in items:
+                    course, score = item.split()
+                    try:
+                        course, score = item.split()
+                        score = int(float(score))
+                        grade = get_grade(score, entry_session)
+                    except ValueError:
+                        course, score, grade = item, '0', 'F'
+                    new_items_list.append(' '.join([course, str(score), grade]))
+                series.replace(series[0], ','.join(new_items_list), inplace=True)
+            else:
+                try:
+                    score = int(series[0])
+                    grade = get_grade(score, entry_session)
+                except ValueError:
+                    score, grade = '0', 'F'
+                series.replace(series[0], str(score) + ',' + grade, inplace=True)
+        
+         # store result and course_reg in the database
+        try:
+            result_tbl_name = 'Result{}'.format(count * 100)
+            course_reg_tbl_name = 'CourseReg{}'.format(count * 100)
+            student_result.to_sql(result_tbl_name, conn, index=False, if_exists='append', dtype=result_dtype)
+            course_reg_df.to_sql(course_reg_tbl_name, conn, index=False, if_exists='append', dtype=course_reg_dtype)
+        except sqlite3.OperationalError:
+            pass
     
     conn.commit()
 
@@ -227,7 +266,7 @@ if __name__ == '__main__':
     create_table_schema()
     result_dtype_glob, course_reg_dtype_glob = generate_table_dtype()
     for index, series in student_frame.iterrows():
-        print('Populating result and course reg data for {}...'.format(series.MATNO))
+        print('Populating result for {}...'.format(series.MATNO))
         curr_db = series.DATABASE
         entry_session = int(curr_db[:4])
         conn = sqlite3.connect(os.path.join(db_base_dir, curr_db))
