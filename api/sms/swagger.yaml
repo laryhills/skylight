@@ -116,12 +116,16 @@ paths:
     get:
       operationId: sms.result_statement.get_carryovers
       summary: carryover query
-      description: Gets a student carryover as at present time
+      description: Gets a student carryover as at present time or level if specified
       parameters:
         - name: mat_no
           in: query
           type: string
           required: true
+        - in: query
+          name: level
+          type: integer
+          required: false
       responses:
         200:
           description: Returns the carryover course codes for a student
@@ -139,9 +143,9 @@ paths:
           type: string
           required: true
         - in: query
-          name: session
+          name: level
           type: integer
-          required: true
+          required: false
       responses:
         200:
           description: Success
@@ -234,8 +238,10 @@ definitions:
         first_sem:
             type: array
             items:
-                type: string
+                type: array
+                items: {}
         second_sem:
             type: array
             items:
-                type: string
+                type: array
+                items: {}
