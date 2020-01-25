@@ -51,17 +51,27 @@ def get(mat_no):
     return dumps(student_details)
 
 
-def get_carryovers(mat_no):
-    first_sem, second_sem, carryovers = {}, {}, {}
-    for result in loads(get(mat_no))["results"]:
+def get_carryovers(mat_no, level=None):
+    level = int(level/100) if level else None
+    first_sem, second_sem = {}, {}
+    for result in loads(get(mat_no))["results"][:level]:
         for record in result["first_sem"]:
-            (course, grade) = (record[1], record[5])
-            first_sem[course] = grade
+            (course, credit, grade) = (record[1], record[3], record[5])
+            first_sem[course] = (grade, credit)
         for record in result["second_sem"]:
-            (course, grade) = (record[1], record[5])
-            second_sem[course] = grade
-    carryovers["first_sem"] = [course for course in first_sem if first_sem[course]=="F"]
-    carryovers["second_sem"] = [course for course in second_sem if second_sem[course]=="F"]
+            (course, credit, grade) = (record[1], record[3], record[5])
+            second_sem[course] = (grade, credit)
+
+    carryovers = {"first_sem": [], "second_sem": []}
+    for course in first_sem:
+        (grade, credit) = first_sem[course]
+        if grade == "F":
+            carryovers["first_sem"].append((course, credit))
+    for course in second_sem:
+        (grade, credit) = second_sem[course]
+        if grade == "F":
+            carryovers["second_sem"].append((course, credit))
+
     return dumps(carryovers)
 
 
