@@ -14,9 +14,11 @@ def build_db(conn):
         if level == 400:
             curr_frame['START_DATE'].where(curr_frame['COURSE_CODE'] != 'UBT400', 2012, inplace=True)
         elif level == 500:
-            optional_courses = ['MEE531', 'MEE541', 'MEE561', 'MEE591', 'MEE581', 'MEE532', 'MEE542', 'MEE562', 'MEE592', 'MEE582']
+            optional_courses = ['MEE531', 'MEE541', 'MEE561', 'MEE591', 'MEE581']
             curr_frame['START_DATE'].where(~curr_frame['COURSE_CODE'].isin(['MEE505', 'MEE506']), 2009, inplace=True)
             curr_frame['OPTIONS'].where(~curr_frame['COURSE_CODE'].isin(optional_courses), 1, inplace=True)
+            optional_courses_2 = ['MEE532', 'MEE542', 'MEE562', 'MEE592', 'MEE582']
+            curr_frame['OPTIONS'].where(~curr_frame['COURSE_CODE'].isin(optional_courses_2), 2, inplace=True)
             curr_frame.drop(curr_frame[curr_frame['COURSE_CODE'] == 'MEE500'].index, inplace=True)
         curr_frame.to_sql(tbl_name, conn, index=False, if_exists='replace')
     conn.commit()
