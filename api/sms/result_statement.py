@@ -66,11 +66,11 @@ def get_carryovers(mat_no, level=None):
     for course in first_sem:
         (grade, credit) = first_sem[course]
         if grade == "F":
-            carryovers["first_sem"].append((course, credit))
+            carryovers["first_sem"].append((course, str(credit)))
     for course in second_sem:
         (grade, credit) = second_sem[course]
         if grade == "F":
-            carryovers["second_sem"].append((course, credit))
+            carryovers["second_sem"].append((course, str(credit)))
 
     return dumps(carryovers)
 

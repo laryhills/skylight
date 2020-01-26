@@ -239,9 +239,11 @@ definitions:
             type: array
             items:
                 type: array
-                items: {}
+                items:
+                    type: string
         second_sem:
             type: array
             items:
                 type: array
-                items: {}
+                items:
+                    type: string
