@@ -15,7 +15,7 @@ conn.close()
 
 def generate_credits_table(conn, session):
     cursor = conn.cursor()
-    cursor.execute('CREATE TABLE Credits(LEVEL100 INTEGER, LEVEL200 INTEGER, LEVEL300 INTEGER, LEVEL400 INTEGER, LEVEL500 INTEGER);')
+    cursor.execute('CREATE TABLE Credits(MODE_OF_ENTRY INTEGER PRIMARY KEY, LEVEL100 INTEGER, LEVEL200 INTEGER, LEVEL300 INTEGER, LEVEL400 INTEGER, LEVEL500 INTEGER);')
     credits, level = [], 0
     for level_course in courses:
         level_credit = 0
