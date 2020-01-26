@@ -1,7 +1,7 @@
 from sys import modules
 from flask import abort
 from sms.config import db
-from sms import master_poll
+from sms import utils
 from importlib import reload
 from sms.models.master import Master, MasterSchema
 
@@ -9,7 +9,7 @@ lastLoaded = None
 
 def get(mat_no):
     #Get db file for student
-    db_name = master_poll.getDB(mat_no)[:-3]
+    db_name = utils.getDB(mat_no)[:-3]
     #Import model and force import override if necessary (session changes)
     global lastLoaded
     exec('from sms.models import _{}'.format(db_name))
