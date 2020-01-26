@@ -184,6 +184,30 @@ class Result800(db.Model):
     category = db.Column('CATEGORY', db.Text)
 
 
+class Courses(db.Model):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'Courses'
+    __table_args__ = {'extend_existing' : True}
+    mode_of_entry = db.Column('MODE_OF_ENTRY', db.Integer, primary_key=True)
+    level100 = db.Column('LEVEL100', db.Text)
+    level200 = db.Column('LEVEL200', db.Text)
+    level300 = db.Column('LEVEL300', db.Text)
+    level400 = db.Column('LEVEL400', db.Text)
+    level500 = db.Column('LEVEL500', db.Text)
+
+
+class Credits(db.Model):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'Credits'
+    __table_args__ = {'extend_existing' : True}
+    mode_of_entry = db.Column('MODE_OF_ENTRY', db.Integer, primary_key=True)
+    level100 = db.Column('LEVEL100', db.Integer)
+    level200 = db.Column('LEVEL200', db.Integer)
+    level300 = db.Column('LEVEL300', db.Integer)
+    level400 = db.Column('LEVEL400', db.Integer)
+    level500 = db.Column('LEVEL500', db.Integer)
+
+
 class PersonalInfoSchema(ma.ModelSchema):
     class Meta:
         model = PersonalInfo
@@ -242,4 +266,16 @@ class Result800Schema(ma.ModelSchema):
 class ResultSchema(ma.ModelSchema):
     class Meta:
         model = Result600
+        sqla_session = db.session
+
+
+class CoursesSchema(ma.ModelSchema):
+    class Meta:
+        model = Courses
+        sqla_session = db.session
+
+
+class CreditsSchema(ma.ModelSchema):
+    class Meta:
+        model = Credits
         sqla_session = db.session
