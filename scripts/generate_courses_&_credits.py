@@ -21,11 +21,12 @@ def generate_courses_and_credits_table(conn, session):
     credits = [0,0,0,0,0]
     level_courses = ["","","","",""]
     for level in range(5):
-        for course in courses[level][::-1]:
+        for course in courses[level]:
             code, credit, start_date, end_date, option = course
             if start_date <= session <= end_date:
                 if option:
-                    options[option] = (code, credit)
+                    if option not in options:
+                        options[option] = (code, credit)
                 else:
                     credits[level] += credit
                     level_courses[level] += code+','
