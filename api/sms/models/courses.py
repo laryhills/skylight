@@ -71,7 +71,21 @@ class Courses500(db.Model):
     options = db.Column('OPTIONS', db.Integer)
 
 
+class Options(db.Model):
+    __bind_key__ = 'courses'
+    __tablename__ = 'Options'
+    options_group = db.Column('OPTIONS_GROUP', db.Integer, primary_key=True)
+    members = db.Column('MEMBERS', db.Text)
+    default_member = db.Column('DEFAULT_MEMBER', db.Text)
+
+
 class CoursesSchema(ma.ModelSchema):
     class Meta:
         model = Courses100
+        sqla_session = db.session
+
+
+class OptionsSchema(ma.ModelSchema):
+    class Meta:
+        model = Options
         sqla_session = db.session
