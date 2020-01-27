@@ -8,7 +8,7 @@ curr_session = 2018
 db_base_dir = os.path.join(os.path.dirname(__file__), '..', 'api', 'sms', 'database')
 if not os.path.exists(os.path.join(db_base_dir, 'courses.db')): sys.exit('Run course_details.py first')
 conn = sqlite3.connect(os.path.join(db_base_dir, 'courses.db'))
-stmt = 'SELECT COURSE_CODE, COURSE_CREDIT, START_DATE, END_DATE, OPTIONS from courses{};'
+stmt = 'SELECT COURSE_CODE, COURSE_CREDIT, COURSE_SEMESTER, START_DATE, END_DATE, OPTIONS from courses{};'
 courses = [conn.execute(stmt.format(x * 100)).fetchall() for x in range(1, 6)]
 conn.close()
 
@@ -19,22 +19,24 @@ def generate_courses_and_credits_table(conn, session):
     cursor.execute('CREATE TABLE Credits(MODE_OF_ENTRY INTEGER PRIMARY_KEY, LEVEL100 INTEGER, LEVEL200 INTEGER, LEVEL300 INTEGER, LEVEL400 INTEGER, LEVEL500 INTEGER);')
     options = {}
     credits = [0,0,0,0,0]
-    level_courses = ["","","","",""]
+    level_courses = [["",""],["",""],["",""],["",""],["",""]]
     for level in range(5):
         for course in courses[level]:
-            code, credit, start_date, end_date, option = course
+            code, credit, semester, start_date, end_date, option = course
             if start_date <= session <= end_date:
                 if option:
                     if option not in options:
-                        options[option] = (code, credit)
+                        options[option] = (code, credit, semester)
                 else:
                     credits[level] += credit
-                    level_courses[level] += code+','
+                    level_courses[level][semester-1] += code+','
         for opt in options:
-            code, credit = options[opt]
+            code, credit, semester = options[opt]
             credits[level] += credit
-            level_courses[level]+=code+','
-        level_courses[level]=level_courses[level][:-1]
+            level_courses[level][semester-1] += code+','
+        level_courses[level][0]=level_courses[level][0][:-1]
+        level_courses[level][1]=level_courses[level][1][:-1]
+    level_courses = [" ".join([lvl_course[0],lvl_course[1]]) for lvl_course in level_courses]
     cursor.execute('INSERT INTO Courses VALUES (?, ?, ?, ?, ?, ?);', [1]+level_courses)
     cursor.execute('INSERT INTO Credits VALUES (?, ?, ?, ?, ?, ?);', [1]+credits)
     de_level_courses, de_credits = level_courses[:], credits[:]
