@@ -143,9 +143,9 @@ paths:
           type: string
           required: true
         - in: query
-          name: level
+          name: session
           type: integer
-          required: false
+          required: true
       responses:
         200:
           description: Success
