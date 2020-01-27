@@ -51,36 +51,12 @@ def get(mat_no):
     return dumps(student_details)
 
 
-def get_carryovers(mat_no, level=None):
-    level = int(level/100) if level else None
-    first_sem, second_sem = {}, {}
-    for result in loads(get(mat_no))["results"][:level]:
-        for record in result["first_sem"]:
-            (course, credit, grade) = (record[1], record[3], record[5])
-            first_sem[course] = (grade, credit)
-        for record in result["second_sem"]:
-            (course, credit, grade) = (record[1], record[3], record[5])
-            second_sem[course] = (grade, credit)
-
-    carryovers = {"first_sem": [], "second_sem": []}
-    for course in first_sem:
-        (grade, credit) = first_sem[course]
-        if grade == "F":
-            carryovers["first_sem"].append((course, str(credit)))
-    for course in second_sem:
-        (grade, credit) = second_sem[course]
-        if grade == "F":
-            carryovers["second_sem"].append((course, str(credit)))
-
-    return dumps(carryovers)
-
-
 def get_gpa(mat_no):
     person = loads(personal_info.get(mat_no=mat_no))
     mode_of_entry = person['mode_of_entry']
     gpas = [[0,0,0,0,0],[0,0,0,0]][mode_of_entry-1]
     level_percent = [[10,15,20,25,30],[10,20,30,40]][mode_of_entry-1]
-    level_credits = utils.getCredits(mat_no, mode_of_entry)
+    level_credits = utils.get_credits(mat_no, mode_of_entry)
     grade_weight = {"A":5, "B":4, "C":3, "D":2, "E":1, "F":0}
     
     for result in loads(get(mat_no))["results"]:

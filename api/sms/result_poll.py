@@ -8,7 +8,7 @@ lastLoaded = None
 
 def get(mat_no, level=None):
     #Get db file for student
-    db_name = utils.getDB(mat_no)[:-3]
+    db_name = utils.get_DB(mat_no)[:-3]
     #Import model and force import override if necessary (session changes)
     global lastLoaded
     exec('from sms.models import _{}'.format(db_name))
