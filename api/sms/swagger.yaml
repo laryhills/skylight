@@ -114,7 +114,7 @@ paths:
 
   /carryovers:
     get:
-      operationId: sms.result_statement.get_carryovers
+      operationId: sms.utils.get_carryovers
       summary: carryover query
       description: Gets a student carryover as at present time or level if specified
       parameters:
