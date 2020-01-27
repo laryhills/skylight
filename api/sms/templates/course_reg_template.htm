@@ -47,7 +47,7 @@ div.WordSection1
  style='border-collapse:collapse;border:none;margin-left: .3in'>
  <tr style='height:67.0pt'>
   <td style='width:54.85pt;border:none;border-bottom:solid 1.5pt'>
-    <p><img src='Uniben_logo.png' style='width:48.7pt;height:48.6pt;align-content:center;'></p>
+    <p><img src=".\sms\static\Uniben_logo.png" style='width:48.7pt;height:48.6pt;align-content:center;'></p>
   </td>
   <td width=623 valign=top style='width:467.5pt;border:none;border-bottom:solid 1.5pt;
   background:white;padding:0in 5.4pt 0in 5.4pt;height:67.0pt'>
@@ -56,7 +56,7 @@ div.WordSection1
   font-family:"Calibri Light",sans-serif'>UNIVERSITY OF BENIN, BENIN CITY</span></b></p>
   <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
   text-align:center;line-height:normal'><b><span style='font-size:16.0pt;
-  font-family:"Calibri Light",sans-serif'>FALCULTY OF ENGINEERING</span></b></p>
+  font-family:"Calibri Light",sans-serif'>FACULTY OF ENGINEERING</span></b></p>
   <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
   text-align:center;line-height:normal'><b><span style='font-size:12.0pt;
   font-family:"Calibri Light",sans-serif'>EXAMINATION COURSE REGISTRATION FORM - {{session}} SESSION</span></b></p>
@@ -337,13 +337,13 @@ style='font-size:16.0pt;line-height:107%'>REGISTER CARRY-OVER COURSES FIRST</spa
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>{{ first_sem[0] }}</p>
+    .0001pt;text-align:center;line-height:normal'>{{ first_sem_carryover_courses[0] }}</p>
     </td>
     <td width=64 style='width:48.1pt;border-top:none;border-left:none;
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>&nbsp;</p>
+    .0001pt;text-align:center;line-height:normal'>{{ first_sem_carryover_credits[0] }}</p>
     </td>
    </tr>
    <tr style='height:.25in'>
@@ -356,13 +356,13 @@ style='font-size:16.0pt;line-height:107%'>REGISTER CARRY-OVER COURSES FIRST</spa
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>{{ first_sem[1] }}</p>
+    .0001pt;text-align:center;line-height:normal'>{{ first_sem_carryover_courses[1] }}</p>
     </td>
     <td width=64 style='width:48.1pt;border-top:none;border-left:none;
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>&nbsp;</p>
+    .0001pt;text-align:center;line-height:normal'>{{ first_sem_carryover_credits[1] }}</p>
     </td>
    </tr>
    <tr style='height:.25in'>
@@ -375,13 +375,13 @@ style='font-size:16.0pt;line-height:107%'>REGISTER CARRY-OVER COURSES FIRST</spa
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>{{ first_sem[2] }}</p>
+    .0001pt;text-align:center;line-height:normal'>{{ first_sem_carryover_courses[2] }}</p>
     </td>
     <td width=64 style='width:48.1pt;border-top:none;border-left:none;
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>&nbsp;</p>
+    .0001pt;text-align:center;line-height:normal'>{{ first_sem_carryover_credits[2] }}</p>
     </td>
    </tr>
    <tr style='height:.25in'>
@@ -394,13 +394,13 @@ style='font-size:16.0pt;line-height:107%'>REGISTER CARRY-OVER COURSES FIRST</spa
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>{{ first_sem[3] }}</p>
+    .0001pt;text-align:center;line-height:normal'>{{ first_sem_carryover_courses[3] }}</p>
     </td>
     <td width=64 style='width:48.1pt;border-top:none;border-left:none;
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>&nbsp;</p>
+    .0001pt;text-align:center;line-height:normal'>{{ first_sem_carryover_credits[3] }}</p>
     </td>
    </tr>
    <tr style='height:.25in'>
@@ -413,13 +413,13 @@ style='font-size:16.0pt;line-height:107%'>REGISTER CARRY-OVER COURSES FIRST</spa
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>{{ first_sem[4] }}</p>
+    .0001pt;text-align:center;line-height:normal'>{{ first_sem_carryover_courses[4] }}</p>
     </td>
     <td width=64 style='width:48.1pt;border-top:none;border-left:none;
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>&nbsp;</p>
+    .0001pt;text-align:center;line-height:normal'>{{ first_sem_carryover_credits[4] }}</p>
     </td>
    </tr>
    <tr style='height:.25in'>
@@ -432,13 +432,13 @@ style='font-size:16.0pt;line-height:107%'>REGISTER CARRY-OVER COURSES FIRST</spa
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>{{ first_sem[5] }}</p>
+    .0001pt;text-align:center;line-height:normal'>{{ first_sem_carryover_courses[5] }}</p>
     </td>
     <td width=64 style='width:48.1pt;border-top:none;border-left:none;
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>&nbsp;</p>
+    .0001pt;text-align:center;line-height:normal'>{{ first_sem_carryover_credits[5] }}</p>
     </td>
    </tr>
    <tr style='height:.25in'>
@@ -451,13 +451,13 @@ style='font-size:16.0pt;line-height:107%'>REGISTER CARRY-OVER COURSES FIRST</spa
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>{{ first_sem[6] }}</p>
+    .0001pt;text-align:center;line-height:normal'>{{ first_sem_carryover_courses[6] }}</p>
     </td>
     <td width=64 style='width:48.1pt;border-top:none;border-left:none;
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>&nbsp;</p>
+    .0001pt;text-align:center;line-height:normal'>{{ first_sem_carryover_credits[6] }}</p>
     </td>
    </tr>
    <tr style='height:.25in'>
@@ -470,13 +470,13 @@ style='font-size:16.0pt;line-height:107%'>REGISTER CARRY-OVER COURSES FIRST</spa
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>{{ first_sem[7] }}</p>
+    .0001pt;text-align:center;line-height:normal'>{{ first_sem_carryover_courses[7] }}</p>
     </td>
     <td width=64 style='width:48.1pt;border-top:none;border-left:none;
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>&nbsp;</p>
+    .0001pt;text-align:center;line-height:normal'>{{ first_sem_carryover_credits[7] }}</p>
     </td>
    </tr>
    <tr style='height:.25in'>
@@ -489,13 +489,13 @@ style='font-size:16.0pt;line-height:107%'>REGISTER CARRY-OVER COURSES FIRST</spa
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>{{ first_sem[8] }}</p>
+    .0001pt;text-align:center;line-height:normal'>{{ first_sem_carryover_courses[8] }}</p>
     </td>
     <td width=64 style='width:48.1pt;border-top:none;border-left:none;
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>&nbsp;</p>
+    .0001pt;text-align:center;line-height:normal'>{{ first_sem_carryover_credits[8] }}</p>
     </td>
    </tr>
    <tr style='height:.25in'>
@@ -508,13 +508,13 @@ style='font-size:16.0pt;line-height:107%'>REGISTER CARRY-OVER COURSES FIRST</spa
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>{{ first_sem[9] }}</p>
+    .0001pt;text-align:center;line-height:normal'>{{ first_sem_carryover_courses[9] }}</p>
     </td>
     <td width=64 style='width:48.1pt;border-top:none;border-left:none;
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>&nbsp;</p>
+    .0001pt;text-align:center;line-height:normal'>{{ first_sem_carryover_credits[9] }}</p>
     </td>
    </tr>
    <tr style='height:.25in'>
@@ -527,13 +527,13 @@ style='font-size:16.0pt;line-height:107%'>REGISTER CARRY-OVER COURSES FIRST</spa
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>{{ first_sem[10] }}</p>
+    .0001pt;text-align:center;line-height:normal'>{{ first_sem_carryover_courses[10] }}</p>
     </td>
     <td width=64 style='width:48.1pt;border-top:none;border-left:none;
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>&nbsp;</p>
+    .0001pt;text-align:center;line-height:normal'>{{ first_sem_carryover_credits[10] }}</p>
     </td>
    </tr>
    <tr style='height:.25in'>
@@ -546,13 +546,13 @@ style='font-size:16.0pt;line-height:107%'>REGISTER CARRY-OVER COURSES FIRST</spa
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>{{ first_sem[11] }}</p>
+    .0001pt;text-align:center;line-height:normal'>{{ first_sem_carryover_courses[11] }}</p>
     </td>
     <td width=64 style='width:48.1pt;border-top:none;border-left:none;
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>&nbsp;</p>
+    .0001pt;text-align:center;line-height:normal'>{{ first_sem_carryover_credits[11] }}</p>
     </td>
    </tr>
    <tr style='height:.25in'>
@@ -606,13 +606,13 @@ style='font-size:16.0pt;line-height:107%'>REGISTER CARRY-OVER COURSES FIRST</spa
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>{{ second_sem[0] }}</p>
+    .0001pt;text-align:center;line-height:normal'>{{ second_sem_carryover_courses[0] }}</p>
     </td>
     <td width=70 style='width:52.35pt;border-top:none;border-left:none;
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>&nbsp;</p>
+    .0001pt;text-align:center;line-height:normal'>{{ second_sem_carryover_credits[0] }}</p>
     </td>
    </tr>
    <tr style='height:.25in'>
@@ -625,13 +625,13 @@ style='font-size:16.0pt;line-height:107%'>REGISTER CARRY-OVER COURSES FIRST</spa
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>{{ second_sem[1] }}</p>
+    .0001pt;text-align:center;line-height:normal'>{{ second_sem_carryover_courses[1] }}</p>
     </td>
     <td width=70 style='width:52.35pt;border-top:none;border-left:none;
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>&nbsp;</p>
+    .0001pt;text-align:center;line-height:normal'>{{ second_sem_carryover_credits[1] }}</p>
     </td>
    </tr>
    <tr style='height:.25in'>
@@ -644,13 +644,13 @@ style='font-size:16.0pt;line-height:107%'>REGISTER CARRY-OVER COURSES FIRST</spa
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>{{ second_sem[2] }}</p>
+    .0001pt;text-align:center;line-height:normal'>{{ second_sem_carryover_courses[2] }}</p>
     </td>
     <td width=70 style='width:52.35pt;border-top:none;border-left:none;
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>&nbsp;</p>
+    .0001pt;text-align:center;line-height:normal'>{{ second_sem_carryover_credits[2] }}</p>
     </td>
    </tr>
    <tr style='height:.25in'>
@@ -663,13 +663,13 @@ style='font-size:16.0pt;line-height:107%'>REGISTER CARRY-OVER COURSES FIRST</spa
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>{{ second_sem[3] }}</p>
+    .0001pt;text-align:center;line-height:normal'>{{ second_sem_carryover_courses[3] }}</p>
     </td>
     <td width=70 style='width:52.35pt;border-top:none;border-left:none;
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>&nbsp;</p>
+    .0001pt;text-align:center;line-height:normal'>{{ second_sem_carryover_credits[3] }}</p>
     </td>
    </tr>
    <tr style='height:.25in'>
@@ -682,13 +682,13 @@ style='font-size:16.0pt;line-height:107%'>REGISTER CARRY-OVER COURSES FIRST</spa
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>{{ second_sem[4] }}</p>
+    .0001pt;text-align:center;line-height:normal'>{{ second_sem_carryover_courses[4] }}</p>
     </td>
     <td width=70 style='width:52.35pt;border-top:none;border-left:none;
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>&nbsp;</p>
+    .0001pt;text-align:center;line-height:normal'>{{ second_sem_carryover_credits[4] }}</p>
     </td>
    </tr>
    <tr style='height:.25in'>
@@ -701,13 +701,13 @@ style='font-size:16.0pt;line-height:107%'>REGISTER CARRY-OVER COURSES FIRST</spa
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>{{ second_sem[5] }}</p>
+    .0001pt;text-align:center;line-height:normal'>{{ second_sem_carryover_courses[5] }}</p>
     </td>
     <td width=70 style='width:52.35pt;border-top:none;border-left:none;
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>&nbsp;</p>
+    .0001pt;text-align:center;line-height:normal'>{{ second_sem_carryover_credits[5] }}</p>
     </td>
    </tr>
    <tr style='height:.25in'>
@@ -720,13 +720,13 @@ style='font-size:16.0pt;line-height:107%'>REGISTER CARRY-OVER COURSES FIRST</spa
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>{{ second_sem[6] }}</p>
+    .0001pt;text-align:center;line-height:normal'>{{ second_sem_carryover_courses[6] }}</p>
     </td>
     <td width=70 style='width:52.35pt;border-top:none;border-left:none;
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>&nbsp;</p>
+    .0001pt;text-align:center;line-height:normal'>{{ second_sem_carryover_credits[6] }}</p>
     </td>
    </tr>
    <tr style='height:.25in'>
@@ -739,13 +739,13 @@ style='font-size:16.0pt;line-height:107%'>REGISTER CARRY-OVER COURSES FIRST</spa
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>{{ second_sem[7] }}</p>
+    .0001pt;text-align:center;line-height:normal'>{{ second_sem_carryover_courses[7] }}</p>
     </td>
     <td width=70 style='width:52.35pt;border-top:none;border-left:none;
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>&nbsp;</p>
+    .0001pt;text-align:center;line-height:normal'>{{ second_sem_carryover_credits[7] }}</p>
     </td>
    </tr>
    <tr style='height:.25in'>
@@ -758,13 +758,13 @@ style='font-size:16.0pt;line-height:107%'>REGISTER CARRY-OVER COURSES FIRST</spa
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>{{ second_sem[8] }}</p>
+    .0001pt;text-align:center;line-height:normal'>{{ second_sem_carryover_courses[8] }}</p>
     </td>
     <td width=70 style='width:52.35pt;border-top:none;border-left:none;
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>&nbsp;</p>
+    .0001pt;text-align:center;line-height:normal'>{{ second_sem_carryover_credits[8] }}</p>
     </td>
    </tr>
    <tr style='height:.25in'>
@@ -777,13 +777,13 @@ style='font-size:16.0pt;line-height:107%'>REGISTER CARRY-OVER COURSES FIRST</spa
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>{{ second_sem[9] }}</p>
+    .0001pt;text-align:center;line-height:normal'>{{ second_sem_carryover_courses[9] }}</p>
     </td>
     <td width=70 style='width:52.35pt;border-top:none;border-left:none;
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>&nbsp;</p>
+    .0001pt;text-align:center;line-height:normal'>{{ second_sem_carryover_credits[9] }}</p>
     </td>
    </tr>
    <tr style='height:.25in'>
@@ -796,13 +796,13 @@ style='font-size:16.0pt;line-height:107%'>REGISTER CARRY-OVER COURSES FIRST</spa
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>{{ second_sem[10] }}</p>
+    .0001pt;text-align:center;line-height:normal'>{{ second_sem_carryover_courses[10] }}</p>
     </td>
     <td width=70 style='width:52.35pt;border-top:none;border-left:none;
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>&nbsp;</p>
+    .0001pt;text-align:center;line-height:normal'>{{ second_sem_carryover_credits[10] }}</p>
     </td>
    </tr>
    <tr style='height:.25in'>
@@ -815,13 +815,13 @@ style='font-size:16.0pt;line-height:107%'>REGISTER CARRY-OVER COURSES FIRST</spa
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>{{ second_sem[11] }}</p>
+    .0001pt;text-align:center;line-height:normal'>{{ second_sem_carryover_courses[11] }}</p>
     </td>
     <td width=70 style='width:52.35pt;border-top:none;border-left:none;
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt;height:.25in'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'>&nbsp;</p>
+    .0001pt;text-align:center;line-height:normal'>{{ second_sem_carryover_credits[11] }}</p>
     </td>
    </tr>
    <tr style='height:.25in'>
