@@ -25,7 +25,7 @@ def generate_credits_table(conn, session):
                 level_credit += course[1]
         if level == 5: level_credit -= (8 * 3)
         credits.append(level_credit)
-    cursor.execute('INSERT INTO Credits VALUES (1, ?, ?, ?, ?);', credits)
+    cursor.execute('INSERT INTO Credits VALUES (1, ?, ?, ?, ?, ?);', credits)
     credits[0] = 0
     credits[1] += 10
     cursor.execute('INSERT INTO Credits VALUES (2, ?, ?, ?, ?, ?);', credits)
