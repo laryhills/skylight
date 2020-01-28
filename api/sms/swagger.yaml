@@ -149,6 +149,12 @@ paths:
       responses:
         200:
           description: Success
+          schema:
+            type: object
+            properties:
+              uri:
+                type: string
+                description: Path to the generated course form
 
 definitions:
   PersonalInfo:
