@@ -22,7 +22,7 @@ def get(mat_no):
             category = result.pop('category')
             if lvl:
                 carryovers = result.pop('carryovers')
-                if carryovers != "nan, F":
+                if carryovers != "0,F":
                     carryovers = carryovers.split(',')
                     for co in carryovers:
                         (course, score, grade) = co.split()
