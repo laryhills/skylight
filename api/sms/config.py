@@ -29,7 +29,8 @@ app.config['SQLALCHEMY_BINDS'] = {'master': 'sqlite:///' + os.path.join(db_path,
                                   '2014-2015': 'sqlite:///' + os.path.join(db_path, '2014-2015.db'),
                                   '2015-2016': 'sqlite:///' + os.path.join(db_path, '2015-2016.db'),
                                   '2016-2017': 'sqlite:///' + os.path.join(db_path, '2016-2017.db'),
-                                  '2017-2018': 'sqlite:///' + os.path.join(db_path, '2017-2018.db')}
+                                  '2017-2018': 'sqlite:///' + os.path.join(db_path, '2017-2018.db'),
+                                  '2018-2019': 'sqlite:///' + os.path.join(db_path, '2018-2019.db')}
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
 db = SQLAlchemy(app)
