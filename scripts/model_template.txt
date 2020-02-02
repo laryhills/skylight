@@ -207,6 +207,172 @@ class Credits(db.Model):
     level500 = db.Column('LEVEL500', db.Integer)
 
 
+class CourseReg100(db.Model):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'CourseReg100'
+    __table_args__ = {'extend_existing' : True}
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    CHM111 = db.Column(db.Text)
+    CHM113 = db.Column(db.Text)
+    CHM122 = db.Column(db.Text)
+    CHM124 = db.Column(db.Text)
+    GST111 = db.Column(db.Text)
+    GST112 = db.Column(db.Text)
+    GST121 = db.Column(db.Text)
+    GST122 = db.Column(db.Text)
+    GST123 = db.Column(db.Text)
+    MTH110 = db.Column(db.Text)
+    MTH112 = db.Column(db.Text)
+    MTH123 = db.Column(db.Text)
+    MTH125 = db.Column(db.Text)
+    PHY109 = db.Column(db.Text)
+    PHY111 = db.Column(db.Text)
+    PHY113 = db.Column(db.Text)
+    PHY124 = db.Column(db.Text)
+    probation = db.Column('PROBATION',db.Integer)
+    others = db.Column('OTHERS', db.Text)
+
+
+class CourseReg200(db.Model):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'CourseReg200'
+    __table_args__ = {'extend_existing' : True}
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    CHE222 = db.Column(db.Text)
+    CVE211 = db.Column(db.Text)
+    ECP281 = db.Column(db.Text)
+    EEE211 = db.Column(db.Text)
+    EEE212 = db.Column(db.Text)
+    ELA201 = db.Column(db.Text)
+    ELA202 = db.Column(db.Text)
+    EMA281 = db.Column(db.Text)
+    EMA282 = db.Column(db.Text)
+    ENS211 = db.Column(db.Text)
+    MEE211 = db.Column(db.Text)
+    MEE212 = db.Column(db.Text)
+    MEE221 = db.Column(db.Text)
+    MEE222 = db.Column(db.Text)
+    PRE211 = db.Column(db.Text)
+    PRE212 = db.Column(db.Text)
+    carryovers = db.Column('CARRYOVERS', db.Text)
+    probation = db.Column('PROBATION',db.Integer)
+    others = db.Column('OTHERS', db.Text)
+
+
+class CourseReg300(db.Model):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'CourseReg300'
+    __table_args__ = {'extend_existing' : True}
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    CVE311 = db.Column(db.Text)
+    EEE317 = db.Column(db.Text)
+    EEE318 = db.Column(db.Text)
+    ELA301 = db.Column(db.Text)
+    ELA302 = db.Column(db.Text)
+    EMA381 = db.Column(db.Text)
+    EMA382 = db.Column(db.Text)
+    MEE311 = db.Column(db.Text)
+    MEE312 = db.Column(db.Text)
+    MEE321 = db.Column(db.Text)
+    MEE322 = db.Column(db.Text)
+    MEE332 = db.Column(db.Text)
+    MEE342 = db.Column(db.Text)
+    MEE351 = db.Column(db.Text)
+    MEE352 = db.Column(db.Text)
+    MEE361 = db.Column(db.Text)
+    MEE362 = db.Column(db.Text)
+    MEE372 = db.Column(db.Text)
+    PRE311 = db.Column(db.Text)
+    carryovers = db.Column('CARRYOVERS', db.Text)
+    probation = db.Column('PROBATION',db.Integer)
+    others = db.Column('OTHERS', db.Text)
+
+
+class CourseReg400(db.Model):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'CourseReg400'
+    __table_args__ = {'extend_existing' : True}
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    CED300 = db.Column(db.Text)
+    ELA401 = db.Column(db.Text)
+    EMA481 = db.Column(db.Text)
+    MEE411 = db.Column(db.Text)
+    MEE421 = db.Column(db.Text)
+    MEE431 = db.Column(db.Text)
+    MEE441 = db.Column(db.Text)
+    MEE451 = db.Column(db.Text)
+    MEE461 = db.Column(db.Text)
+    MEE471 = db.Column(db.Text)
+    UBT400 = db.Column(db.Text)
+    carryovers = db.Column('CARRYOVERS', db.Text)
+    probation = db.Column('PROBATION',db.Integer)
+    others = db.Column('OTHERS', db.Text)
+
+
+class CourseReg500(db.Model):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'CourseReg500'
+    __table_args__ = {'extend_existing' : True}
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    MEE501 = db.Column(db.Text)
+    MEE502 = db.Column(db.Text)
+    MEE505 = db.Column(db.Text)
+    MEE506 = db.Column(db.Text)
+    MEE511 = db.Column(db.Text)
+    MEE512 = db.Column(db.Text)
+    MEE521 = db.Column(db.Text)
+    MEE522 = db.Column(db.Text)
+    MEE531 = db.Column(db.Text)
+    MEE532 = db.Column(db.Text)
+    MEE541 = db.Column(db.Text)
+    MEE542 = db.Column(db.Text)
+    MEE551 = db.Column(db.Text)
+    MEE552 = db.Column(db.Text)
+    MEE561 = db.Column(db.Text)
+    MEE562 = db.Column(db.Text)
+    MEE571 = db.Column(db.Text)
+    MEE572 = db.Column(db.Text)
+    MEE581 = db.Column(db.Text)
+    MEE582 = db.Column(db.Text)
+    MEE591 = db.Column(db.Text)
+    MEE592 = db.Column(db.Text)
+    PRE571 = db.Column(db.Text)
+    PRE572 = db.Column(db.Text)
+    carryovers = db.Column('CARRYOVERS', db.Text)
+    probation = db.Column('PROBATION',db.Integer)
+    others = db.Column('OTHERS', db.Text)
+
+
+class CourseReg600(db.Model):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'CourseReg600'
+    __table_args__ = {'extend_existing' : True}
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    carryovers = db.Column('CARRYOVERS', db.Text)
+    probation = db.Column('PROBATION',db.Integer)
+    others = db.Column('OTHERS', db.Text)
+
+
+class CourseReg700(db.Model):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'CourseReg700'
+    __table_args__ = {'extend_existing' : True}
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    carryovers = db.Column('CARRYOVERS', db.Text)
+    probation = db.Column('PROBATION',db.Integer)
+    others = db.Column('OTHERS', db.Text)
+
+
+class CourseReg800(db.Model):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'CourseReg800'
+    __table_args__ = {'extend_existing' : True}
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    carryovers = db.Column('CARRYOVERS', db.Text)
+    probation = db.Column('PROBATION',db.Integer)
+    others = db.Column('OTHERS', db.Text)
+
+
 class PersonalInfoSchema(ma.ModelSchema):
     class Meta:
         model = PersonalInfo
@@ -277,4 +443,52 @@ class CoursesSchema(ma.ModelSchema):
 class CreditsSchema(ma.ModelSchema):
     class Meta:
         model = Credits
+        sqla_session = db.session
+
+
+class CourseReg100Schema(ma.ModelSchema):
+    class Meta:
+        model = CourseReg100
+        sqla_session = db.session
+
+
+class CourseReg200Schema(ma.ModelSchema):
+    class Meta:
+        model = CourseReg200
+        sqla_session = db.session
+
+
+class CourseReg300Schema(ma.ModelSchema):
+    class Meta:
+        model = CourseReg300
+        sqla_session = db.session
+
+
+class CourseReg400Schema(ma.ModelSchema):
+    class Meta:
+        model = CourseReg400
+        sqla_session = db.session
+
+
+class CourseReg500Schema(ma.ModelSchema):
+    class Meta:
+        model = CourseReg500
+        sqla_session = db.session
+
+
+class CourseReg600Schema(ma.ModelSchema):
+    class Meta:
+        model = CourseReg600
+        sqla_session = db.session
+
+
+class CourseReg700Schema(ma.ModelSchema):
+    class Meta:
+        model = CourseReg700
+        sqla_session = db.session
+
+
+class CourseReg800Schema(ma.ModelSchema):
+    class Meta:
+        model = CourseReg800
         sqla_session = db.session
