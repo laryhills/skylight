@@ -7,7 +7,7 @@ from sms.models.master import Master, MasterSchema
 
 lastLoaded = None
 
-def get(mat_no):
+def get(mat_no, retJSON=True):
     #Get db file for student
     db_name = utils.get_DB(mat_no)[:-3]
     #Import model and force import override if necessary (session changes)
@@ -21,7 +21,9 @@ def get(mat_no):
     PersonalInfoSchema = eval('_{}.PersonalInfoSchema'.format(db_name))
     student_data = PersonalInfo.query.filter_by(mat_no=mat_no).first_or_404()
     personalinfo_schema = PersonalInfoSchema()
-    return personalinfo_schema.dumps(student_data)
+    if retJSON:
+        return personalinfo_schema.dumps(student_data)
+    return personalinfo_schema.dump(student_data)
 
 def post(student_data):
     global PersonalInfo, PersonalInfoSchema
