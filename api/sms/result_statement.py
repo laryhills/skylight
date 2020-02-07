@@ -1,5 +1,4 @@
 from sms import utils
-from sms import result_poll
 from sms import personal_info
 from sms import course_details
 from json import loads, dumps
@@ -12,7 +11,7 @@ def get(mat_no, retJSON=True):
                        "dob": person['date_of_birth'], "mode_of_entry": person['mode_of_entry'], "results": [], "credits": [],
                        "category": [], "entry_session": person['session_admitted'], "grad_session": person['session_grad']}
     
-    results = loads(result_poll.get(mat_no))
+    results = utils.result_poll(mat_no)
     finalResults = []
     
     for lvl in range(8):
