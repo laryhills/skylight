@@ -39,22 +39,24 @@ def get_level(mat_no, next = False):
     # if next = True, return next level else current level
     curr_level = personal_info.get(mat_no, 0)['current_level']
     result_stmt = result_statement.get(mat_no, 0)
-    if curr_level == 0:
-        results = result_stmt["results"]
-        if not results:
-            print ("No result for", mat_no, "can't det level")
-            return 0
-        last_result = results[-1]["first_sem"] + results[-1]["second_sem"]
-        course_levels = [course_details.get(code, 0)["course_level"]
-                         for lvl, code, title, weight, score, grade in last_result]
-        curr_level = max(course_levels)
-    else:
-        if not result_stmt["results"]:
-            print ("WARNING: No result record for", mat_no, "using stored level record")
+    results = result_stmt["results"]
+    if curr_level and not results:
+        # current level on record, if no result - be optimistic on moving to next level
+        print ("WARNING: No result record for", mat_no, "using stored level record")
             if not next:
                 return curr_level
             return curr_level + 100
-
+    if curr_level == 0:
+        if not results:
+            print ("No result for", mat_no, "can't det level")
+            return 0
+        else:
+            # No level record, use highest courses written to estimate
+            last_result = results[-1]["first_sem"] + results[-1]["second_sem"]
+            course_levels = [course_details.get(code, 0)["course_level"]
+                             for lvl, code, title, weight, score, grade in last_result]
+            curr_level = max(course_levels)
+    # current level presently determined, if next determine using results
     if next:
         if curr_level >= 500:
             inc_level = [0, 100][result_stmt["category"][-1] in ('A')]
