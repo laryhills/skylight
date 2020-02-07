@@ -1,24 +1,14 @@
-from sys import modules
 from flask import abort
 from sms.config import db
 from sms import utils
-from importlib import reload
 from sms.models.master import Master, MasterSchema
 
-lastLoaded = None
 
 def get(mat_no, retJSON=True):
-    #Get db file for student
     db_name = utils.get_DB(mat_no)[:-3]
-    #Import model and force import override if necessary (session changes)
-    global lastLoaded
-    exec('from sms.models import _{}'.format(db_name))
-    if ('sms.models._{}'.format(db_name) in modules) and (lastLoaded!=db_name):
-        exec('reload(_{})'.format(db_name))
-    lastLoaded = db_name
-    #Get PersonalInfo
-    PersonalInfo = eval('_{}.PersonalInfo'.format(db_name))
-    PersonalInfoSchema = eval('_{}.PersonalInfoSchema'.format(db_name))
+    session = utils.load_session(db_name)
+    PersonalInfo = session.PersonalInfo
+    PersonalInfoSchema = session.PersonalInfoSchema
     student_data = PersonalInfo.query.filter_by(mat_no=mat_no).first_or_404()
     personalinfo_schema = PersonalInfoSchema()
     if retJSON:
