@@ -24,17 +24,50 @@ def get_DB(mat_no):
     return db_name.replace('-', '_')
 
 
-def get_credits(mat_no, mode_of_entry=None):
-    db_name = get_DB(mat_no)[:-3]
+def load_session(session):
     #Import model and force import override if necessary (session changes)
     global lastLoaded
-    exec('from sms.models import _{}'.format(db_name))
-    if ('sms.models._{}'.format(db_name) in modules) and (lastLoaded!=db_name):
-        exec('reload(_{})'.format(db_name))
-    lastLoaded = db_name
+    exec('from sms.models import _{}'.format(session))
+    if ('sms.models._{}'.format(session) in modules) and (lastLoaded!=session):
+        exec('reload(_{})'.format(session))
+    lastLoaded = session
+    return eval('_{}'.format(session))
 
-    Credits = eval('_{}.Credits'.format(db_name))
-    CreditsSchema = eval('_{}.CreditsSchema'.format(db_name))
+
+def get_level(mat_no, next = False):
+    # 0 - do estimate level; 600 - is graduate, 100-500 spill inc
+    # if next = True, return next level else current level
+    curr_level = personal_info.get(mat_no, 0)['current_level']
+    result_stmt = result_statement.get(mat_no, 0)
+    if curr_level == 0:
+        results = result_stmt["results"]
+        if not results:
+            print ("No result for", mat_no, "can't det level")
+            return 0
+        last_result = results[-1]["first_sem"] + results[-1]["second_sem"]
+        course_levels = [course_details.get(code, 0)["course_level"]
+                         for lvl, code, title, weight, score, grade in last_result]
+        curr_level = max(course_levels)
+    else:
+        if not result_stmt["results"]:
+            print ("WARNING: No result record for", mat_no, "using stored level record")
+            if not next:
+                return curr_level
+            return curr_level + 100
+
+    if next:
+        if curr_level >= 500:
+            inc_level = [0, 100][result_stmt["category"][-1] in ('A')]
+        else:
+            inc_level = [0, 100][result_stmt["category"][-1] in ('A', 'B')]
+        return curr_level + inc_level
+    return curr_level
+
+
+def get_credits(mat_no, mode_of_entry=None):
+    db_name = get_DB(mat_no)[:-3]
+    session = utils.load_session(db_name)
+    Credits, CreditsSchema = session.Credits, session.CreditsSchema
 
     if not mode_of_entry:
         person = loads(personal_info.get(mat_no=mat_no))
@@ -47,15 +80,8 @@ def get_credits(mat_no, mode_of_entry=None):
 
 def get_courses(mat_no, mode_of_entry=None):
     db_name = get_DB(mat_no)[:-3]
-    #Import model and force import override if necessary (session changes)
-    global lastLoaded
-    exec('from sms.models import _{}'.format(db_name))
-    if ('sms.models._{}'.format(db_name) in modules) and (lastLoaded!=db_name):
-        exec('reload(_{})'.format(db_name))
-    lastLoaded = db_name
-
-    Courses = eval('_{}.Courses'.format(db_name))
-    CoursesSchema = eval('_{}.CoursesSchema'.format(db_name))
+    session = utils.load_session(db_name)
+    Courses, CoursesSchema = session.Courses, session.CoursesSchema
 
     if not mode_of_entry:
         person = loads(personal_info.get(mat_no=mat_no))
@@ -67,79 +93,85 @@ def get_courses(mat_no, mode_of_entry=None):
     for lvl in range(100,600,100):
         course_string = courses['level{}'.format(lvl)]
         if course_string:
-            first_sem, second_sem = course_string.split()
-            level_courses.append([first_sem.split(','),second_sem.split(',')])
+            if len(course_string.split()) == 1:
+                #Handle abscence of UBITS / sec sem
+                first_sem = course_string.split()[0]
+                level_courses.append([first_sem.split(','),[]])
+            else:
+                first_sem, second_sem = course_string.split()
+                level_courses.append([first_sem.split(','),second_sem.split(',')])
         else:
             level_courses.append(None)
     return level_courses
 
 
-def get_carryovers(mat_no, level=None):
-    level = int(level/100) if level else None
-    first_sem = [set(x[0]) for x in get_courses(mat_no)[:level] if x]
-    second_sem = [set(x[1]) for x in get_courses(mat_no)[:level] if x]
-    results = loads(result_statement.get(mat_no))["results"][:level]
+def get_carryovers(mat_no, retJSON=True):
+    level = get_level(mat_no)
+    first_sem, second_sem = set(), set()
+    results = loads(result_statement.get(mat_no))["results"]
+    for course in get_courses(mat_no)[:int(level/100)]:
+        first_sem |= set(course[0] if course else set())
+        second_sem |= set(course[1] if course else set())
 
-    options = {}
-    for option in Options.query.all():
-        option=OptionsSchema().dump(option)
-        options[option['options_group']] = {'members': option['members'],
-                                            'default_member': option['default_member']}
+    person = loads(personal_info.get(mat_no))
+    person_option = person['option'].split(',') if person['option'] else None
+    if person_option:
+        # Put in option if registered
+        options = []
+        for option in Options.query.all():
+            option=OptionsSchema().dump(option)
+            options.append({'members': option['members'],
+                            'group': option['options_group'],
+                            'default': option['default_member']})
+
+        for opt in person_option:
+            for option in options:
+                if opt in option["members"].split(','):
+                    default = option["default"]
+                    sem = course_details.get(default,0)["course_semester"]
+                    if default != opt:
+                        [first_sem, second_sem][sem-1].remove(default)
+                        [first_sem, second_sem][sem-1].add(opt)
 
     for result in results:
         for record in result["first_sem"]:
             (course, credit, grade) = (record[1], record[3], record[5])
-
-            option = loads(course_details.get(course))["options"]
-            if option:
-                def_course = options[option]["default_member"]
-                if course != def_course:
-                    if grade == "F":
-                        for courses in first_sem:
-                            if def_course in courses:
-                                courses.remove(def_course)
-                                courses.add(course)
-                                break
-                    else:
-                        for courses in first_sem:
-                            if def_course in courses:
-                                courses.remove(def_course)
-                                break
-            if grade != "F":
-                for courses in first_sem:
-                    if course in courses:
-                        courses.remove(course)
+            if grade not in ("F", "ABS"):
+                if course in first_sem:
+                    first_sem.remove(course)
 
         for record in result["second_sem"]:
             (course, credit, grade) = (record[1], record[3], record[5])
+            if grade not in ("F", "ABS"):
+                if course in second_sem:
+                    second_sem.remove(course)
 
-            option = loads(course_details.get(course))["options"]
-            if option:
-                def_course = options[option]["default_member"]
-                if course != def_course:
-                    if grade == "F":
-                        for courses in second_sem:
-                            if def_course in courses:
-                                courses.remove(def_course)
-                                courses.add(course)
-                                break
-                    else:
-                        for courses in second_sem:
-                            if def_course in courses:
-                                courses.remove(def_course)
-                                break
-            if grade != "F":
-                for courses in second_sem:
-                    if course in courses:
-                        courses.remove(course)
+    if level == get_level(mat_no,1) and level in (200, 300, 400):
+        # Handle probation carryovers
+        print ("Probating {} student".format(level))
+        first_sem |= set(get_courses(mat_no)[int(level/100)-1][0])
+        second_sem |= set(get_courses(mat_no)[int(level/100)-1][1])
 
     carryovers = {"first_sem":[],"second_sem":[]}
-    for lvl_co in first_sem:
-        for failed_course in lvl_co:
-            credit = loads(course_details.get(failed_course))["course_credit"]
-            carryovers["first_sem"].append([failed_course, str(credit)])
-    for lvl_co in second_sem:
-        for failed_course in lvl_co:
-            credit = loads(course_details.get(failed_course))["course_credit"]
-            carryovers["second_sem"].append([failed_course, str(credit)])
-    return dumps(carryovers)
+    for failed_course in first_sem:
+        credit = loads(course_details.get(failed_course))["course_credit"]
+        carryovers["first_sem"].append([failed_course, str(credit)])
+    for failed_course in second_sem:
+        credit = loads(course_details.get(failed_course))["course_credit"]
+        carryovers["second_sem"].append([failed_course, str(credit)])
+    if retJSON:
+        return dumps(carryovers)
+    return carryovers
+
+
+def result_poll(mat_no, level=None):
+    #Get result for all levels if level=None else for level
+    db_name = get_DB(mat_no)[:-3]
+    session = load_session(db_name)
+    ans=[]
+    levels = [level] if level else range(100,900,100)
+    for level in levels:
+        resLvl = eval('session.Result{}.query.filter_by(mat_no=mat_no).first()'.format(level))
+        resStr = eval('session.Result{}Schema().dump(resLvl)'.format(level))
+        ans.append(resStr)
+    return ans
