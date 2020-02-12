@@ -31,6 +31,12 @@ app.config['SQLALCHEMY_BINDS'] = {'master': 'sqlite:///' + os.path.join(db_path,
                                   '2016-2017': 'sqlite:///' + os.path.join(db_path, '2016-2017.db'),
                                   '2017-2018': 'sqlite:///' + os.path.join(db_path, '2017-2018.db'),
                                   '2018-2019': 'sqlite:///' + os.path.join(db_path, '2018-2019.db')}
+
+# Please let there be a more automatic way to add new sessions
+# than new commits
+# Btw I found 0 usages of this file in the whole project
+# How come?
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
 db = SQLAlchemy(app)
