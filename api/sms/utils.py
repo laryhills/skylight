@@ -43,9 +43,9 @@ def get_level(mat_no, next = False):
     if curr_level and not results:
         # current level on record, if no result - be optimistic on moving to next level
         print ("WARNING: No result record for", mat_no, "using stored level record")
-            if not next:
-                return curr_level
-            return curr_level + 100
+        if not next:
+            return curr_level
+        return curr_level + 100
     if curr_level == 0:
         if not results:
             print ("No result for", mat_no, "can't det level")
