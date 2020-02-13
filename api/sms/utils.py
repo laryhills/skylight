@@ -7,6 +7,7 @@ from sms import result_statement
 from sms import course_details
 from sms.models.master import Master, MasterSchema
 from sms.models.courses import Options, OptionsSchema
+from sms import utils as utils
 
 '''
 Handle frequently called or single use simple utility functions
