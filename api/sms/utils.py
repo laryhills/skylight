@@ -7,7 +7,6 @@ from sms import result_statement
 from sms import course_details
 from sms.models.master import Master, MasterSchema
 from sms.models.courses import Options, OptionsSchema
-from sms import utils as utils
 
 '''
 Handle frequently called or single use simple utility functions
@@ -69,7 +68,7 @@ def get_level(mat_no, next = False):
 
 def get_credits(mat_no, mode_of_entry=None):
     db_name = get_DB(mat_no)[:-3]
-    session = utils.load_session(db_name)
+    session = load_session(db_name)
     Credits, CreditsSchema = session.Credits, session.CreditsSchema
 
     if not mode_of_entry:
@@ -83,7 +82,7 @@ def get_credits(mat_no, mode_of_entry=None):
 
 def get_courses(mat_no, mode_of_entry=None):
     db_name = get_DB(mat_no)[:-3]
-    session = utils.load_session(db_name)
+    session = load_session(db_name)
     Courses, CoursesSchema = session.Courses, session.CoursesSchema
 
     if not mode_of_entry:
