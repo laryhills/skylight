@@ -34,6 +34,11 @@ def load_session(session):
     return eval('_{}'.format(session))
 
 
+def get_current_session():
+    # Code stub that returns current session, TODO take from master.db
+    return 2020
+
+
 def get_level(mat_no, next = False):
     # 0 - do estimate level; 600 - is graduate, 100-500 spill inc
     # if next = True, return next level else current level
