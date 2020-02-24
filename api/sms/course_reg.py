@@ -8,6 +8,8 @@ from sms import personal_info
 from json import loads
 from sms import utils
 
+base_dir = os.path.dirname(__file__)
+uniben_logo_path = 'file:///' + os.path.join(base_dir, 'templates', 'static', 'Uniben_logo.png')
 
 def get(mat_no, session=None):
     pass #if mat_no in generated_pdfs:
@@ -45,7 +47,7 @@ def get(mat_no, session=None):
             second_sem_carryover_credits.remove("6")
 
     with app.app_context():
-        html = render_template('course_reg_template.htm', mat_no=mat_no, session='{}/{}'.format(2019, 2019 + 1),
+        html = render_template('course_reg_template.htm', mat_no=mat_no, uniben_logo_path=uniben_logo_path, session='{}/{}'.format(2019, 2019 + 1),
                                surname=person['surname'], othernames=person['othernames'].upper(),
                                depat='MECHANICAL ENGINEERING', mode_of_entry=mode_of_entry,
                                level=level, phone_no=phone_no, sex=sex,
