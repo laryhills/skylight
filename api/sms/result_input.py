@@ -1,6 +1,7 @@
 '''
 The result format is as below
- res300 = results[2]
+     results = get('ENG1503886',0)['results']
+     res300 = results[2]
 >>> res300
 {'first_sem': [(300, 'PRE311', 'Manufacturing Technology III', 2, 64, 'B'),
                (300, 'MEE311', 'Mechanics of Machines I', 3, 78, 'A'),
