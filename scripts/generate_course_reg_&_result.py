@@ -17,7 +17,7 @@ def create_table_schema():
     global courses_dict, courses
     # Generate result and course reg tables
     stmt = 'SELECT COURSE_CODE, COURSE_CREDIT FROM Courses{}'
-    conn = sqlite3.connect(os.path.join(os.getcwd(), 'database', 'courses.db'))
+    conn = sqlite3.connect(os.path.join(db_base_dir, 'courses.db'))
     courses = [conn.execute(stmt.format(x)).fetchall() for x in range(100, 600, 100)]
     courses_dict = [dict(x) for x in courses]
     courses = [list(x.keys()) for x in courses_dict]
