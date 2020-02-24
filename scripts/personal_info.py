@@ -28,7 +28,7 @@ def create_table_schema():
         conn = sqlite3.connect(os.path.join(db_base_dir, curr_db))
         conn.execute(p_info_stmt)
         #conn.execute(sym_link_stmt)
-        conn.close
+        conn.close()
     print('PersonalInfo and SymLink table created')
 
 def populate_db(conn, session):
@@ -50,7 +50,7 @@ def populate_db(conn, session):
     groups = [sym_links_group.get_group(x) for x in sym_links_group.groups]
     for group in groups:
         new_db = group['DATABASE'].iloc[0]
-        new_conn = sqlite3.connect(os.path.join(os.getcwd(), 'database', new_db))
+        new_conn = sqlite3.connect(os.path.join(db_base_dir, new_db))
         group['DATABASE'] = curr_db
         df = group[['MATNO', 'DATABASE']].drop_duplicates(subset='MATNO')
         df.to_sql('SymLink', new_conn, index=False, if_exists='append')
