@@ -29,8 +29,8 @@ def create_table_schema():
     sessions = range(start_session, curr_session)
     for session in sessions:
         curr_db = '{}-{}.db'.format(session, session + 1)
-        result_stmt = 'CREATE TABLE Result{}(MATNO TEXT PRIMARY KEY, {}, CATEGORY TEXT)'
-        course_reg_stmt = 'CREATE TABLE CourseReg{}(MATNO TEXT PRIMARY KEY, {}, PROBATION INTEGER, OTHERS TEXT)'
+        result_stmt = 'CREATE TABLE Result{}(MATNO TEXT PRIMARY KEY, {}, SESSION INTEGER, CATEGORY TEXT)'
+        course_reg_stmt = 'CREATE TABLE CourseReg{}(MATNO TEXT PRIMARY KEY, {}, SESSION INTEGER, PROBATION INTEGER, OTHERS TEXT)'
         conn = sqlite3.connect(os.path.join(db_base_dir, curr_db))
         for result_session in range(session, session + 8):
             if result_session - session > 4:
@@ -52,7 +52,7 @@ def generate_table_dtype():
     
     for num in range(8):
         if num > 4:
-            result_dtype.append({'MATNO': 'TEXT', 'CARRYOVERS': 'TEXT', 'CATEGORY': 'TEXT'})
+            result_dtype.append({'MATNO': 'TEXT', 'SESSION': 'INTEGER', 'CARRYOVERS': 'TEXT', 'CATEGORY': 'TEXT'})
             course_reg_dtype.append({'MATNO': 'TEXT', 'CARRYOVERS': 'TEXT', 'PROBATION': 'INTEGER', 'OTHERS': 'TEXT'})
         else:
             course_list = courses[num]
@@ -210,10 +210,10 @@ def populate_db(conn, mat_no, entry_session, mod):
     if not levels or levels[0] != entry_session or len(groups) > (9 - mod):
         store_unusual_students(mat_no, entry_session)
         return
-    progressive_sum = int(len(levels) / 2.0 * (2 * levels[0] + len(levels) - 1))
-    if sum(levels) != progressive_sum:
-        store_unusual_students(mat_no, entry_session)
-        return
+#    progressive_sum = int(len(levels) / 2.0 * (2 * levels[0] + len(levels) - 1))
+#    if sum(levels) != progressive_sum:
+#        store_unusual_students(mat_no, entry_session)
+#        return
     count, on_probation = mod - 1, 0
     for group in groups:
         count += 1
@@ -275,6 +275,10 @@ def populate_db(conn, mat_no, entry_session, mod):
                     series.replace(series[0], '-1,ABS', inplace=True)
                 else:
                     series.replace(series[0], str(score) + ',' + grade, inplace=True)
+        
+        student_result['SESSION'] = group.SESSION.iloc[0]
+        course_reg_df['SESSION'] = group.SESSION.iloc[0]
+        course_reg_dtype['SESSION'] = 'INTEGER'
         
          # store result and course_reg in the database
         try:
