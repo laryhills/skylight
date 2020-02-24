@@ -12,20 +12,24 @@ db_base_dir = os.path.join(os.path.dirname(__file__), '..', 'api', 'sms', 'datab
 path = os.path.join(os.path.dirname(__file__), '..', 'data', 'Personal_Data.csv')
 frame = pd.read_csv(path, dtype={'PHONE_NO': np.str})
 
-curr_session = 2018
+start_session = 2003
+#start_session = 2017
+curr_session = 2019
 
+def format_options(data):
+    if isinstance(data, float): return np.nan
+    return '{},{}2'.format(data, data[:-1])
 
 def create_table_schema():
     p_info_stmt = 'CREATE TABLE PersonalInfo(MATNO TEXT PRIMARY KEY, SURNAME TEXT, OTHERNAMES TEXT, MODE_OF_ENTRY INTEGER, SESSION_ADMIT INTEGER, SESSION_GRADUATED REAL, CURRENT_LEVEL INTEGER, OPTION REAL, SEX TEXT, DATE_OF_BIRTH REAL, STATE_OF_ORIGIN TEXT, PHONE_NO TEXT, EMAIL_ADDRESS TEXT, SPONSOR_PHONE_NO REAL, SPONSOR_EMAIL_ADDRESS REAL, GRAD_STATUS REAL, PROBATED_TRANSFERRED INTEGER, IS_SYMLINK INTEGER, DATABASE TEXT);'
     #sym_link_stmt = '''CREATE TABLE SymLink(MATNO TEXT PRIMARY KEY, DATABASE TEXT); '''
-    for session in range(2003, curr_session + 1):
+    for session in range(start_session, curr_session + 1):
         curr_db = '{}-{}.db'.format(session, session + 1)
         conn = sqlite3.connect(os.path.join(db_base_dir, curr_db))
         conn.execute(p_info_stmt)
         #conn.execute(sym_link_stmt)
         conn.close
     print('PersonalInfo and SymLink table created')
-
 
 def populate_db(conn, session):
     curr_frame = frame[frame.SESSION_ADMIT == session]
@@ -35,6 +39,7 @@ def populate_db(conn, session):
     other = other.map(lambda x: '%d-%d.db'%(x, x + 1))
     curr_frame.IS_SYMLINK.where(curr_frame.CURRENT_LEVEL == ((curr_session - session) * 100), 1, inplace=True)
     curr_frame.DATABASE.where(curr_frame.IS_SYMLINK == 0, other, inplace=True)
+    curr_frame.OPTION = curr_frame.OPTION.apply(format_options)
     curr_frame.to_sql('PersonalInfo', conn, index=False, if_exists='append')
     conn.commit()
     
@@ -62,7 +67,6 @@ def populate_db(conn, session):
     master_frame.to_sql('Main', master, index=False, if_exists='append')
     master.commit()
 
-
 # master database
 master = sqlite3.connect(os.path.join(db_base_dir, 'master.db'))
 try: master.execute('CREATE TABLE Main (MATNO TEXT PRIMARY KEY, DATABASE TEXT)')
@@ -70,7 +74,7 @@ except sqlite3.OperationalError: pass
 
 create_table_schema()
 
-sessions = range(2003, curr_session)
+sessions = range(start_session, curr_session)
 for session in sessions:
     curr_db = '{0}-{1}.db'.format(session, session + 1)
     conn = sqlite3.connect(os.path.join(db_base_dir, curr_db))
