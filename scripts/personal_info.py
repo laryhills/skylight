@@ -33,6 +33,7 @@ def create_table_schema():
 
 def populate_db(conn, session):
     curr_frame = frame[frame.SESSION_ADMIT == session]
+    curr_frame.drop_duplicates(subset='MATNO', inplace=True)
     del curr_frame['PASSPORT']
     curr_frame['IS_SYMLINK'], curr_frame['DATABASE'] = 0, ''
     other = curr_session - (curr_frame.CURRENT_LEVEL / 100)
