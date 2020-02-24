@@ -1,0 +1,7 @@
+These are core logic assumptions the program requires to function and cannot be changed without breaking something.
+Add to the list things you absolutely depend on
+Also just in case of revisions, add why this is necessary
+
+1) Levels must be from 100 or 200 or 300 to 800 (Depending on mode of entry)
+   * Results are computed using Result100 - Result800 for all cases
+
