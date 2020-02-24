@@ -42,10 +42,12 @@ def generate_courses_and_credits_table(conn, session):
     cursor.execute('INSERT INTO Courses VALUES (?, ?, ?, ?, ?, ?);', [1]+level_courses)
     cursor.execute('INSERT INTO Credits VALUES (?, ?, ?, ?, ?, ?);', [1]+credits)
     de_level_courses, de_credits = level_courses[:], credits[:]
-    de_credits[0], de_level_courses[0] = None, ''
+    de_credits[0], de_level_courses[0] = None, None
     de_credits[1] += 10
-    de_level_courses[0] += 'GST111,GST112'
-    de_level_courses[1] += 'GST121,GST122,GST123'
+    de_first_sem, de_sec_sem = de_level_courses[1].split()
+    de_first_sem += ',GST111,GST112'
+    de_sec_sem += ',GST121,GST122,GST123'
+    de_level_courses[1] = " ".join([de_first_sem, de_sec_sem])
     cursor.execute('INSERT INTO Courses VALUES (?, ?, ?, ?, ?, ?);', [2]+de_level_courses)
     cursor.execute('INSERT INTO Credits VALUES (?, ?, ?, ?, ?, ?);', [2]+de_credits)
     de300_level_courses, de300_credits = level_courses[:], credits[:]
@@ -54,7 +56,7 @@ def generate_courses_and_credits_table(conn, session):
     de300_first_sem, de300_sec_sem = de300_level_courses[2].split()
     de300_first_sem += ',GST111,GST112'
     de300_sec_sem += ',GST121,GST122,GST123'
-    de300_level_courses[2] = " ".join([de_first_sem, de_sec_sem])
+    de300_level_courses[2] = " ".join([de300_first_sem, de300_sec_sem])
     cursor.execute('INSERT INTO Courses VALUES (?, ?, ?, ?, ?, ?);', [3]+de300_level_courses)
     cursor.execute('INSERT INTO Credits VALUES (?, ?, ?, ?, ?, ?);', [3]+de300_credits)
     conn.commit()
