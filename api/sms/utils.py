@@ -36,7 +36,7 @@ def load_session(session):
 
 def get_current_session():
     # Code stub that returns current session, TODO take from master.db
-    return 2020
+    return 2019
 
 
 def get_level(mat_no, next = False):
