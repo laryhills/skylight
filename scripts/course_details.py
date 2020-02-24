@@ -2,7 +2,6 @@ import pandas as pd
 import os
 import sqlite3
 
-
 def build_db(conn):
     # Stores the courses by level
     for level in range(100, 600, 100):
@@ -27,7 +26,7 @@ def build_options(conn):
     cursor = conn.cursor()
     optional_courses = ['MEE531', 'MEE541', 'MEE561', 'MEE581', 'MEE591']
     optional_courses_2 = ['MEE532', 'MEE542', 'MEE562', 'MEE582', 'MEE592']
-    cursor.execute('CREATE TABLE Options(OPTIONS_GROUP INTEGER PRIMARY_KEY, MEMBERS TEXT, DEFAULT_MEMBER TEXT);')
+    cursor.execute('CREATE TABLE Options(OPTIONS_GROUP INTEGER PRIMARY KEY, MEMBERS TEXT, DEFAULT_MEMBER TEXT);')
     cursor.execute('INSERT INTO Options VALUES (?, ?, ?);',[1, ','.join(optional_courses), optional_courses[0]])
     cursor.execute('INSERT INTO Options VALUES (?, ?, ?);',[2, ','.join(optional_courses_2), optional_courses_2[0]])
     conn.commit()
@@ -42,4 +41,5 @@ print('Building courses.db...')
 build_db(conn)
 build_options(conn)
 conn.close()
+
 print('done')

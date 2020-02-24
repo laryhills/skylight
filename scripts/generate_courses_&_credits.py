@@ -3,7 +3,9 @@ import os
 import sys
 
 start_session = 2003
-curr_session = 2018
+#start_session = 2017
+curr_session = 2019
+
 
 db_base_dir = os.path.join(os.path.dirname(__file__), '..', 'api', 'sms', 'database')
 if not os.path.exists(os.path.join(db_base_dir, 'courses.db')): sys.exit('Run course_details.py first')
@@ -15,8 +17,8 @@ conn.close()
 
 def generate_courses_and_credits_table(conn, session):
     cursor = conn.cursor()
-    cursor.execute('CREATE TABLE Courses(MODE_OF_ENTRY INTEGER PRIMARY_KEY, LEVEL100 TEXT, LEVEL200 TEXT, LEVEL300 TEXT, LEVEL400 TEXT, LEVEL500 TEXT);')
-    cursor.execute('CREATE TABLE Credits(MODE_OF_ENTRY INTEGER PRIMARY_KEY, LEVEL100 INTEGER, LEVEL200 INTEGER, LEVEL300 INTEGER, LEVEL400 INTEGER, LEVEL500 INTEGER);')
+    cursor.execute('CREATE TABLE Courses(MODE_OF_ENTRY INTEGER PRIMARY KEY, LEVEL100 TEXT, LEVEL200 TEXT, LEVEL300 TEXT, LEVEL400 TEXT, LEVEL500 TEXT);')
+    cursor.execute('CREATE TABLE Credits(MODE_OF_ENTRY INTEGER PRIMARY KEY, LEVEL100 INTEGER, LEVEL200 INTEGER, LEVEL300 INTEGER, LEVEL400 INTEGER, LEVEL500 INTEGER);')
     options = {}
     credits = [0,0,0,0,0]
     level_courses = [["",""],["",""],["",""],["",""],["",""]]
@@ -40,12 +42,10 @@ def generate_courses_and_credits_table(conn, session):
     cursor.execute('INSERT INTO Courses VALUES (?, ?, ?, ?, ?, ?);', [1]+level_courses)
     cursor.execute('INSERT INTO Credits VALUES (?, ?, ?, ?, ?, ?);', [1]+credits)
     de_level_courses, de_credits = level_courses[:], credits[:]
-    de_credits[0], de_level_courses[0] = None, None
+    de_credits[0], de_level_courses[0] = None, ''
     de_credits[1] += 10
-    de_first_sem, de_sec_sem = de_level_courses[1].split()
-    de_first_sem += ',GST111,GST112'
-    de_sec_sem += ',GST121,GST122,GST123'
-    de_level_courses[1] = " ".join([de_first_sem, de_sec_sem])
+    de_level_courses[0] += 'GST111,GST112'
+    de_level_courses[1] += 'GST121,GST122,GST123'
     cursor.execute('INSERT INTO Courses VALUES (?, ?, ?, ?, ?, ?);', [2]+de_level_courses)
     cursor.execute('INSERT INTO Credits VALUES (?, ?, ?, ?, ?, ?);', [2]+de_credits)
     conn.commit()

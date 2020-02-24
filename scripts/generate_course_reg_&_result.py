@@ -2,22 +2,22 @@ import os
 import sqlite3
 import pandas as pd
 
-curr_session = 2018
+start_session = 2003
+#start_session = 2017
+curr_session = 2019
 courses = []        # List of course codes
 courses_dict = []   # List of course codes and credit dictionaries
+num_probation = 0
 
 db_base_dir = os.path.join(os.path.dirname(__file__), '..', 'api', 'sms', 'database')
-if not os.path.exists(os.path.join(db_base_dir, 'master.db')):
+if not os.path.exists(db_base_dir) and not os.path.exists(os.path.join(db_base_dir, 'master.db')):
     os.sys.exit('Run the personal_info.py script first')
-if not os.path.exists(os.path.join(db_base_dir, 'courses.db')):
-    os.sys.exit('Run the course_details.py script first')
-
 
 def create_table_schema():
     global courses_dict, courses
     # Generate result and course reg tables
     stmt = 'SELECT COURSE_CODE, COURSE_CREDIT FROM Courses{}'
-    conn = sqlite3.connect(os.path.join(db_base_dir, 'courses.db'))
+    conn = sqlite3.connect(os.path.join(os.getcwd(), 'database', 'courses.db'))
     courses = [conn.execute(stmt.format(x)).fetchall() for x in range(100, 600, 100)]
     courses_dict = [dict(x) for x in courses]
     courses = [list(x.keys()) for x in courses_dict]
@@ -26,11 +26,11 @@ def create_table_schema():
     for course_list in courses[1:]:
         course_list.append('CARRYOVERS')
 
-    sessions = range(2003, curr_session)
+    sessions = range(start_session, curr_session)
     for session in sessions:
         curr_db = '{}-{}.db'.format(session, session + 1)
-        result_stmt = 'CREATE TABLE Result{}(MATNO TEXT PRIMARY_KEY, {}, CATEGORY TEXT)'
-        course_reg_stmt = 'CREATE TABLE CourseReg{}(MATNO TEXT PRIMARY_KEY, {}, PROBATION INTEGER, OTHERS TEXT)'
+        result_stmt = 'CREATE TABLE Result{}(MATNO TEXT PRIMARY KEY, {}, CATEGORY TEXT)'
+        course_reg_stmt = 'CREATE TABLE CourseReg{}(MATNO TEXT PRIMARY KEY, {}, PROBATION INTEGER, OTHERS TEXT)'
         conn = sqlite3.connect(os.path.join(db_base_dir, curr_db))
         for result_session in range(session, session + 8):
             if result_session - session > 4:
@@ -45,7 +45,6 @@ def create_table_schema():
             except sqlite3.OperationalError: pass
         conn.close()
     print('Result and course reg tables created')
-
 
 def generate_table_dtype():    
     result_dtype = []
@@ -69,7 +68,6 @@ def generate_table_dtype():
     
     return result_dtype, course_reg_dtype
 
-
 # Master database
 conn = sqlite3.connect(os.path.join(db_base_dir, 'master.db'))
 student_frame = pd.read_sql('SELECT * FROM Main', conn)
@@ -78,13 +76,17 @@ conn.close()
 # Loads the students results
 path = os.path.join(os.path.dirname(__file__), '..', 'data', 'Score_Sheet.csv')
 result_frame = pd.read_csv(path)
+result_frame = result_frame[result_frame.COURSE_CODE != 'MEE122']
+result_frame = result_frame[result_frame.COURSE_CODE != 'MEE123']
+result_frame.COURSE_CODE.replace('CHM112', 'CHM122', inplace=True)
 
-
-def total_credits(level, course_reg_df):
+def total_registered_credits(level, course_reg_df):
     total_credit = 0
     if level <= 5:
         reg_courses_df = course_reg_df[course_reg_df != 0].dropna(axis=1)
-        if level == 1: course_codes = reg_courses_df.columns[1: -1]
+        if level == 1:
+            if not course_reg_df['PROBATION'].any(): course_codes = reg_courses_df.columns[1:]
+            else: course_codes = reg_courses_df.columns[1: -1]
         else:
             reg_courses_df['PROBATION'] = course_reg_df['PROBATION']
             course_codes = reg_courses_df.columns[1: -2]
@@ -101,6 +103,19 @@ def total_credits(level, course_reg_df):
     
     return total_credit
 
+def get_total_credits(conn, level, mod, course_reg_df):
+    if level >= 6 or mod == 3:
+        return total_registered_credits(level, course_reg_df)
+    if course_reg_df['PROBATION'].any():
+        if level in [1, 5]:
+            return total_registered_credits(level, course_reg_df)
+        level -= num_probation
+    total_credits = conn.execute('SELECT LEVEL{} FROM Credits WHERE MODE_OF_ENTRY = {}'.format(level * 100, mod)).fetchone()[0]
+    if mod == 2 and level == 2:
+        total_credits -= 2
+    elif mod == 2 and level == 3:
+        total_credits += 2
+    return total_credits
 
 def failed_credits(entry_session, level, result_df):
     total_credits_failed = 0
@@ -109,7 +124,7 @@ def failed_credits(entry_session, level, result_df):
         if level == 1: course_codes = result_df.columns[1:]
         else: course_codes = result_df.columns[1: -1]
         courses_df = result_df[course_codes]
-        if entry_session <= 2013:
+        if entry_session <= 2013 or entry_session > 2017:
             failed_courses_df = courses_df[courses_df[course_codes] <= 39]
         else:
             failed_courses_df = courses_df[courses_df[course_codes] <= 44]
@@ -122,7 +137,7 @@ def failed_credits(entry_session, level, result_df):
         for course_score in carryovers_courses_scores:
             if not course_score: break
             course_code, score = course_score.split()
-            if entry_session <= 2013:
+            if entry_session <= 2013 or entry_session > 2017:
                 if float(score) <= 39:
                     course_level = int(course_code[3] if course_code[:3] != 'CED' else 4)
                     total_credits_failed += courses_dict[course_level - 1][course_code]
@@ -133,13 +148,12 @@ def failed_credits(entry_session, level, result_df):
     
     return total_credits_failed
 
-
-def get_category(entry_session, level, result_df, course_reg_df):
+def get_category(conn, entry_session, level, mod, result_df, course_reg_df):
     total_credits_failed = failed_credits(entry_session, level, result_df)
-    total_credits_registered = total_credits(level, course_reg_df)
-    total_credits_passed = float(total_credits_registered - total_credits_failed)
+    total_credits = get_total_credits(conn, level, mod, course_reg_df)
+    total_credits_passed = float(total_credits - total_credits_failed)
     if not total_credits_failed: return 'A'
-    if level == 1 and entry_session == 2014:
+    if level == 1 and entry_session >= 2014:
         if total_credits_passed >= 36: return 'B'
         elif total_credits_passed >= 23 and total_credits_passed < 36: return 'C'
         else:
@@ -147,7 +161,7 @@ def get_category(entry_session, level, result_df, course_reg_df):
             if bool_df.all(): return 'E' # Handle condition for transfer
             else: return 'D'
     else:
-        percent_passed = total_credits_passed / total_credits_registered * 100
+        percent_passed = total_credits_passed / total_credits * 100
         if percent_passed >= 50: return 'B'
         elif percent_passed >= 25 and percent_passed < 50: return 'C'
         else:
@@ -155,28 +169,38 @@ def get_category(entry_session, level, result_df, course_reg_df):
             if bool_df.all(): return 'D'
             else: return 'E'
 
-
 def get_grade(score, entry_session):
-    if not score: return ''
+    if not score: return 'F'
     if score >= 70: return 'A'
     elif score >= 60: return 'B'
     elif score >= 50: return 'C'
     elif score >= 45: return 'D'
     else:
-        if entry_session >= 2013: return 'F'
+        if 2013 <= entry_session < 2018: return 'F'
         else:
             if score >= 40: return 'E'
             else: return 'F'
 
+def store_gpa(conn, mat_no, entry_session, level, result):
+    grades = {'A': 5, 'B': 4, 'C': 3, 'D': 2, 'E': 1, 'F': 0}
+    prod_sum = 0
+    for course_code in courses_dict:
+        score = result[course_code]
+        prod_sum += grades[get_grade(score, entry_session)] * courses_dict[course_code]
+    total_credits = conn.execute('SELECT * FROM Credits;').fetchall()[0][level - 1]
+    level_gpa = float(prod_sum) / total_credits
+    conn.execute('INSERT INTO GPA (LEVEL{}) VALUES (?)'.format(level * 100), level_gpa)
+    if level > 1:
+        pass
 
 def store_unusual_students(mat_no, entry_session):
     fd = open(os.path.join(os.getcwd(), 'error.txt'), 'a')
     fd.write('{} ==> {}\n'.format(mat_no, entry_session))
     fd.close()
 
-
 def populate_db(conn, mat_no, entry_session, mod):
-    global result_dtype_glob, course_reg_dtype_glob
+    global result_dtype_glob, course_reg_dtype_glob, num_probation
+    num_probation = 0
     # Loads all the student's results
     curr_frame = result_frame[result_frame.MATNO == mat_no]
     curr_frame_group = curr_frame.groupby(by='SESSION')
@@ -222,7 +246,8 @@ def populate_db(conn, mat_no, entry_session, mod):
             course_reg_df['CARRYOVERS'] = ','.join(carryovers['COURSE_CODE'].tolist())
         
         course_reg_df['PROBATION'] = on_probation
-        student_result['CATEGORY'] = get_category(entry_session, count, student_result, course_reg_df)
+        num_probation += on_probation
+        student_result['CATEGORY'] = get_category(conn, entry_session, count, mod, student_result, course_reg_df)
         bool_df = student_result['CATEGORY'] == 'C'
         if bool_df.all() : on_probation = 1
         else: on_probation = 0
@@ -239,7 +264,7 @@ def populate_db(conn, mat_no, entry_session, mod):
                         score = int(float(score))
                         grade = get_grade(score, entry_session)
                     except ValueError:
-                        course, score, grade = item, '0', 'F'
+                        course, score, grade = item, '-1', 'ABS'
                     new_items_list.append(' '.join([course, str(score), grade]))
                 series.replace(series[0], ','.join(new_items_list), inplace=True)
             else:
@@ -247,8 +272,9 @@ def populate_db(conn, mat_no, entry_session, mod):
                     score = int(series[0])
                     grade = get_grade(score, entry_session)
                 except ValueError:
-                    score, grade = '0', 'F'
-                series.replace(series[0], str(score) + ',' + grade, inplace=True)
+                    series.replace(series[0], '-1,ABS', inplace=True)
+                else:
+                    series.replace(series[0], str(score) + ',' + grade, inplace=True)
         
          # store result and course_reg in the database
         try:
@@ -260,7 +286,6 @@ def populate_db(conn, mat_no, entry_session, mod):
             pass
     
     conn.commit()
-
 
 if __name__ == '__main__':
     create_table_schema()
