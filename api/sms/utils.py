@@ -182,3 +182,22 @@ def result_poll(mat_no, level=None):
         resStr = eval('session.Result{}Schema().dump(resLvl)'.format(level))
         ans.append(resStr)
     return ans
+
+
+def get_registered_courses(mat_no, level=None):
+    # Get courses registered for all levels if level=None else for level
+    db_name = get_DB(mat_no)[:-3]
+    session = load_session(db_name)
+    courses_registered=[]
+    levels = range(100,900,100)
+    for _level in levels:
+        courses_regd = eval('session.CourseReg{}.query.filter_by(mat_no=mat_no).first()'.format(_level))
+        courses_regd_str = eval('session.CourseReg{}Schema().dump(courses_regd)'.format(_level))
+        if courses_regd_str != {}:
+            courses_registered.append(courses_regd_str)
+    if level:
+        try:
+            return courses_registered[(level//100)-1]
+        except IndexError:
+            return []
+    return courses_registered
