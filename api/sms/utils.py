@@ -53,7 +53,7 @@ def get_level(mat_no, next = False):
         return curr_level + 100
     if curr_level == 0:
         if not results:
-            print ("No result for", mat_no, "can't det level")
+            print("No result for", mat_no, "can't det level")
             return 0
         else:
             # No level record, use highest courses written to estimate
@@ -189,7 +189,20 @@ def get_registered_courses(mat_no, level=None):
     db_name = get_DB(mat_no)[:-3]
     session = load_session(db_name)
     courses_registered=[]
-    levels = range(100,900,100)
+    levels = [level] if level else range(100, 900, 100)
+    for _level in levels:
+        courses_regd = eval('session.CourseReg{}.query.filter_by(mat_no=mat_no).first()'.format(_level))
+        courses_regd_str = eval('session.CourseReg{}Schema().dump(courses_regd)'.format(_level))
+        courses_registered.append(courses_regd_str)
+    return courses_registered
+
+
+def deprecated_get_registered_courses(mat_no, level=None):
+    # Get courses registered for all levels if level=None else for level
+    db_name = get_DB(mat_no)[:-3]
+    session = load_session(db_name)
+    courses_registered = []
+    levels = range(100, 900, 100)
     for _level in levels:
         courses_regd = eval('session.CourseReg{}.query.filter_by(mat_no=mat_no).first()'.format(_level))
         courses_regd_str = eval('session.CourseReg{}Schema().dump(courses_regd)'.format(_level))
