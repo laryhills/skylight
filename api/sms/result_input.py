@@ -1,5 +1,5 @@
 from sms import result_statement
-from sms import utils, course_details
+from sms import utils, course_details, personal_info
 
 '''
 The result format is as below
@@ -35,18 +35,23 @@ The result format is as below
 def get_course_reg_frame(mat_no, level):
     # TODO level should be gotten from course_adviser's account
 
-    courses_regd = utils.get_registered_courses(mat_no, level)
+    courses_regd = utils.deprecated_get_registered_courses(mat_no, level)
     level_courses = []
     carryovers = []
     results_already_present = False
     error_text = ''
     frame = {'courses': {'first_sem': [], 'second_sem': []}}
 
+    personal_dets = personal_info.get(mat_no, 0)
+    frame['personal_dets'] = {'mat_no': mat_no, 'current_level': personal_dets['current_level'],
+                              'session_admitted': personal_dets['session_admitted'],
+                              'surname': personal_dets['surname'], 'othernames': personal_dets['othernames']}
+
     if not courses_regd:
         error_text = 'No Course Registration Available'
     else:
         for course in courses_regd:
-            if courses_regd[course] == '0' or course in ['mat_no','others','probation','carryovers']:
+            if courses_regd[course] == '0' or course in ['mat_no', 'others', 'probation', 'carryovers']:
                 pass
             else:
                 level_courses.append(course)
@@ -57,14 +62,15 @@ def get_course_reg_frame(mat_no, level):
     try:
         # get any existing result
         # to enable inputting second semester results or edit of results by admin
-        results_available = result_statement.get(mat_no,0)['results'][(level//100)-1]
+        results_available = result_statement.get(mat_no, 0)['results'][(level//100)-1]
         if results_available:
             results_already_present = True
         table_to_input = 'Result' + str(results_available['first_sem'][0][0])
     except IndexError:
         # no result yet as should be
         results_available = {}
-        table_to_input = 'Result' + str(result_statement.get(mat_no,0)['results'][-1]['first_sem'][0][0])
+        table_to_input = 'Result' + str(result_statement.get(mat_no,0)['results'][-1]['first_sem'][0][0] + 100)
+    frame['table_to_input'] = table_to_input
 
     done = []
     if results_already_present:
@@ -76,20 +82,21 @@ def get_course_reg_frame(mat_no, level):
             if res[1] in courses:
                 frame['courses']['second_sem'].append(res[1:])
                 done.append(res[1])
-
     done = set(done)
     courses = set(courses)
 
     for course in courses.difference(done):
-        dets = course_details.get(course, 0)
-        if dets['course_semester'] == 1:
-            frame['courses']['first_sem'].append((dets['course_code'], dets['course_title'],
-                                                  dets['course_credit'], None, None))
-        if dets['course_semester'] == 2:
-            frame['courses']['second_sem'].append((dets['course_code'], dets['course_title'],
-                                                  dets['course_credit'], None, None))
+        course_dets = course_details.get(course, 0)
+        if course_dets['course_semester'] == 1:
+            frame['courses']['first_sem'].append((course_dets['course_code'], course_dets['course_title'],
+                                                  course_dets['course_credit'], None, None))
+        if course_dets['course_semester'] == 2:
+            frame['courses']['second_sem'].append((course_dets['course_code'], course_dets['course_title'],
+                                                  course_dets['course_credit'], None, None))
     return frame
 
 
-def get_table_to_input():
+def post_course_reg_frame(mat_no, frame):
     pass
+
+
