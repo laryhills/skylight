@@ -12,7 +12,8 @@ from sms import utils
 base_dir = os.path.dirname(__file__)
 uniben_logo_path = 'file:///' + os.path.join(base_dir, 'templates', 'static', 'Uniben_logo.png')
 
-def get(mat_no, session=None):
+
+def get(mat_no, session=None, to_print=True):
     pass #if mat_no in generated_pdfs:
     pass #    uri = os.path.join(os.path.expanduser('~'), 'sms', 'cache', generated_pdfs[mat_no])
     pass #    return uri
@@ -23,6 +24,7 @@ def get(mat_no, session=None):
     sex = ['Female', 'Male'][person['sex'] == 'M']
     if person["sex"] == 'F':
         person['surname'] += " (Miss)"
+    depat = utils.get_depat('long')
     level = list(str(utils.get_level(mat_no,1)))
 
     carryovers = loads(get_carryovers(mat_no))
@@ -50,7 +52,7 @@ def get(mat_no, session=None):
     with app.app_context():
         html = render_template('course_reg_template.htm', mat_no=mat_no, uniben_logo_path=uniben_logo_path, session='{}/{}'.format(2019, 2019 + 1),
                                surname=person['surname'], othernames=person['othernames'].upper(),
-                               depat='MECHANICAL ENGINEERING', mode_of_entry=mode_of_entry,
+                               depat=depat, mode_of_entry=mode_of_entry,
                                level=level, phone_no=phone_no, sex=sex,
                                email=person['email_address'], state=person['state_of_origin'],
                                first_sem_carryover_courses=first_sem_carryover_courses,

@@ -1,3 +1,4 @@
+from collections import defaultdict
 from json import loads, dumps
 from sys import modules
 from sms.config import db
@@ -7,6 +8,7 @@ from sms import result_statement
 from sms import course_details
 from sms.models.master import Master, MasterSchema
 from sms.models.courses import Options, OptionsSchema
+from sms.result_input import get_result_for_edit
 
 '''
 Handle frequently called or single use simple utility functions
@@ -14,6 +16,15 @@ These aren't exposed endpoints and needn't return json data (exc get_carryovers)
 '''
 
 lastLoaded = None
+
+
+def get_depat(form='long'):
+    if form == 'short':
+        return 'MEE'
+    elif form == 'long':
+        return 'MECHANICAL ENGINEERING'
+    else:
+        return 'MECHANICAL ENGINEERING'
 
 
 def get_DB(mat_no):
@@ -53,7 +64,7 @@ def get_level(mat_no, next = False):
         return curr_level + 100
     if curr_level == 0:
         if not results:
-            print ("No result for", mat_no, "can't det level")
+            print("No result for", mat_no, "can't det level")
             return 0
         else:
             # No level record, use highest courses written to estimate
@@ -172,7 +183,7 @@ def get_carryovers(mat_no, retJSON=True):
 
 
 def result_poll(mat_no, level=None):
-    #Get result for all levels if level=None else for level
+    # Get result for all levels if level=None else for level
     db_name = get_DB(mat_no)[:-3]
     session = load_session(db_name)
     ans=[]
@@ -182,3 +193,81 @@ def result_poll(mat_no, level=None):
         resStr = eval('session.Result{}Schema().dump(resLvl)'.format(level))
         ans.append(resStr)
     return ans
+
+
+def get_most_recent_course_reg(mat_no, level=None):
+    # Get courses registered for all levels if level=None else for level
+    db_name = get_DB(mat_no)[:-3]
+    session = load_session(db_name)
+    courses_registered = {}
+    courses_regd_str = {}
+    table_found_in = ''
+    levels = [level] if level else range(800, 0, -100)
+    for _level in levels:
+        courses_regd = eval('session.CourseReg{}.query.filter_by(mat_no=mat_no).first()'.format(_level))
+        courses_regd_str = eval('session.CourseReg{}Schema().dump(courses_regd)'.format(_level))
+        if courses_regd_str != {}:
+            table_found_in = 'CourseReg{}'.format(_level)
+            courses_registered = courses_regd_str
+            break
+    courses = []
+    for course in courses_registered:
+        if courses_registered[course] == '1':
+            courses.append(course)
+    if 'carryovers' in courses_regd_str and courses_regd_str['carryovers']:
+        courses.extend(courses_registered['carryovers'].split(','))
+    return courses, table_found_in
+
+
+def get_registered_courses(mat_no, level=None):
+    # Get courses registered for all levels if level=None else for level
+    db_name = get_DB(mat_no)[:-3]
+    session = load_session(db_name)
+    courses_registered = defaultdict(dict)
+    levels = range(100, 900, 100)
+    levs = 100
+    first_not_found = True
+    for _level in levels:
+        courses_regd = eval('session.CourseReg{}.query.filter_by(mat_no=mat_no).first()'.format(_level))
+        courses_regd_str = eval('session.CourseReg{}Schema().dump(courses_regd)'.format(_level))
+        courses_registered[levs] = {'courses': [], 'table': 'CourseReg{}'.format(_level)}
+        for course in courses_regd_str:
+            if courses_regd_str[course] == '1':
+                courses_registered[levs]['courses'].append(course)
+
+        if courses_regd_str != {} and levs != 100 and len(courses_registered[levs]['courses']) == 0 and first_not_found:
+            first_not_found = False
+            del courses_registered[levs]
+            levs -= 100
+            courses_registered[levs] = {'courses': [], 'table': 'CourseReg{}'.format(_level)}
+
+        if 'carryovers' in courses_regd_str and courses_regd_str['carryovers']:
+            courses_registered[levs]['courses'].extend(courses_regd_str['carryovers'].split(','))
+        courses_registered[levs]['courses'] = sorted(courses_registered[levs]['courses'])
+        levs += 100
+    if level:
+        return courses_registered[level]
+    return courses_registered
+
+
+# def test_get_result():
+#     source = open("C:\\Users\\chima\\PycharmProjects\\skylight\\api\\sms\\er.txt", 'r')
+#     mat_nos = source.readlines()
+#     source.close()
+#     matr = []
+#     for mat_no in mat_nos:
+#         matr.append(mat_no[:10])
+#
+#     log = []
+#     for mat_no in matr:
+#         for level in range(100,600,100):
+#             try:
+#                 log.extend(get_result_for_edit(mat_no,level))
+#             except Exception as e:
+#                 log.append(mat_no + ':  exception')
+#         print('still working...')
+#     print('done')
+#     return log
+
+
+
