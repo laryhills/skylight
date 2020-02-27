@@ -1,11 +1,12 @@
-import os
+import os.path
 import secrets
+from pathlib import Path
+from json import loads
 from flask import render_template
 from weasyprint import HTML
 from sms.config import app
 from sms.utils import get_carryovers
 from sms import personal_info
-from json import loads
 from sms import utils
 
 base_dir = os.path.dirname(__file__)
@@ -58,9 +59,12 @@ def get(mat_no, session=None):
                                second_sem_carryover_credits=second_sem_carryover_credits)
         file_name = secrets.token_hex(8) + '.pdf'
         file_name = mat_no + '.pdf'
-        uri = os.path.join(os.path.expanduser('~'), 'sms', 'cache_mechanical', 'levels', str(utils.get_level(mat_no,1)), file_name)
+        uri1 = os.path.join(os.path.expanduser('~'), 'sms', 'cache_mechanical', 'levels', str(utils.get_level(mat_no,1)), file_name)
         uri2 = os.path.join(os.path.expanduser('~'), 'sms', 'cache_mechanical', 'mats', mat_no[:5], file_name)
-        HTML(string=html).write_pdf(uri)
+        for uri in uri1, uri2:
+            if not os.path.isdir(uri[:-len(file_name)]):
+                Path(uri[:-len(file_name)]).mkdir(parents=True, exist_ok=True)
+        HTML(string=html).write_pdf(uri1)
         HTML(string=html).write_pdf(uri2)
         #generated_pdfs[mat_no] = file_name
-        print (uri,uri2)
+        print (uri1, uri2)
