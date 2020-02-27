@@ -217,7 +217,7 @@ def get_registered_courses(mat_no, level=None):
     courses_registered = defaultdict(dict)
     levels = range(100, 900, 100)
     levs = 100
-    first_found = False
+    first_not_found = True
     for _level in levels:
         courses_regd = eval('session.CourseReg{}.query.filter_by(mat_no=mat_no).first()'.format(_level))
         courses_regd_str = eval('session.CourseReg{}Schema().dump(courses_regd)'.format(_level))
@@ -226,8 +226,8 @@ def get_registered_courses(mat_no, level=None):
             if courses_regd_str[course] == '1':
                 courses_registered[levs]['courses'].append(course)
 
-        if courses_regd_str != {} and levs != 100 and len(courses_registered[levs]['courses']) == 0 and not first_found:
-            first_found = True
+        if courses_regd_str != {} and levs != 100 and len(courses_registered[levs]['courses']) == 0 and first_not_found:
+            first_not_found = False
             del courses_registered[levs]
             levs -= 100
             courses_registered[levs] = {'courses': [], 'table': 'CourseReg{}'.format(_level)}
@@ -241,24 +241,24 @@ def get_registered_courses(mat_no, level=None):
     return courses_registered
 
 
-def test_get_result():
-    source = open("C:\\Users\\chima\\PycharmProjects\\skylight\\api\\sms\\er.txt", 'r')
-    mat_nos = source.readlines()
-    source.close()
-    matr = []
-    for mat_no in mat_nos:
-        matr.append(mat_no[:10])
-
-    log = []
-    for mat_no in matr:
-        for level in range(100,600,100):
-            try:
-                log.extend(get_result_for_edit(mat_no,level))
-            except Exception as e:
-                log.append(mat_no + ':  exception')
-        print('still working...')
-    print('done')
-    return log
+# def test_get_result():
+#     source = open("C:\\Users\\chima\\PycharmProjects\\skylight\\api\\sms\\er.txt", 'r')
+#     mat_nos = source.readlines()
+#     source.close()
+#     matr = []
+#     for mat_no in mat_nos:
+#         matr.append(mat_no[:10])
+#
+#     log = []
+#     for mat_no in matr:
+#         for level in range(100,600,100):
+#             try:
+#                 log.extend(get_result_for_edit(mat_no,level))
+#             except Exception as e:
+#                 log.append(mat_no + ':  exception')
+#         print('still working...')
+#     print('done')
+#     return log
 
 
 
