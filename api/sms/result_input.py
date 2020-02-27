@@ -101,8 +101,7 @@ def get_result_for_edit(mat_no, level):
     done = set(done)
     courses = set(courses_regd)
 
-    # todo: remove src
-    src = []
+    # src = []
 
     for course in courses.difference(done):
         course_dets = course_details.get(course, 0)
@@ -114,10 +113,10 @@ def get_result_for_edit(mat_no, level):
 
                                                   course_dets['course_credit'], None, None))
     # TEST
-    # todo: remove test
-    if table_to_input != table_to_input_results:
-        src.append(mat_no + 'False' + '   table_to_input: ' + table_to_input + 'table_to_input_results: ' + table_to_input_results)
-    return src #frame
+    # if table_to_input != table_to_input_results:
+    #    src.append(mat_no + '  False' + '  table_to_input: ' + table_to_input + 'table_to_input_results: ' + table_to_input_results)
+    # return src
+    return frame
 
 
 def post_results_for_edit(mat_no, frame):
