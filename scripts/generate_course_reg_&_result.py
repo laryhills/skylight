@@ -122,6 +122,38 @@ def get_total_credits(conn, level, mod, course_reg_df):
     return total_credits
 
 
+def get_passed_credits(entry_session, level, result_df):
+    total_credits_passed = 0
+    if level <= 5:
+        course_credit_dict = courses_dict[level - 1]
+        if level == 1: course_codes = result_df.columns[1:]
+        else: course_codes = result_df.columns[1: -1]
+        courses_df = result_df[course_codes]
+        if entry_session <= 2013 or entry_session > 2017:
+            passed_courses_df = courses_df[courses_df[course_codes] > 39]
+        else:
+            passed_courses_df = courses_df[courses_df[course_codes] > 44]
+        passed_courses_df.dropna(axis=1, inplace=True)
+        for course_code in passed_courses_df.columns:
+            total_credits_passed += course_credit_dict[course_code]
+    
+    if level > 1:
+        carryovers_courses_scores = result_df['CARRYOVERS'].tolist()[0].split(',')
+        for course_score in carryovers_courses_scores:
+            if not course_score: break
+            course_code, score = course_score.split()
+            if entry_session <= 2013 or entry_session > 2017:
+                if float(score) > 39:
+                    course_level = int(course_code[3] if course_code[:3] != 'CED' else 4)
+                    total_credits_passed += courses_dict[course_level - 1][course_code]
+            else:
+                if float(score) > 44:
+                    course_level = int(course_code[3] if course_code[:3] != 'CED' else 4)
+                    total_credits_passed += courses_dict[course_level - 1][course_code]
+    
+    return total_credits_passed
+
+
 def failed_credits(entry_session, level, result_df):
     total_credits_failed = 0
     if level <= 5:
@@ -157,7 +189,7 @@ def failed_credits(entry_session, level, result_df):
 def get_category(conn, entry_session, level, mod, result_df, course_reg_df):
     total_credits_failed = failed_credits(entry_session, level, result_df)
     total_credits = get_total_credits(conn, level, mod, course_reg_df)
-    total_credits_passed = float(total_credits - total_credits_failed)
+    total_credits_passed = get_passed_credits(entry_session, level, result_df)
     if not total_credits_failed: return 'A'
     if level == 1 and entry_session >= 2014:
         if total_credits_passed >= 36: return 'B'
