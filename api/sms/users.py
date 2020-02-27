@@ -32,12 +32,13 @@ def detokenize(token):
     return dict(zip(*[("username","password"),s.loads(token).split(':')]))
 
 
-def server_time():
+def session_key():
     # TODO expose this on swagger to be called by client on login
-    return str(localtime().tm_hour + localtime().tm_min)
+    return app.config['SECRET_KEY']
 
 
 def hash_key():
-    server_time_sum = bytes(server_time(), "utf-8")
-    return b64encode(md5(server_time_sum).digest()).decode("utf-8").strip("=")
+    session_key_sum = str(sum([int(x) for x in session_key() if x in "0123456789"]))
+    session_bytes = bytes(session_key_sum, "utf-8")
+    return b64encode(md5(session_bytes).digest()).decode("utf-8").strip("=")
 
