@@ -30,8 +30,8 @@ def create_table_schema():
     sessions = range(start_session, curr_session)
     for session in sessions:
         curr_db = '{}-{}.db'.format(session, session + 1)
-        result_stmt = 'CREATE TABLE Result{}(MATNO TEXT PRIMARY KEY, {}, SESSION INTEGER, CATEGORY TEXT)'
-        course_reg_stmt = 'CREATE TABLE CourseReg{}(MATNO TEXT PRIMARY KEY, {}, SESSION INTEGER, PROBATION INTEGER, OTHERS TEXT)'
+        result_stmt = 'CREATE TABLE Result{}(MATNO TEXT PRIMARY KEY, {}, LEVEL INTEGER, SESSION INTEGER, CATEGORY TEXT)'
+        course_reg_stmt = 'CREATE TABLE CourseReg{}(MATNO TEXT PRIMARY KEY, {}, LEVEL INTEGER, SESSION INTEGER, PROBATION INTEGER, OTHERS TEXT)'
         conn = sqlite3.connect(os.path.join(db_base_dir, curr_db))
         for result_session in range(session, session + 8):
             if result_session - session > 4:
@@ -54,7 +54,7 @@ def generate_table_dtype():
     
     for num in range(8):
         if num > 4:
-            result_dtype.append({'MATNO': 'TEXT', 'SESSION': 'INTEGER', 'CARRYOVERS': 'TEXT', 'CATEGORY': 'TEXT'})
+            result_dtype.append({'MATNO': 'TEXT', 'LEVEL': 'INTEGER', 'SESSION': 'INTEGER', 'CARRYOVERS': 'TEXT', 'CATEGORY': 'TEXT'})
             course_reg_dtype.append({'MATNO': 'TEXT', 'CARRYOVERS': 'TEXT', 'PROBATION': 'INTEGER', 'OTHERS': 'TEXT'})
         else:
             course_list = courses[num]
@@ -187,10 +187,10 @@ def failed_credits(entry_session, level, result_df):
 
 
 def get_category(conn, entry_session, level, mod, result_df, course_reg_df):
-    total_credits_failed = failed_credits(entry_session, level, result_df)
+    #total_credits_failed = failed_credits(entry_session, level, result_df)
     total_credits = get_total_credits(conn, level, mod, course_reg_df)
     total_credits_passed = get_passed_credits(entry_session, level, result_df)
-    if not total_credits_failed: return 'A'
+    if total_credits == total_credits_passed: return 'A'
     if level == 1 and entry_session >= 2014:
         if total_credits_passed >= 36: return 'B'
         elif total_credits_passed >= 23 and total_credits_passed < 36: return 'C'
@@ -385,6 +385,10 @@ def populate_db(conn, mat_no, entry_session, mod):
         student_result['SESSION'] = group.SESSION.iloc[0]
         course_reg_df['SESSION'] = group.SESSION.iloc[0]
         course_reg_dtype['SESSION'] = 'INTEGER'
+        
+        student_result['LEVEL'] = count * 100
+        course_reg_df['LEVEL'] = count * 100
+        course_reg_dtype['LEVEL'] = 'INTEGER'
         
          # store result and course_reg in the database
         try:

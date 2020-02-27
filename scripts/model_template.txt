@@ -16,6 +16,7 @@ class PersonalInfo(db.Model):
     sex = db.Column('SEX', db.String(1), nullable=False)
     date_of_birth = db.Column('DATE_OF_BIRTH', db.String(10), nullable=False)
     state_of_origin = db.Column('STATE_OF_ORIGIN', db.Text, nullable=False)
+    lga = db.Column('LGA_OF_ORIGIN', db.Text, nullable=False)
     phone_no = db.Column('PHONE_NO', db.String(11), nullable=False)
     email_address = db.Column('EMAIL_ADDRESS', db.String(100), nullable=False)
     sponsor_phone_no = db.Column('SPONSOR_PHONE_NO', db.String(11), nullable=False)
@@ -47,6 +48,8 @@ class Result100(db.Model):
     PHY111 = db.Column(db.Text)
     PHY113 = db.Column(db.Text)
     PHY124 = db.Column(db.Text)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
     category = db.Column('CATEGORY', db.Text)
 
 
@@ -71,6 +74,8 @@ class Result200(db.Model):
     MEE222 = db.Column(db.Text)
     PRE211 = db.Column(db.Text)
     PRE212 = db.Column(db.Text)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
 
@@ -99,6 +104,8 @@ class Result300(db.Model):
     MEE362 = db.Column(db.Text)
     MEE372 = db.Column(db.Text)
     PRE311 = db.Column(db.Text)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
 
@@ -119,6 +126,8 @@ class Result400(db.Model):
     MEE461 = db.Column(db.Text)
     MEE471 = db.Column(db.Text)
     UBT400 = db.Column(db.Text)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
 
@@ -152,6 +161,8 @@ class Result500(db.Model):
     MEE592 = db.Column(db.Text)
     PRE571 = db.Column(db.Text)
     PRE572 = db.Column(db.Text)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
 
@@ -161,6 +172,8 @@ class Result600(db.Model):
     __tablename__ = 'Result600'
     __table_args__ = {'extend_existing' : True}
     mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
 
@@ -170,6 +183,8 @@ class Result700(db.Model):
     __tablename__ = 'Result700'
     __table_args__ = {'extend_existing' : True}
     mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
 
@@ -179,6 +194,8 @@ class Result800(db.Model):
     __tablename__ = 'Result800'
     __table_args__ = {'extend_existing' : True}
     mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
 
@@ -207,6 +224,18 @@ class Credits(db.Model):
     level500 = db.Column('LEVEL500', db.Integer)
 
 
+class GPA(db.Model):
+    __bind_key__ == '##NAME##'
+    __tablename__ = 'GPA'
+    __table_args__ = {'extend_existing': True}
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    level100 = db.Column('LEVEL100', db.Float)
+    level200 = db.Column('LEVEL200', db.Float)
+    level300 = db.Column('LEVEL300', db.Float)
+    level400 = db.Column('LEVEL400', db.Float)
+    level500 = db.Column('LEVEL500', db.Float)
+
+
 class CourseReg100(db.Model):
     __bind_key__ = '##NAME##'
     __tablename__ = 'CourseReg100'
@@ -229,6 +258,8 @@ class CourseReg100(db.Model):
     PHY111 = db.Column(db.Text)
     PHY113 = db.Column(db.Text)
     PHY124 = db.Column(db.Text)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
     probation = db.Column('PROBATION',db.Integer)
     others = db.Column('OTHERS', db.Text)
 
@@ -254,6 +285,8 @@ class CourseReg200(db.Model):
     MEE222 = db.Column(db.Text)
     PRE211 = db.Column(db.Text)
     PRE212 = db.Column(db.Text)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
     probation = db.Column('PROBATION',db.Integer)
     others = db.Column('OTHERS', db.Text)
@@ -283,6 +316,8 @@ class CourseReg300(db.Model):
     MEE362 = db.Column(db.Text)
     MEE372 = db.Column(db.Text)
     PRE311 = db.Column(db.Text)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
     probation = db.Column('PROBATION',db.Integer)
     others = db.Column('OTHERS', db.Text)
@@ -304,6 +339,8 @@ class CourseReg400(db.Model):
     MEE461 = db.Column(db.Text)
     MEE471 = db.Column(db.Text)
     UBT400 = db.Column(db.Text)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
     probation = db.Column('PROBATION',db.Integer)
     others = db.Column('OTHERS', db.Text)
@@ -338,6 +375,8 @@ class CourseReg500(db.Model):
     MEE592 = db.Column(db.Text)
     PRE571 = db.Column(db.Text)
     PRE572 = db.Column(db.Text)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
     probation = db.Column('PROBATION',db.Integer)
     others = db.Column('OTHERS', db.Text)
@@ -348,6 +387,8 @@ class CourseReg600(db.Model):
     __tablename__ = 'CourseReg600'
     __table_args__ = {'extend_existing' : True}
     mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
     probation = db.Column('PROBATION',db.Integer)
     others = db.Column('OTHERS', db.Text)
@@ -358,6 +399,8 @@ class CourseReg700(db.Model):
     __tablename__ = 'CourseReg700'
     __table_args__ = {'extend_existing' : True}
     mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
     probation = db.Column('PROBATION',db.Integer)
     others = db.Column('OTHERS', db.Text)
@@ -368,6 +411,8 @@ class CourseReg800(db.Model):
     __tablename__ = 'CourseReg800'
     __table_args__ = {'extend_existing' : True}
     mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
     probation = db.Column('PROBATION',db.Integer)
     others = db.Column('OTHERS', db.Text)
