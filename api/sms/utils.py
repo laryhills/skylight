@@ -18,6 +18,15 @@ These aren't exposed endpoints and needn't return json data (exc get_carryovers)
 lastLoaded = None
 
 
+def get_depat(form='long'):
+    if form == 'short':
+        return 'MEE'
+    elif form == 'long':
+        return 'MECHANICAL ENGINEERING'
+    else:
+        return 'MECHANICAL ENGINEERING'
+
+
 def get_DB(mat_no):
     # Lookup the student's details in the master db
     student = Master.query.filter_by(mat_no=mat_no).first_or_404()
