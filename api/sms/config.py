@@ -26,3 +26,10 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 bcrypt = Bcrypt(app)
+tokens = {}
+
+def add_token(token, user):
+    tokens[token] = user
+
+def get_token(token):
+    return tokens.get(token, None)
