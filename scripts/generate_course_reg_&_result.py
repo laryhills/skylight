@@ -386,8 +386,8 @@ def populate_db(conn, mat_no, entry_session, mod):
         course_reg_df['SESSION'] = group.SESSION.iloc[0]
         course_reg_dtype['SESSION'] = 'INTEGER'
         
-        student_result['LEVEL'] = count * 100
-        course_reg_df['LEVEL'] = count * 100
+        student_result['LEVEL'] = (count - num_probation) * 100
+        course_reg_df['LEVEL'] = (count - num_probation) * 100
         course_reg_dtype['LEVEL'] = 'INTEGER'
         
          # store result and course_reg in the database
