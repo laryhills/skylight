@@ -293,7 +293,7 @@ definitions:
           type: string
         mode_of_entry:
           type: string
-        level:
+        current_level:
           type: string
         phone_no:
           type: string
