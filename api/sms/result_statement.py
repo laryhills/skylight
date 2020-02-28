@@ -18,6 +18,8 @@ def get(mat_no, retJSON=True):
         result = results[lvl]
         if result:
             result.pop('mat_no')
+            result.pop('session')
+            result.pop('level')
             category = result.pop('category')
             if lvl:
                 carryovers = result.pop('carryovers')
