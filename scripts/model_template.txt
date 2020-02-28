@@ -225,7 +225,7 @@ class Credits(db.Model):
 
 
 class GPA(db.Model):
-    __bind_key__ == '##NAME##'
+    __bind_key__ = '##NAME##'
     __tablename__ = 'GPA'
     __table_args__ = {'extend_existing': True}
     mat_no = db.Column('MATNO', db.String(10), primary_key=True)
