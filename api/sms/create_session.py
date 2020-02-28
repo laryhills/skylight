@@ -1,6 +1,5 @@
 import os
 import sqlite3
-from sms import utils
 
 def create(session=utils.get_current_session()):
     base_dir = os.path.dirname(__file__)
@@ -15,17 +14,17 @@ def create(session=utils.get_current_session()):
     result_stmt = 'CREATE TABLE Result{}(MATNO TEXT PRIMARY KEY, {} CATEGORY TEXT);'
     course_reg_stmt = 'CREATE TABLE CourseReg{}(MATNO TEXT PRIMARY KEY, {} PROBATION INTEGER, OTHERS TEXT);'
 
-    # Get courses to use in populating Resultx00, CourseRegx00 columns
+    # Get courses to use in populating Resultx00, CourseRegx00, Courses, Credits columns
     conn_courses = sqlite3.connect(os.path.join(db_base_dir, 'courses.db'))
     courses_stmt = 'SELECT COURSE_CODE, COURSE_CREDIT, COURSE_SEMESTER, START_DATE, END_DATE, OPTIONS from Courses{};'
     courses = [conn_courses.execute(courses_stmt.format(x * 100)).fetchall() for x in range(1, 6)]
     conn_courses.close()
 
-    # Use courses array for populating Courses and Credits Table
+    # Populate fields and INSERT into DB
     options = {}
     level_credits = [0,0,0,0,0]
-    de_level_credits =[0,0,0,0]
-    de300_level_credits =[0,0,0]
+    de_level_credits = [0,0,0,0]
+    de300_level_credits = [0,0,0]
     level_courses = [["",""],["",""],["",""],["",""],["",""]]
     de_level_courses = [["",""],["",""],["",""],["",""]]
     de300_level_courses = [["",""],["",""],["",""]]

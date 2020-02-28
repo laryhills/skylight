@@ -134,7 +134,7 @@ paths:
         404:
           description: Mat no does not exist
 
-  /course_reg:
+  /course_form:
     get:
       operationId: sms.course_reg.get
       parameters:
@@ -155,6 +155,33 @@ paths:
               uri:
                 type: string
                 description: Path to the generated course form
+  /course_reg:
+    get:
+      operationId: sms.course_reg.get
+        parameters:
+            - in: query
+              name: mat_no
+              type: string
+              required: true
+            - in: query
+              name: session
+              type: integer
+              required: true
+        responses:
+          200:
+            description: Success
+            schema:
+              $ref: '#/definitions/CourseRegistration_get'
+    post:
+      operationId: sms.course_reg.post
+      parameters:
+        - in: body
+          name: course_reg
+          schema:
+            $ref: '#/definitions/CourseRegistration_post'
+      responses:
+        200:
+          description: Success
 
 definitions:
   PersonalInfo:
@@ -253,3 +280,52 @@ definitions:
                 type: array
                 items:
                     type: string
+
+  CourseRegistration_get:
+    type: object
+    properties:
+      personal_info:
+        surname:
+          type: string
+        othernames:
+          type: string
+        depat:
+          type: string
+        mode_of_entry:
+          type: string
+        level:
+          type: string
+        phone_no:
+          type: string
+        sex:
+          type: string
+        email:
+          type: string
+        state_of_origin:
+          type: string
+        lga_of_origin:
+          type: string
+      courses:
+        first_sem:
+          type: array
+          items:
+            type: string
+        second_sem:
+          type: array
+          items:
+            type: string
+
+  CourseRegistration_post:
+    type: object
+    properties:
+      mat_no:
+        type: string
+      courses:
+        first_sem:
+          type: array
+          items:
+            type: string
+        second_sem:
+          type: array
+          items:
+            type: string
