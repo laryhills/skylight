@@ -13,7 +13,7 @@ base_dir = os.path.dirname(__file__)
 uniben_logo_path = 'file:///' + os.path.join(base_dir, 'templates', 'static', 'Uniben_logo.png')
 
 
-def get(mat_no, session=None, to_print=True):
+def get(mat_no, session=None):
     person = personal_info.get(mat_no, 0)
     phone_no = list(person['phone_no']) if person['phone_no'] else None
     mode_of_entry = ["PUTME", "DE(200)", "DE(300)"][person["mode_of_entry"]-1]
