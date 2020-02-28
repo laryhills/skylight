@@ -22,6 +22,7 @@ def get(mat_no, session=None, to_print=True):
         person['surname'] += " (Miss)"
     depat = utils.get_depat('long')
     level = list(str(utils.get_level(mat_no, 1)))
+    session = utils.get_current_session() if not session else session
 
     carryovers = loads(get_carryovers(mat_no))
     first_sem = carryovers['first_sem']
@@ -35,10 +36,10 @@ def get(mat_no, session=None, to_print=True):
         second_sem_carryover_courses, second_sem_carryover_credits = list(zip(*second_sem))
     else:
         second_sem_carryover_courses, second_sem_carryover_credits = [], []
-    if utils.get_level(mat_no,1) == 400:
+    if utils.get_level(mat_no, 1) == 400:
         # Force only reg of UBTS for incoming 400L
         second_sem_carryover_courses, second_sem_carryover_credits = ["UBT400"], ["6"]
-    if utils.get_level(mat_no) == 400 and utils.get_level(mat_no,1) == 500:
+    if utils.get_level(mat_no) == 400 and utils.get_level(mat_no, 1) == 500:
         if "UBT400" in second_sem_carryover_courses:
             second_sem_carryover_courses = list(second_sem_carryover_courses)
             second_sem_carryover_credits = list(second_sem_carryover_credits)
@@ -46,7 +47,7 @@ def get(mat_no, session=None, to_print=True):
             second_sem_carryover_credits.remove("6")
 
     with app.app_context():
-        html = render_template('course_reg_template.htm', mat_no=mat_no, uniben_logo_path=uniben_logo_path, session='{}/{}'.format(2019, 2019 + 1),
+        html = render_template('course_reg_template.htm', mat_no=mat_no, uniben_logo_path=uniben_logo_path, session='{}/{}'.format(session, session + 1),
                                surname=person['surname'], othernames=person['othernames'].upper(),
                                depat=depat, mode_of_entry=mode_of_entry,
                                level=level, phone_no=phone_no, sex=sex,
@@ -56,8 +57,9 @@ def get(mat_no, session=None, to_print=True):
                                first_sem_carryover_credits=first_sem_carryover_credits,
                                second_sem_carryover_courses=second_sem_carryover_courses,
                                second_sem_carryover_credits=second_sem_carryover_credits)
-        #file_name = secrets.token_hex(8) + '.pdf'
-        #uri = os.path.join(os.path.expanduser('~'), 'sms', 'cache_mechanical', 'pdfs', file_name)
+        file_name = secrets.token_hex(8) + '.png'
+        uri = os.path.join(os.path.expanduser('~'), 'sms', 'cache_mechanical', 'pdfs', file_name)
         data = {'pdf': HTML(string=html).write_pdf()}
+        HTML(string=html).write_pdf(uri)
 
         return data
