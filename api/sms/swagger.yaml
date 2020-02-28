@@ -136,7 +136,7 @@ paths:
 
   /course_form:
     get:
-      operationId: sms.course_reg.get
+      operationId: sms.course_form.get
       parameters:
         - in: query
           name: mat_no
@@ -160,20 +160,20 @@ paths:
   /course_reg:
     get:
       operationId: sms.course_reg.get
-        parameters:
-            - in: query
-              name: mat_no
-              type: string
-              required: true
-            - in: query
-              name: session
-              type: integer
-              required: true
-        responses:
-          200:
-            description: Success
-            schema:
-              $ref: '#/definitions/CourseRegistration_get'
+      parameters:
+        - in: query
+          name: mat_no
+          type: string
+          required: true
+        - in: query
+          name: session
+          type: integer
+          required: true
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/CourseRegistration_get'
     post:
       operationId: sms.course_reg.post
       parameters:
@@ -287,37 +287,41 @@ definitions:
     type: object
     properties:
       personal_info:
-        surname:
-          type: string
-        othernames:
-          type: string
-        depat:
-          type: string
-        mode_of_entry:
-          type: string
-        current_level:
-          type: string
-        phone_no:
-          type: string
-        sex:
-          type: string
-        email:
-          type: string
-        state_of_origin:
-          type: string
-        lga_of_origin:
-          type: string
+        type: object
+        properties:
+          surname:
+            type: string
+          othernames:
+            type: string
+          depat:
+            type: string
+          mode_of_entry:
+            type: string
+          current_level:
+            type: string
+          phone_no:
+            type: string
+          sex:
+            type: string
+          email:
+            type: string
+          state_of_origin:
+            type: string
+          lga_of_origin:
+            type: string
       table_to_populate:
         type: string
       courses:
-        first_sem:
-          type: array
-          items:
-            type: string
-        second_sem:
-          type: array
-          items:
-            type: string
+        type: object
+        properties:
+          first_sem:
+            type: array
+            items:
+              type: string
+          second_sem:
+            type: array
+            items:
+              type: string
       error:
         type: string
 
@@ -329,11 +333,13 @@ definitions:
       table_to_populate:
         type: string
       courses:
-        first_sem:
-          type: array
-          items:
-            type: string
-        second_sem:
-          type: array
-          items:
-            type: string
+        type: object
+        properties:
+          first_sem:
+            type: array
+            items:
+              type: string
+          second_sem:
+            type: array
+            items:
+              type: string
