@@ -305,20 +305,7 @@ definitions:
           type: string
         lga_of_origin:
           type: string
-      courses:
-        first_sem:
-          type: array
-          items:
-            type: string
-        second_sem:
-          type: array
-          items:
-            type: string
-
-  CourseRegistration_post:
-    type: object
-    properties:
-      mat_no:
+      table_to_populate:
         type: string
       courses:
         first_sem:
@@ -329,3 +316,23 @@ definitions:
           type: array
           items:
             type: string
+      error:
+        type: string
+
+  CourseRegistration_post:
+    type: object
+    properties:
+      mat_no:
+        type: string
+      table_to_populate:
+        type: string
+      courses:
+        first_sem:
+          type: array
+          items:
+            type: string
+        second_sem:
+          type: array
+          items:
+            type: string
+
