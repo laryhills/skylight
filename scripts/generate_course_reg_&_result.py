@@ -364,7 +364,9 @@ def populate_db(conn, mat_no, entry_session, mod):
                         try:
                             course, score = item.split(' ')
                             try: score = int(float(score))
-                            except ValueError: score = -1
+                            except ValueError:
+                                score = -1
+                                raise ValueError
                             grade = get_grade(score, entry_session)
                         except ValueError:
                             course, score, grade = item, '-1', 'ABS'
