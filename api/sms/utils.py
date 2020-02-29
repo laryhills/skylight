@@ -195,37 +195,18 @@ def result_poll(mat_no, level=None):
     return ans
 
 
-def get_most_recent_course_reg(mat_no, level=None):
-    # Get courses registered for all levels if level=None else for level
-    db_name = get_DB(mat_no)[:-3]
-    session = load_session(db_name)
-    courses_registered = {}
-    courses_regd_str = {}
-    table_found_in = ''
-    levels = [level] if level else range(800, 0, -100)
-    for _level in levels:
-        courses_regd = eval('session.CourseReg{}.query.filter_by(mat_no=mat_no).first()'.format(_level))
-        courses_regd_str = eval('session.CourseReg{}Schema().dump(courses_regd)'.format(_level))
-        if courses_regd_str != {}:
-            table_found_in = 'CourseReg{}'.format(_level)
-            courses_registered = courses_regd_str
-            break
-    courses = []
-    for course in courses_registered:
-        if courses_registered[course] == '1':
-            courses.append(course)
-    if 'carryovers' in courses_regd_str and courses_regd_str['carryovers']:
-        courses.extend(courses_registered['carryovers'].split(','))
-    return courses, table_found_in
-
-
-def get_registered_courses(mat_no, level=None):
+def get_registered_courses(mat_no, level=None, true_levels=False):
     # Get courses registered for all levels if level=None else for level
     db_name = get_DB(mat_no)[:-3]
     session = load_session(db_name)
     courses_registered = defaultdict(dict)
-    levels = range(100, 900, 100)
-    levs = 100
+    if level and not true_levels:
+        levels = [level]
+        levs = level
+    else:
+        levels = range(100, 900, 100)
+        levs = 100
+
     first_not_found = True
     for _level in levels:
         courses_regd = eval('session.CourseReg{}.query.filter_by(mat_no=mat_no).first()'.format(_level))
@@ -234,16 +215,18 @@ def get_registered_courses(mat_no, level=None):
         for course in courses_regd_str:
             if courses_regd_str[course] == '1':
                 courses_registered[levs]['courses'].append(course)
+        courses_registered[levs]['courses'] = sorted(courses_registered[levs]['courses'])
 
-        if courses_regd_str != {} and levs != 100 and len(courses_registered[levs]['courses']) == 0 and first_not_found:
-            first_not_found = False
-            del courses_registered[levs]
-            levs -= 100
-            courses_registered[levs] = {'courses': [], 'table': 'CourseReg{}'.format(_level)}
+        if true_levels:
+            if courses_regd_str != {} and levs != 100 and len(courses_registered[levs]['courses']) == 0 and first_not_found:
+                first_not_found = False
+                del courses_registered[levs]
+                levs -= 100
+                courses_registered[levs] = {'courses': [], 'table': 'CourseReg{}'.format(_level)}
 
         if 'carryovers' in courses_regd_str and courses_regd_str['carryovers']:
-            courses_registered[levs]['courses'].extend(courses_regd_str['carryovers'].split(','))
-        courses_registered[levs]['courses'] = sorted(courses_registered[levs]['courses'])
+            courses_registered[levs]['courses'].extend(sorted(courses_regd_str['carryovers'].split(',')))
+        courses_registered[levs]['courses'] = courses_registered[levs]['courses']
         levs += 100
     if level:
         return courses_registered[level]
