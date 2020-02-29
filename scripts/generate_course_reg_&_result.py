@@ -360,12 +360,11 @@ def populate_db(conn, mat_no, entry_session, mod):
                     items = series[0].split(',')
                     new_items_list = []
                     for item in items:
-                        course, score = item.split()
                         try:
                             course, score = item.split(' ')
                             try: score = int(float(score))
                             except ValueError:
-                                score = -1
+                                item = course
                                 raise ValueError
                             grade = get_grade(score, entry_session)
                         except ValueError:
