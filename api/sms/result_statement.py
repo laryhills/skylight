@@ -23,16 +23,16 @@ def get(mat_no, retJSON=True):
             category = result.pop('category')
             if lvl:
                 carryovers = result.pop('carryovers')
-                if carryovers != "-1,ABS":
+                if carryovers != '':
                     carryovers = carryovers.split(',')
                     for co in carryovers:
-                        coSplit = co.split()
-                        # Special cases, del on fix DB
-                        if len(coSplit)==4:
-                            coSplit.remove('nan')
-                            co = " ".join(coSplit)
-                        if len(coSplit) == 2:
-                            co = " ".join(coSplit+["F"])
+                        # coSplit = co.split()
+                        # # Special cases, del on fix DB
+                        # if len(coSplit)==4:
+                        #     coSplit.remove('nan')
+                        #     co = " ".join(coSplit)
+                        # if len(coSplit) == 2:
+                        #     co = " ".join(coSplit+["F"])
                         (course, score, grade) = co.split()
                         result[course] = ",".join([score, grade])
             credits_passed = credits_failed = credits_total = 0
