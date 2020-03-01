@@ -311,6 +311,10 @@ definitions:
             type: string
       table_to_populate:
         type: string
+      course_reg_session:
+        type: integer
+      course_reg_level:
+        type: integer
       courses:
         type: object
         properties:
@@ -332,9 +336,9 @@ definitions:
         type: string
       table_to_populate:
         type: string
-      session:
+      course_reg_session:
         type: integer
-      level:
+      course_reg_level:
         type: integer
       courses:
         type: object
