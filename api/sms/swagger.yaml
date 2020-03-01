@@ -332,6 +332,10 @@ definitions:
         type: string
       table_to_populate:
         type: string
+      session:
+        type: integer
+      level:
+        type: integer
       courses:
         type: object
         properties:
