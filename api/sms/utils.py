@@ -9,6 +9,8 @@ from sms import course_details
 from sms.models.master import Master, MasterSchema
 from sms.models.courses import Options, OptionsSchema
 from sms.result_input import get_result_for_edit
+from sqlalchemy.orm import class_mapper
+import sqlalchemy.orm
 
 '''
 Handle frequently called or single use simple utility functions
@@ -232,6 +234,10 @@ def get_registered_courses(mat_no, level=None, true_levels=False):
         return courses_registered[level]
     return courses_registered
 
+
+def get_attribute_names(cls):
+    return [prop.key for prop in class_mapper(cls).iterate_properties
+        if isinstance(prop, sqlalchemy.orm.ColumnProperty)]
 
 # def test_get_result():
 #     source = open("C:\\Users\\chima\\PycharmProjects\\skylight\\api\\sms\\er.txt", 'r')
