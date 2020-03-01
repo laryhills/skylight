@@ -6,6 +6,7 @@ curr_session = 2019
 
 db_base_dir = os.path.join(os.path.dirname(__file__), '..', 'api', 'sms', 'database')
 
+
 def generate_grading_rule():
     for session in range(start_session, curr_session + 1):
         if 2013 <= session <= 2017:
@@ -23,5 +24,7 @@ def generate_grading_rule():
         conn.commit()
         conn.close()
 
+
 if __name__ == '__main__':
     generate_grading_rule()
+    print('done')
