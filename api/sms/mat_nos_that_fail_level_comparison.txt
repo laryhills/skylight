@@ -1,3 +1,6 @@
+These mat_no fail a level (db level not actual one) comparison between...
+                  result_statement.get() and utils.get_registered_courses()
+
 ENG0303496False   table_to_input: Result300table_to_input_results: Result400
 ENG0303496False   table_to_input: Result400table_to_input_results: Result500
 ENG0303496False   table_to_input: Result500table_to_input_results: Result600
