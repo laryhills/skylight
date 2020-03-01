@@ -166,7 +166,7 @@ paths:
           type: string
           required: true
         - in: query
-          name: session
+          name: acad_session
           type: integer
           required: true
       responses:
