@@ -18,8 +18,8 @@ def get(mat_no, retJSON=True):
         result = results[lvl]
         if result:
             result.pop('mat_no')
-            result.pop('session')
-            result.pop('level')
+            session = result.pop('session')
+            level = result.pop('level')
             category = result.pop('category')
             if lvl:
                 carryovers = result.pop('carryovers')
@@ -36,7 +36,7 @@ def get(mat_no, retJSON=True):
                         (course, score, grade) = co.split()
                         result[course] = ",".join([score, grade])
             credits_passed = credits_failed = credits_total = 0
-            lvlResult = {"first_sem": [], "second_sem": []}
+            lvlResult = {"first_sem": [], "second_sem": [], 'level': level, 'session': session}
             for course in result:
                 if result[course]:
                     if course == "CHM112":
