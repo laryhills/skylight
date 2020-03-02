@@ -251,11 +251,15 @@ definitions:
             type: object
             properties:
                 first_sem:
-                    type: array
-                    items: {}
+                  type: array
+                  items: {}
                 second_sem:
-                    type: array
-                    items: {}
+                  type: array
+                  items: {}
+                level:
+                  type: integer
+                session:
+                  type: integer
       credits:
         type: array
         items:
