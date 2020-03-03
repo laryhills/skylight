@@ -17,20 +17,12 @@ paths:
       tags: [Login]
       operationId: sms.users.login
       summary: User authentication
-      description: Tries to login in the user while returning a token
+      description: Logs in a user using supplied token
       parameters:
-        - in: body
-          name: user
-          schema:
-            type: object
-            required:
-              - username
-              - password
-            properties:
-              username:
-                type: string
-              password:
-                type: string
+        - name: token
+          in: body
+          required: true
+          type: string
       responses:
         200:
           description: Returns the user specific token
