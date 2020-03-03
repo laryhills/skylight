@@ -350,11 +350,32 @@ definitions:
           first_sem:
             type: array
             items:
-              type: string
+              type: array
+              items: {}
           second_sem:
             type: array
             items:
-              type: string
+              type: array
+              items: {}
+      choices:
+        type: object
+        properties:
+          first_sem:
+            type: array
+            items:
+              type: array
+              items: {}
+          second_sem:
+            type: array
+            items:
+              type: array
+              items: {}
+      probation_status:
+        type: integer
+      fees_status:
+        type: integer
+      others:
+        type: string
       error:
         type: string
 
@@ -380,3 +401,20 @@ definitions:
             type: array
             items:
               type: string
+      choices:
+        type: object
+        properties:
+          first_sem:
+            type: array
+            items:
+              type: string
+          second_sem:
+            type: array
+            items:
+              type: string
+      probation_status:
+        type: integer
+      fees_status:
+        type: integer
+      others:
+        type: string

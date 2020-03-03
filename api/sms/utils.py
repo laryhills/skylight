@@ -1,11 +1,10 @@
 from collections import defaultdict
 from json import loads, dumps
-from sys import modules
 from sms.config import db
-from importlib import reload
 from sms import personal_info
 from sms import result_statement
 from sms import course_details
+from sms import users
 from sms.models.master import Master, MasterSchema
 from sms.models.courses import Options, OptionsSchema
 from sms.result_input import get_result_for_edit
@@ -17,71 +16,28 @@ Handle frequently called or single use simple utility functions
 These aren't exposed endpoints and needn't return json data (exc get_carryovers)
 '''
 
-lastLoaded = None
-
 
 def get_depat(form='long'):
     if form == 'short':
         return 'MEE'
-    elif form == 'long':
-        return 'MECHANICAL ENGINEERING'
-    else:
-        return 'MECHANICAL ENGINEERING'
+    return 'MECHANICAL ENGINEERING'
 
 
 def get_DB(mat_no):
-    # Lookup the student's details in the master db
-    student = Master.query.filter_by(mat_no=mat_no).first_or_404()
-    master_schema = MasterSchema()
-    db_name = master_schema.dump(student)['database']
-    return db_name.replace('-', '_')
+    return users.get_DB(mat_no)
 
 
 def load_session(session):
-    #Import model and force import override if necessary (session changes)
-    global lastLoaded
-    exec('from sms.models import _{}'.format(session))
-    if ('sms.models._{}'.format(session) in modules) and (lastLoaded!=session):
-        exec('reload(_{})'.format(session))
-    lastLoaded = session
-    return eval('_{}'.format(session))
+    return users.load_session(session)
+
+
+def get_level(mat_no, next = False):
+    return users.get_level(mat_no, next)
 
 
 def get_current_session():
     # Code stub that returns current session, TODO take from master.db
     return 2019
-
-
-def get_level(mat_no, next = False):
-    # 0 - do estimate level; 600 - is graduate, 100-500 spill inc
-    # if next = True, return next level else current level
-    curr_level = personal_info.get(mat_no, 0)['current_level']
-    result_stmt = result_statement.get(mat_no, 0)
-    results = result_stmt["results"]
-    if curr_level and not results:
-        # current level on record, if no result - be optimistic on moving to next level
-        print ("WARNING: No result record for", mat_no, "using stored level record")
-        if not next:
-            return curr_level
-        return curr_level + 100
-    if curr_level == 0:
-        if not results:
-            print("No result for", mat_no, "can't det level")
-            return 0
-        else:
-            # No level record, use highest courses written to estimate
-            last_result = results[-1]["first_sem"] + results[-1]["second_sem"]
-            course_levels = [course_details.get(code, 0)["course_level"]
-                             for lvl, code, title, weight, score, grade in last_result]
-            curr_level = max(course_levels)
-    # current level presently determined, if next determine using results
-    if next:
-        if curr_level >= 500:
-            inc_level = [0, 100][result_stmt["category"][-1] in ('A')]
-        else:
-            inc_level = [0, 100][result_stmt["category"][-1] in ('A', 'B')]
-        return curr_level + inc_level
-    return curr_level
 
 
 def get_credits(mat_no, mode_of_entry=None):

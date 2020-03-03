@@ -2,16 +2,17 @@ from flask import abort
 from sms.config import db
 from sms import utils
 from sms.models.master import Master, MasterSchema
+from sms import users
 
-
-def get(mat_no, retJSON=True):
+@users.access_decorator
+def get(mat_no, ret_JSON=True, req_perms=["read"]):
     db_name = utils.get_DB(mat_no)[:-3]
     session = utils.load_session(db_name)
     PersonalInfo = session.PersonalInfo
     PersonalInfoSchema = session.PersonalInfoSchema
     student_data = PersonalInfo.query.filter_by(mat_no=mat_no).first_or_404()
     personalinfo_schema = PersonalInfoSchema()
-    if retJSON:
+    if ret_JSON:
         return personalinfo_schema.dumps(student_data)
     return personalinfo_schema.dump(student_data)
 
