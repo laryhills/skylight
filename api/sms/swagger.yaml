@@ -370,6 +370,12 @@ definitions:
             items:
               type: array
               items: {}
+      probation_status:
+        type: integer
+      fees_status:
+        type: integer
+      others:
+        type: string
       error:
         type: string
 
@@ -406,3 +412,9 @@ definitions:
             type: array
             items:
               type: string
+      probation_status:
+        type: integer
+      fees_status:
+        type: integer
+      others:
+        type: string
