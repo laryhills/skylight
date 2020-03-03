@@ -37,7 +37,7 @@ def get_level(mat_no, next = False):
 
 def get_current_session():
     # Code stub that returns current session, TODO take from master.db
-    return 2019
+    return 2018
 
 
 def get_credits(mat_no, mode_of_entry=None):
