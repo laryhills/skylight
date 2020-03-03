@@ -54,19 +54,15 @@ def access_decorator(func):
         except Exception:
             print ("Running from command line or swagger UI, token not supplied!")
             token = tokenize("ucheigbeka:testing")
-        req_perms = func.__defaults__[-1]
-        token_dict = get_token(token)
+        req_perms, token_dict = func.__defaults__[-1], get_token(token)
+        user_perms, mat_no = token_dict["perms"], kwargs.get("mat_no")
         if not token_dict:
             # Not logged in (using old session token)
             abort(440)
-        user_perms = token_dict["perms"]
-        mat_no = kwargs.get("mat_no")
+        has_access = True
         if mat_no:
             level = get_level(mat_no)
-            has_access = level in user_perms["levels"]
-        else:
-            # Not a level-specific request
-            has_access = True
+            has_access &= level in user_perms["levels"]
         for perm in req_perms:
             has_access &= bool(user_perms.get(perm))
         if has_access:
