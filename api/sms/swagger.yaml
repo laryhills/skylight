@@ -20,7 +20,7 @@ paths:
       description: Logs in a user using supplied token
       parameters:
         - name: token
-          in: body
+          in: query
           required: true
           type: string
       responses:
