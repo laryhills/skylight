@@ -110,4 +110,5 @@ def get_level(mat_no, next = False):
 ## PERFORM LOGIN, REMOVE IN PROD
 
 my_token = tokenize("ucheigbeka:testing")
+print ("Using token ", my_token)
 login(my_token)
