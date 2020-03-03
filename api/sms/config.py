@@ -28,8 +28,12 @@ ma = Marshmallow(app)
 bcrypt = Bcrypt(app)
 tokens = {}
 
+cache_base_dir = os.path.join(os.path.expanduser('~'), 'sms', 'cache_mechanical')
+
+
 def add_token(token, username, permissions):
     tokens[token] = {"user": username, "perms": permissions}
+
 
 def get_token(token):
     return tokens.get(token)
