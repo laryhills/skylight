@@ -137,6 +137,11 @@ paths:
   /course_form:
     get:
       operationId: sms.course_form.get
+      summary: Course form generation
+      description: Generates course form of a student as a png (for preview) or as a png (for printing)
+      produces:
+        - image/png
+        - application/pdf
       parameters:
         - in: query
           name: mat_no
@@ -152,11 +157,31 @@ paths:
         200:
           description: Success
           schema:
-            type: object
-            properties:
-              pdf:
-                type: string
-                description: Path to the generated course form
+            type: file
+
+  /result_update:
+    get:
+      operationId: sms.result_update.get
+      produces:
+        - image/png
+        - application/pdf
+      parameters:
+        - in: query
+          name: mat_no
+          type: string
+          required: true
+        - in: query
+          name: session
+          type: integer
+        - in: query
+          name: to_print
+          type: boolean
+      responses:
+        200:
+          description: Success
+          schema:
+            type: file
+
   /course_reg:
     get:
       operationId: sms.course_reg.get
