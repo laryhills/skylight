@@ -112,10 +112,7 @@ def get_result_for_edit(mat_no, level):
             frame['courses']['second_sem'].append((course_dets['course_code'], course_dets['course_title'],
 
                                                   course_dets['course_credit'], None, None))
-    # TEST
-    # if table_to_input != table_to_input_results:
-    #    src.append(mat_no + '  False' + '  table_to_input: ' + table_to_input + 'table_to_input_results: ' + table_to_input_results)
-    # return src
+
     return frame
 
 
