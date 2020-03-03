@@ -350,11 +350,26 @@ definitions:
           first_sem:
             type: array
             items:
-              type: string
+              type: array
+              items: {}
           second_sem:
             type: array
             items:
-              type: string
+              type: array
+              items: {}
+      choices:
+        type: object
+        properties:
+          first_sem:
+            type: array
+            items:
+              type: array
+              items: {}
+          second_sem:
+            type: array
+            items:
+              type: array
+              items: {}
       error:
         type: string
 
@@ -370,6 +385,17 @@ definitions:
       course_reg_level:
         type: integer
       courses:
+        type: object
+        properties:
+          first_sem:
+            type: array
+            items:
+              type: string
+          second_sem:
+            type: array
+            items:
+              type: string
+      choices:
         type: object
         properties:
           first_sem:
