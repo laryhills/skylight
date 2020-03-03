@@ -184,11 +184,13 @@ def get_registered_courses(mat_no, level=None, true_levels=False):
 
         if 'carryovers' in courses_regd_str and courses_regd_str['carryovers']:
             courses_registered[levs]['courses'].extend(sorted(courses_regd_str['carryovers'].split(',')))
-        courses_registered[levs]['courses'] = courses_registered[levs]['courses']
 
+        courses_registered[levs]['courses'] = courses_registered[levs]['courses']
         courses_registered[levs]['course_reg_level'] = courses_regd_str['level'] if 'level' in courses_regd_str else None
         courses_registered[levs]['course_reg_session'] = courses_regd_str['session'] if 'session' in courses_regd_str else None
         courses_registered[levs]['probation'] = courses_regd_str['probation'] if 'probation' in courses_regd_str else None
+        courses_registered[levs]['fees_status'] = courses_regd_str['fees_status'] if 'fees_status' in courses_regd_str else None
+        courses_registered[levs]['others'] = courses_regd_str['others'] if 'others' in courses_regd_str else None
         levs += 100
     if level:
         return courses_registered[level]
