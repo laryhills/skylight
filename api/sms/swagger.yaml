@@ -31,6 +31,8 @@ paths:
             properties:
               token:
                 type: string
+        401:
+          description: Authentication failed
 
   /personal_info:
     get:

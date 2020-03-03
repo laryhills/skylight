@@ -19,9 +19,9 @@ def login(token):
             token_dict = {'token': token}
             add_token(token, stored_user.username, loads(stored_user.permissions))
             return token_dict, 200
-        abort(400)
+        abort(401)
     except Exception:
-        abort(400)
+        abort(401)
 
 
 def tokenize(text):
