@@ -1,10 +1,9 @@
 import os.path
 import secrets
-from pathlib import Path
 from json import loads
-from flask import render_template
+from flask import render_template, send_from_directory
 from weasyprint import HTML
-from sms.config import app
+from sms.config import app, cache_base_dir
 from sms.utils import get_carryovers
 from sms import personal_info
 from sms import utils
@@ -13,7 +12,9 @@ base_dir = os.path.dirname(__file__)
 uniben_logo_path = 'file:///' + os.path.join(base_dir, 'templates', 'static', 'Uniben_logo.png')
 
 
-def get(mat_no, session=None):
+def get(mat_no, session=None, to_print=False):
+    # TODO: Clear the cache directory
+
     person = personal_info.get(mat_no, 0)
     phone_no = list(person['phone_no']) if person['phone_no'] else None
     mode_of_entry = ["PUTME", "DE(200)", "DE(300)"][person["mode_of_entry"]-1]
@@ -57,9 +58,13 @@ def get(mat_no, session=None):
                                first_sem_carryover_credits=first_sem_carryover_credits,
                                second_sem_carryover_courses=second_sem_carryover_courses,
                                second_sem_carryover_credits=second_sem_carryover_credits)
-        file_name = secrets.token_hex(8) + '.png'
-        uri = os.path.join(os.path.expanduser('~'), 'sms', 'cache_mechanical', 'pdfs', file_name)
-        data = {'pdf': HTML(string=html).write_pdf()}
-        HTML(string=html).write_pdf(uri)
+        if to_print:
+            file_name = secrets.token_hex(8) + '.pdf'
+            HTML(string=html).write_pdf(os.path.join(cache_base_dir, file_name))
+            resp = send_from_directory(cache_base_dir, file_name, as_attachment=True)
+        else:
+            file_name = secrets.token_hex(8) + '.png'
+            HTML(string=html).write_png(os.path.join(cache_base_dir, file_name))
+            resp = send_from_directory(cache_base_dir, file_name, as_attachment=True)
 
-        return data
+        return resp
