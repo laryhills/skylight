@@ -61,8 +61,12 @@ def access_decorator(func):
             abort(440)
         has_access = True
         if mat_no:
-            level = get_level(mat_no)
-            has_access &= level in user_perms["levels"]
+            extras, levels = user_perms.get("extras"), user_perms.get("levels")
+            if levels:
+                level = get_level(mat_no)
+                has_access |= level in levels
+            if extras:
+                has_access |= (mat_no in extras)
         for perm in req_perms:
             has_access &= bool(user_perms.get(perm))
         if has_access:
