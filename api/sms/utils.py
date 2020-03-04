@@ -1,13 +1,10 @@
 from collections import defaultdict
 from json import loads, dumps
-from sms.config import db
 from sms import personal_info
 from sms import result_statement
 from sms import course_details
 from sms import users
-from sms.models.master import Master, MasterSchema
 from sms.models.courses import Options, OptionsSchema
-from sms.result_input import get_result_for_edit
 from sqlalchemy.orm import class_mapper
 import sqlalchemy.orm
 
@@ -182,7 +179,6 @@ def get_registered_courses(mat_no, level=None, true_levels=False):
         if 'carryovers' in courses_regd_str and courses_regd_str['carryovers']:
             courses_registered[levs]['courses'].extend(sorted(courses_regd_str['carryovers'].split(',')))
 
-        courses_registered[levs]['courses'] = courses_registered[levs]['courses']
         courses_registered[levs]['course_reg_level'] = courses_regd_str['level'] if 'level' in courses_regd_str else None
         courses_registered[levs]['course_reg_session'] = courses_regd_str['session'] if 'session' in courses_regd_str else None
         courses_registered[levs]['probation'] = courses_regd_str['probation'] if 'probation' in courses_regd_str else None
