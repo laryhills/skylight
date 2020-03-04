@@ -31,7 +31,7 @@ def create_table_schema():
     for session in sessions:
         curr_db = '{}-{}.db'.format(session, session + 1)
         result_stmt = 'CREATE TABLE Result{}(MATNO TEXT PRIMARY KEY, {}, LEVEL INTEGER, SESSION INTEGER, CATEGORY TEXT)'
-        course_reg_stmt = 'CREATE TABLE CourseReg{}(MATNO TEXT PRIMARY KEY, {}, LEVEL INTEGER, SESSION INTEGER, PROBATION INTEGER, OTHERS TEXT)'
+        course_reg_stmt = 'CREATE TABLE CourseReg{}(MATNO TEXT PRIMARY KEY, {}, LEVEL INTEGER, SESSION INTEGER, FEES_STATUS INTEGER, PROBATION INTEGER, OTHERS TEXT)'
         conn = sqlite3.connect(os.path.join(db_base_dir, curr_db))
         for result_session in range(session, session + 8):
             if result_session - session > 4:
@@ -303,7 +303,7 @@ def populate_db(conn, mat_no, entry_session, mod):
     groups = [curr_frame_group.get_group(x) for x in curr_frame_group.groups]
     groups = sorted(groups, key=lambda x: x.SESSION.iloc[0])
     levels = [groups[num].SESSION.iloc[0] for num in range(len(groups))]
-    if not levels or levels[0] != entry_session or len(groups) > (9 - mod):
+    if not levels or len(groups) > (9 - mod):
         store_unusual_students(mat_no, entry_session)
         return
 #    progressive_sum = int(len(levels) / 2.0 * (2 * levels[0] + len(levels) - 1))
@@ -389,7 +389,16 @@ def populate_db(conn, mat_no, entry_session, mod):
         
         student_result['LEVEL'] = (count - num_probation) * 100
         course_reg_df['LEVEL'] = (count - num_probation) * 100
+        course_reg_df['FEES_STATUS'] = 1
         course_reg_dtype['LEVEL'] = 'INTEGER'
+        course_reg_dtype['FEES_STATUS'] = 'INTEGER'
+        
+        if count == len(groups):
+            if count - num_probation >= 5 and student_result['CATEGORY'].iloc[0] == 'A':
+                conn.execute('UPDATE PersonalInfo SET GRAD_STATUS = ? WHERE MATNO = "{}"'.format(mat_no), (1,))
+            else:
+                current_level = (count - num_probation + 1) * 100 if student_result['CATEGORY'].iloc[0] in ['A', 'B'] else (count - num_probation) * 100
+                conn.execute('UPDATE PersonalInfo SET CURRENT_LEVEL = ? WHERE MATNO = "{}"'.format(mat_no), (current_level,))
         
          # store result and course_reg in the database
         try:
