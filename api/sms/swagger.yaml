@@ -63,6 +63,10 @@ paths:
             $ref: '#/definitions/PersonalInfo'
         404:
           description: Mat no does not exist
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
 
     post:
       operationId: sms.personal_info.post
@@ -75,6 +79,10 @@ paths:
       responses:
         200:
           description: Record successfully added
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
 
   /course_details:
     get:
@@ -89,6 +97,10 @@ paths:
           description: Success
           schema:
             $ref: '#/definitions/CourseDetails'
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
     post:
       operationId: sms.course_details.post
       parameters:
@@ -99,6 +111,10 @@ paths:
       responses:
         200:
           description: Success
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
 
   /result_statement:
     get:
@@ -117,6 +133,10 @@ paths:
             $ref: '#/definitions/ResultStatement'
         404:
           description: Mat no does not exist
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
 
   /carryovers:
     get:
@@ -164,6 +184,10 @@ paths:
           description: Success
           schema:
             type: file
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
 
   /result_update:
     get:
@@ -187,6 +211,10 @@ paths:
           description: Success
           schema:
             type: file
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
 
   /course_reg:
     get:
@@ -205,6 +233,10 @@ paths:
           description: Success
           schema:
             $ref: '#/definitions/CourseRegistration_get'
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
     post:
       operationId: sms.course_reg.post
       parameters:
@@ -215,6 +247,10 @@ paths:
       responses:
         200:
           description: Success
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
 
 definitions:
   PersonalInfo:
