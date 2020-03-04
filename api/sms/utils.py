@@ -16,23 +16,14 @@ Handle frequently called or single use simple utility functions
 These aren't exposed endpoints and needn't return json data (exc get_carryovers)
 '''
 
+get_DB = users.get_DB
+get_level = users.get_level
+load_session = users.load_session
 
 def get_depat(form='long'):
     if form == 'short':
         return 'MEE'
     return 'MECHANICAL ENGINEERING'
-
-
-def get_DB(mat_no):
-    return users.get_DB(mat_no)
-
-
-def load_session(session):
-    return users.load_session(session)
-
-
-def get_level(mat_no, next = False):
-    return users.get_level(mat_no, next)
 
 
 def get_current_session():
