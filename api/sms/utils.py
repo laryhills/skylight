@@ -28,7 +28,7 @@ def get_depat(form='long'):
 
 def get_current_session():
     # Code stub that returns current session, TODO take from master.db
-    return 2018
+    return 2019
 
 
 def get_credits(mat_no, mode_of_entry=None):
@@ -81,7 +81,7 @@ def get_carryovers(mat_no, retJSON=True):
     level = get_level(mat_no)
     first_sem, second_sem = set(), set()
     results = loads(result_statement.get(mat_no))["results"]
-    for course in get_courses(mat_no)[:int(level/100)]:
+    for course in get_courses(mat_no)[:int(level/100-1)]:
         first_sem |= set(course[0] if course else set())
         second_sem |= set(course[1] if course else set())
 
@@ -118,7 +118,8 @@ def get_carryovers(mat_no, retJSON=True):
                 if course in second_sem:
                     second_sem.remove(course)
 
-    if level == get_level(mat_no,1) and level in (200, 300, 400):
+    results = [x for x in result_poll(mat_no) if x]
+    if results and results[-1]["category"] == "C" and level in (200, 300, 400):
         # Handle probation carryovers
         print ("Probating {} student".format(level))
         first_sem |= set(get_courses(mat_no)[int(level/100)-1][0])

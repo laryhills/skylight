@@ -98,16 +98,13 @@ def get_DB(mat_no):
     return db_name.replace('-', '_')
 
 
-def get_level(mat_no, next = False):
+def get_level(mat_no):
     # 600-800 - is spill, 100-500 spill not inc, grad_status - graduated
     # if next = True, return next level else current level
     db_name = get_DB(mat_no)[:-3]
     session = load_session(db_name)
     PersonalInfo = session.PersonalInfo
     student_data = PersonalInfo.query.filter_by(mat_no=mat_no).first_or_404()
-    if next:
-        #TODO implement using results table to update with probation category
-        return student_data.current_level + 100
     return student_data.current_level
 
 
