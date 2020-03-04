@@ -34,6 +34,18 @@ paths:
         401:
           description: Authentication failed
 
+  /session_key:
+    get:
+      tags: [Login]
+      operationId: sms.users.session_key
+      summary: Session key
+      description: Get session key for use in generating token on client
+      responses:
+        200:
+          description: Returns the current session key for use by client
+          schema:
+            type: string
+
   /personal_info:
     get:
       operationId: sms.personal_info.get
