@@ -399,17 +399,6 @@ definitions:
             type: array
             items:
               type: string
-      choices:
-        type: object
-        properties:
-          first_sem:
-            type: array
-            items:
-              type: string
-          second_sem:
-            type: array
-            items:
-              type: string
       probation_status:
         type: integer
       fees_status:
