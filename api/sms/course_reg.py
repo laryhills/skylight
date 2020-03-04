@@ -1,4 +1,3 @@
-import os.path
 from json import loads
 from flask import abort
 from sms.config import db
@@ -9,7 +8,7 @@ from sms.users import access_decorator
 
 
 @access_decorator
-def get(mat_no, acad_session=None, req_perms=["read"]):
+def get(mat_no, acad_session=None, req_perms=("read",)):
     # for new registrations, the assumption is that the level has been updated by admin
     current_level = utils.get_level(mat_no)
     current_session = utils.get_current_session()
@@ -53,6 +52,8 @@ def get(mat_no, acad_session=None, req_perms=["read"]):
     # Guess that still qualifies as new student
     if table_to_populate == '':
         table_to_populate = 'CourseReg100'
+    res = [x for x in utils.result_poll(mat_no) if x]
+    category = res[-1]["category"]
 
     if not acad_session and (int(table_to_populate[-3:]) + 100 > 800):
         course_reg_frame = {'personal_info': some_personal_info,
@@ -68,6 +69,21 @@ def get(mat_no, acad_session=None, req_perms=["read"]):
                             'fees_status': fees_status,
                             'others': others,
                             'error': 'Student cannot carry out course reg as he has exceeded the 8-year limit'}
+
+    elif table_to_populate != 'CourseReg100' and res and category not in ['A', 'B', 'C']:
+        course_reg_frame = {'personal_info': some_personal_info,
+                            'table_to_populate': None,
+                            'course_reg_session': current_session,
+                            'course_reg_level': None,
+                            'level_max_credits': None,
+                            'courses': {'first_sem': [],
+                                        'second_sem': []},
+                            'choices': {'first_sem': [],
+                                        'second_sem': []},
+                            'probation_status': None,
+                            'fees_status': fees_status,
+                            'others': others,
+                            'error': 'Student cannot carry out course reg as his category is {}'.format(res[-1]['category'])}
 
     elif not acad_session and (graduation_status != 1 if graduation_status else True):
         # checks to confirm that this is a new registration
@@ -112,7 +128,7 @@ def get(mat_no, acad_session=None, req_perms=["read"]):
                 crse_dets = utils.course_details.get(crse, 0)
                 second_sem_choices.append((crse, crse_dets['course_credit']))
 
-        level_max_credits = utils.get_maximum_credits_course_reg()['normal']
+        level_max_credits = utils.get_maximum_credits_for_course_reg()['normal']
         # Implementing the "clause of 51"
         if current_level >= 500:
             credit_sum = sum(map(int, first_sem_carryover_credits)) + sum(map(int, second_sem_carryover_credits))
@@ -200,9 +216,9 @@ def get(mat_no, acad_session=None, req_perms=["read"]):
     return course_reg_frame
 
 
-def post(course_reg, req_perms=["write"]):
+def post(course_reg, req_perms=("write",)):
     # The 'session_acad' variable is to enable edits
-    #
+
     """ ======= FORMAT =======
         mat_no: 'ENGxxxxxxx'
         table_to_populate: 'CourseRegxxx'
@@ -218,10 +234,7 @@ def post(course_reg, req_perms=["write"]):
         =======================
 
     example...
-    course_reg = {'mat_no': 'ENG1503886', 'table_to_populate': 'CourseReg500', 'course_reg_session': 2019,
-                  'course_reg_level': 500, 'max_credits': 50, 'courses': {'first_sem': ['MEE521', 'EMA481'],
-                                                                          'second_sem': []},
-                  'probation_status': 0, 'fees_status': None, 'others': None}
+    c_reg = {'mat_no': 'ENG1503886', 'table_to_populate': 'CourseReg500', 'course_reg_session': 2019, 'course_reg_level': 500, 'max_credits': 50, 'courses': {'first_sem': ['MEE521', 'MEE551', 'MEE561', 'MEE571', 'EMA481'], 'second_sem': []}, 'probation_status': 0, 'fees_status': None, 'others': None}
     """
 
     # todo: Get "session_admitted" from "current_session" in master.db for 100l
