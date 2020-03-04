@@ -5,9 +5,11 @@ from sms.config import db
 from sms import personal_info
 from sms import utils
 from sms.utils import get_carryovers
+from sms.users import access_decorator
 
 
-def get(mat_no, acad_session=None):
+@access_decorator
+def get(mat_no, acad_session=None, req_perms=["read"]):
     # for new registrations, the assumption is that the level has been updated by admin
     current_level = utils.get_level(mat_no)
     current_session = utils.get_current_session()
@@ -198,7 +200,7 @@ def get(mat_no, acad_session=None):
     return course_reg_frame
 
 
-def post(course_reg):
+def post(course_reg, req_perms=["write"]):
     # The 'session_acad' variable is to enable edits
     #
     """ ======= FORMAT =======

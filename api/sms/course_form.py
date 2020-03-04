@@ -7,12 +7,15 @@ from sms.config import app, cache_base_dir
 from sms.utils import get_carryovers
 from sms import personal_info
 from sms import utils
+from sms.users import access_decorator
+
 
 base_dir = os.path.dirname(__file__)
 uniben_logo_path = 'file:///' + os.path.join(base_dir, 'templates', 'static', 'Uniben_logo.png')
 
 
-def get(mat_no, session=None, to_print=False):
+@access_decorator
+def get(mat_no, session=None, to_print=False, req_perms=["read"]):
     # TODO: Clear the cache directory
 
     person = personal_info.get(mat_no, 0)

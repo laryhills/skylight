@@ -2,9 +2,11 @@ from sms import utils
 from sms import personal_info
 from sms import course_details
 from json import loads, dumps
+from sms.users import access_decorator
 
 
-def get(mat_no, retJSON=True):
+@access_decorator
+def get(mat_no, retJSON=True, req_perms=["read"]):
     person = loads(personal_info.get(mat_no=mat_no))
     
     student_details = {"name": "{}, {}".format(person['surname'], person['othernames']), "depat": utils.get_depat(),
