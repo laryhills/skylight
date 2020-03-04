@@ -54,6 +54,11 @@ def get_credits(mat_no, mode_of_entry=None):
     return level_credits
 
 
+def get_maximum_credits_for_course_reg():
+    return {'normal': 50,
+            'clause_of_51': 51}
+
+
 def get_courses(mat_no, mode_of_entry=None):
     db_name = get_DB(mat_no)[:-3]
     session = load_session(db_name)
