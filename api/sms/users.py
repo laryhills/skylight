@@ -47,6 +47,7 @@ def hash_key(session_key = session_key()):
 
 
 def access_decorator(func):
+    qual_name = func.__module__.split('.')[-1] + "." + func.__name__
     def inner1(*args, **kwargs):
         try:
             # IN PROD replace with `.get("token") and rm try and exc block`
@@ -54,7 +55,7 @@ def access_decorator(func):
         except Exception:
             print ("Running from command line or swagger UI, token not supplied!")
             token = tokenize("ucheigbeka:testing")
-        req_perms, token_dict = func.__defaults__[-1], get_token(token)
+        req_perms, token_dict = fn_props[qual_name]["perms"], get_token(token)
         user_perms, mat_no = token_dict["perms"], kwargs.get("mat_no")
         if not token_dict:
             # Not logged in (using old session token)
@@ -70,11 +71,20 @@ def access_decorator(func):
         for perm in req_perms:
             has_access &= bool(user_perms.get(perm))
         if has_access:
+            log(token_dict["user"], qual_name, func, args, kwargs)
             return func(*args, **kwargs)
         else:
             abort(401)
     return inner1
 
+
+def log(user, qual_name, func, args, kwargs):
+    my_args = kwargs.copy()
+    if args:
+        for idx in range(len(args)):
+            kw = func.__code__.co_varnames[idx]
+            my_args[kw] = args[idx]
+    print ("log msg => " + fn_props[qual_name]["logs"](user, my_args))
 
 ## UTILS functions
 
@@ -108,8 +118,45 @@ def get_level(mat_no):
     return student_data.current_level
 
 
+def dict_render(dictionary, indent = 0):
+    rendered_dict = ""
+    for key in dictionary:
+        if isinstance(dictionary[key], dict):
+            rendered_dict += "{} => \n".format(key.capitalize())
+            rendered_dict += dict_render(dictionary[key], indent = 4)
+        else:
+            rendered_dict += "{}{} => {}\n".format(' ' * indent, key.capitalize(), dictionary[key])
+    if indent:
+        return rendered_dict.replace("_"," ")
+    return rendered_dict[:-1].replace("_"," ")
+
 ## PERFORM LOGIN, REMOVE IN PROD
 
 my_token = tokenize("ucheigbeka:testing")
 print ("Using token ", my_token)
 login(my_token)
+
+## Function mapping to perms and logs
+fn_props = {
+    "personal_info.get": {"perms": ["read"], 
+                          "logs": lambda user, params: "{} requested personal details of {}".format(user, params.get("mat_no"))
+                        },
+    "personal_info.post": {"perms": ["write"],
+                           "logs": lambda user, params: "{} set personal details for {}:-\n{}".format(user, params.get("mat_no"), dict_render(params))
+                        },
+    "course_details.post": {"perms": ["superuser"],
+                            "logs": lambda user, params: "{} added course {}:-\n{}".format(user, params.get("course_code"), dict_render(params))
+                        },
+    "result_update.get": {"perms": ["read"],
+                          "logs": lambda user, params: "{} requested result update for {}".format(user, params.get("mat_no"))
+                        },
+    "course_form.get": {"perms": ["read"],
+                        "logs": lambda user, params: "{} requested course form for {}".format(user, params[0])
+                        },
+    "course_reg.get": {"perms": ["read"],
+                       "logs": lambda user, params: "{} queried course registration for {}".format(user, params[0])
+                        },
+    "course_reg.post": {"perms": ["write"],
+                        "logs": lambda user, params: "{} added course registration for {}".format(user, params.get("mat_no"), dict_render(params))
+                        },
+}
