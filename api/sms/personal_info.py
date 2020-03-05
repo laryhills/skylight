@@ -5,7 +5,7 @@ from sms.models.master import Master, MasterSchema
 from sms.users import access_decorator
 
 @access_decorator
-def get(mat_no, ret_JSON=True, req_perms=["read"]):
+def get(mat_no, ret_JSON=True):
     db_name = utils.get_DB(mat_no)[:-3]
     session = utils.load_session(db_name)
     PersonalInfo = session.PersonalInfo
@@ -18,7 +18,7 @@ def get(mat_no, ret_JSON=True, req_perms=["read"]):
 
 
 @access_decorator
-def post(student_data, req_perms=["write"]):
+def post(student_data):
     global PersonalInfo, PersonalInfoSchema
 
     # todo: Get "session_admitted" from "current_session" in master.db for 100l
