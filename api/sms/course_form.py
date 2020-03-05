@@ -25,7 +25,7 @@ def get(mat_no, session=None, to_print=False):
     if person["sex"] == 'F':
         person['surname'] += " (Miss)"
     depat = utils.get_depat('long')
-    level = list(str(utils.get_level(mat_no, 1)))
+    level = list(str(utils.get_level(mat_no)))
     session = utils.get_current_session() if not session else session
 
     carryovers = loads(get_carryovers(mat_no))
@@ -40,10 +40,11 @@ def get(mat_no, session=None, to_print=False):
         second_sem_carryover_courses, second_sem_carryover_credits = list(zip(*second_sem))
     else:
         second_sem_carryover_courses, second_sem_carryover_credits = [], []
-    if utils.get_level(mat_no, 1) == 400:
+    if utils.get_level(mat_no) == 400:
         # Force only reg of UBTS for incoming 400L
         second_sem_carryover_courses, second_sem_carryover_credits = ["UBT400"], ["6"]
-    if utils.get_level(mat_no) == 400 and utils.get_level(mat_no, 1) == 500:
+    if utils.get_level(mat_no) == 500:
+        # Don't add UBT400 for 500L students, optimistic on results
         if "UBT400" in second_sem_carryover_courses:
             second_sem_carryover_courses = list(second_sem_carryover_courses)
             second_sem_carryover_credits = list(second_sem_carryover_credits)
