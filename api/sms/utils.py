@@ -16,6 +16,7 @@ These aren't exposed endpoints and needn't return json data (exc get_carryovers)
 get_DB = users.get_DB
 get_level = users.get_level
 load_session = users.load_session
+dict_render = users.dict_render
 
 def get_depat(form='long'):
     if form == 'short':
