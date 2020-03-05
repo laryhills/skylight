@@ -8,7 +8,7 @@ from sms.users import access_decorator
 
 
 @access_decorator
-def get(mat_no, acad_session=None, req_perms=("read",)):
+def get(mat_no, acad_session=None):
     # for new registrations, the assumption is that the level has been updated by admin
     current_level = utils.get_level(mat_no)
     current_session = utils.get_current_session()
@@ -216,7 +216,7 @@ def get(mat_no, acad_session=None, req_perms=("read",)):
     return course_reg_frame
 
 
-def post(course_reg, req_perms=("write",)):
+def post(course_reg):
     # The 'session_acad' variable is to enable edits
 
     """ ======= FORMAT =======
