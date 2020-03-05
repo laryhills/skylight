@@ -10,8 +10,8 @@ Also just in case of revisions, add why this is necessary
    * Used in generating the courses and credits in 100 to 500 for Courses and Credits Table
 4) Usernames and passwords cannot contain colons(:)
    * Used in users.py, colons act as separators
-5) Exposed endpoints which use access_decorator must have req_perms as last default arg in fn definition
-   * Used in access_decorator to det the necessary permissions for access
+5) Exposed endpoints which use access_decorator must have logs and perms defined in users.py
+   * Used by access_decorator to det the necessary permissions for access and the logs to parse log output messages
 6) Exposed endpoints which use access_decorator must and take in mat_no as an input arg must use the arg name mat_no
    * This is indexed as a kwarg in the access_decorator fn
 7) If probate twice, then you're out
