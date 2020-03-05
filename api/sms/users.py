@@ -138,7 +138,7 @@ login(my_token)
 
 ## Function mapping to perms and logs
 fn_props = {
-    "personal_info.get": {"perms": ["read"], 
+    "personal_info.get": {"perms": ["read"],
                           "logs": lambda user, params: "{} requested personal details of {}".format(user, params.get("mat_no"))
                         },
     "personal_info.post": {"perms": ["write"],
@@ -157,6 +157,6 @@ fn_props = {
                        "logs": lambda user, params: "{} queried course registration for {}".format(user, params.get("mat_no"))
                         },
     "course_reg.post": {"perms": ["write"],
-                        "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, params.get("mat_no"), dict_render(params))
+                        "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, (params.get(["course_reg"][0])).get("mat_no"), dict_render(params))
                         },
 }
