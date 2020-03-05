@@ -53,7 +53,7 @@ def get(mat_no, acad_session=None, req_perms=("read",)):
     if table_to_populate == '':
         table_to_populate = 'CourseReg100'
     res = [x for x in utils.result_poll(mat_no) if x]
-    category = res[-1]["category"]
+    category = res[-1]["category"] if res else ''
 
     if not acad_session and (int(table_to_populate[-3:]) + 100 > 800):
         course_reg_frame = {'personal_info': some_personal_info,
