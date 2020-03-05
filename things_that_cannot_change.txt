@@ -16,3 +16,5 @@ Also just in case of revisions, add why this is necessary
    * This is indexed as a kwarg in the access_decorator fn
 7) If probate twice, then you're out
    * Max years accountable is 8 years as Results and CourseReg end at 800
+8) Scores must be over 100 (percentages)
+   * Grading rule uses 100 as first grade upper bound
