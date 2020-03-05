@@ -112,9 +112,9 @@ def get(mat_no, acad_session=None):
 
         first_sem_carry_courses, second_sem_carry_courses = [], []
         for index in range(len(first_sem_carryover_courses)):
-            first_sem_carry_courses.append((first_sem_carryover_courses[index], first_sem_carryover_credits[index]))
+            first_sem_carry_courses.append((first_sem_carryover_courses[index], int(first_sem_carryover_credits[index])))
         for index in range(len(second_sem_carryover_courses)):
-            second_sem_carry_courses.append((second_sem_carryover_courses[index], second_sem_carryover_credits[index]))
+            second_sem_carry_courses.append((second_sem_carryover_courses[index], int(second_sem_carryover_credits[index])))
         # populating choices
         courses = utils.get_courses(mat_no, mode_of_entry)
         index = (current_level // 100) - 1 if current_level != 0 else -99
@@ -216,6 +216,7 @@ def get(mat_no, acad_session=None):
     return course_reg_frame
 
 
+@access_decorator
 def post(course_reg):
     # The 'session_acad' variable is to enable edits
 
@@ -234,7 +235,7 @@ def post(course_reg):
         =======================
 
     example...
-    c_reg = {'mat_no': 'ENG1503886', 'table_to_populate': 'CourseReg500', 'course_reg_session': 2019, 'course_reg_level': 500, 'max_credits': 50, 'courses': {'first_sem': ['MEE521', 'MEE551', 'MEE561', 'MEE571', 'EMA481'], 'second_sem': []}, 'probation_status': 0, 'fees_status': None, 'others': None}
+    c_reg = {'mat_no': 'ENG1503886', 'table_to_populate': 'CourseReg500', 'course_reg_session': 2019, 'course_reg_level': 500, 'max_credits': 50, 'courses': {'first_sem': ['MEE521', 'MEE551', 'MEE561', 'MEE571', 'EMA481', 'MEE502'], 'second_sem': []}, 'probation_status': 0, 'fees_status': None, 'others': None}
     """
 
     # todo: Get "session_admitted" from "current_session" in master.db for 100l
