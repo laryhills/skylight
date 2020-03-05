@@ -151,7 +151,7 @@ fn_props = {
                           "logs": lambda user, params: "{} requested result update for {}".format(user, params.get("mat_no"))
                         },
     "course_form.get": {"perms": ["read"],
-                        "logs": lambda user, params: "{} requested course form for {}".format(user, params[0])
+                        "logs": lambda user, params: "{} requested course form for {}".format(user, params.get("mat_no"))
                         },
     "course_reg.get": {"perms": ["read"],
                        "logs": lambda user, params: "{} queried course registration for {}".format(user, params[0])
