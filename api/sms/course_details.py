@@ -1,5 +1,6 @@
 from sms.config import db
 from sms.models.courses import CoursesSchema
+from sms.users import access_decorator
 
 
 def get(course_code, retJSON=True):
