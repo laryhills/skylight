@@ -28,7 +28,7 @@ def get(mat_no, acad_session=None):
                           'depat': depat, 'mode_of_entry': mode_of_entry, 'current_level': str(current_level),
                           'phone_no': phone_no, 'sex': sex, 'email': person['email_address'],
                           'state_of_origin': person['state_of_origin'],
-                          'lga_of_origin': person['lga_of_origin'] if 'lga_of_origin' in person else ''}
+                          'lga_of_origin': person['lga'] if 'lga_of_origin' in person else ''}
     mode_of_entry = person["mode_of_entry"]
 
     # use last course_reg table to account for temp withdrawals
