@@ -9,7 +9,7 @@ base_dir = os.path.dirname(__file__)
 db_path = os.path.join(base_dir, 'database')
 
 start_session = 2003
-end_session = 2019
+end_session = utils.get_current_session()
 
 sqlalchemy_binds = {'master': 'sqlite:///' + os.path.join(db_path, 'master.db'),
                     'courses': 'sqlite:///' + os.path.join(db_path, 'courses.db'),
