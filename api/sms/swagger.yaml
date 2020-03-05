@@ -85,22 +85,6 @@ paths:
           description: Session expired, login again
 
   /course_details:
-    get:
-      operationId: sms.course_details.get
-      parameters:
-        - in: query
-          name: course_code
-          type: string
-          required: true
-      responses:
-        200:
-          description: Success
-          schema:
-            $ref: '#/definitions/CourseDetails'
-        401:
-          description: Authentication failed
-        440:
-          description: Session expired, login again
     post:
       operationId: sms.course_details.post
       parameters:
@@ -115,50 +99,6 @@ paths:
           description: Authentication failed
         440:
           description: Session expired, login again
-
-  /result_statement:
-    get:
-      operationId: sms.result_statement.get
-      summary: Result_statement query
-      description: Gets a student result statement till date
-      parameters:
-        - name: mat_no
-          in: query
-          type: string
-          required: true
-      responses:
-        200:
-          description: Returns the result statement data for a student
-          schema:
-            $ref: '#/definitions/ResultStatement'
-        404:
-          description: Mat no does not exist
-        401:
-          description: Authentication failed
-        440:
-          description: Session expired, login again
-
-  /carryovers:
-    get:
-      operationId: sms.utils.get_carryovers
-      summary: carryover query
-      description: Gets a student carryover as at present time or level if specified
-      parameters:
-        - name: mat_no
-          in: query
-          type: string
-          required: true
-        - in: query
-          name: level
-          type: integer
-          required: false
-      responses:
-        200:
-          description: Returns the carryover course codes for a student
-          schema:
-            $ref: '#/definitions/Carryovers'
-        404:
-          description: Mat no does not exist
 
   /course_form:
     get:
@@ -300,59 +240,6 @@ definitions:
         type: integer
       teaching_dept:
         type: string
-
-  ResultStatement:
-    type: object
-    properties:
-      name:
-        type: string
-      depat:
-        type: string
-      dob:
-        type: string
-      mode_of_entry:
-        type: integer
-      results:
-        type: array
-        items:
-            type: object
-            properties:
-                first_sem:
-                  type: array
-                  items: {}
-                second_sem:
-                  type: array
-                  items: {}
-                level:
-                  type: integer
-                session:
-                  type: integer
-      credits:
-        type: array
-        items:
-            type: array
-            items:
-                type: integer
-      entry_session:
-        type: integer
-      grad_session:
-        type: string
-
-  Carryovers:
-    type: object
-    properties:
-        first_sem:
-            type: array
-            items:
-                type: array
-                items:
-                    type: string
-        second_sem:
-            type: array
-            items:
-                type: array
-                items:
-                    type: string
 
   CourseRegistration_get:
     type: object
