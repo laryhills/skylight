@@ -1,5 +1,5 @@
 from flask import abort, request
-from json import loads
+from json import loads, dumps
 from sms.models.user import User
 from sms.config import app, bcrypt, add_token, get_token
 from base64 import b64encode
@@ -8,6 +8,8 @@ from flask import abort
 from sms.models.master import Master, MasterSchema
 from sys import modules
 from importlib import reload
+from sms import logs
+from time import time
 from itsdangerous import JSONWebSignatureSerializer as Serializer
 
 
@@ -79,12 +81,10 @@ def access_decorator(func):
 
 
 def log(user, qual_name, func, args, kwargs):
-    my_args = kwargs.copy()
-    if args:
-        for idx in range(len(args)):
-            kw = func.__code__.co_varnames[idx]
-            my_args[kw] = args[idx]
-    print ("log msg => " + fn_props[qual_name]["logs"](user, my_args))
+    params = get_kwargs(func, args, kwargs)
+    print ("log msg => " + fn_props[qual_name]["logs"](user, params))
+    log_data = {"timestamp": time(), "operation": qual_name, "user": user, "params": dumps(params)}
+    logs.post(log_data)
 
 ## UTILS functions
 
@@ -130,6 +130,15 @@ def dict_render(dictionary, indent = 0):
         return rendered_dict.replace("_"," ")
     return rendered_dict[:-1].replace("_"," ")
 
+
+def get_kwargs(func, args, kwargs):
+    my_kwargs = kwargs.copy()
+    if args:
+        for idx in range(len(args)):
+            kw = func.__code__.co_varnames[idx]
+            my_kwargs[kw] = args[idx]
+    return my_kwargs
+
 ## PERFORM LOGIN, REMOVE IN PROD
 
 my_token = tokenize("ucheigbeka:testing")
@@ -142,7 +151,7 @@ fn_props = {
                           "logs": lambda user, params: "{} requested personal details of {}".format(user, params.get("mat_no"))
                         },
     "personal_info.post": {"perms": ["write"],
-                           "logs": lambda user, params: "{} set personal details for {}:-\n{}".format(user, params.get("mat_no"), dict_render(params))
+                           "logs": lambda user, params: "{} set personal details for {}:-\n{}".format(user, params.get("student_data").get("mat_no"), dict_render(params))
                         },
     "course_details.post": {"perms": ["superuser"],
                             "logs": lambda user, params: "{} added course {}:-\n{}".format(user, params.get("course_code"), dict_render(params))
@@ -157,6 +166,6 @@ fn_props = {
                        "logs": lambda user, params: "{} queried course registration for {}".format(user, params.get("mat_no"))
                         },
     "course_reg.post": {"perms": ["write"],
-                        "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, (params.get(["course_reg"][0])).get("mat_no"), dict_render(params))
+                        "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, params.get("course_reg").get("mat_no"), dict_render(params))
                         },
 }
