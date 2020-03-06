@@ -1,14 +1,14 @@
 from flask import abort, request
 from json import loads, dumps
 from sms.models.user import User
-from sms.config import app, bcrypt, add_token, get_token
+from sms.config import app, bcrypt, add_token, get_token, db
 from base64 import b64encode
 from hashlib import md5
 from flask import abort
 from sms.models.master import Master, MasterSchema
+from sms.models.logs import LogsSchema
 from sys import modules
 from importlib import reload
-from sms import logs
 from time import time
 from itsdangerous import JSONWebSignatureSerializer as Serializer
 
@@ -84,7 +84,7 @@ def log(user, qual_name, func, args, kwargs):
     params = get_kwargs(func, args, kwargs)
     print ("log msg => " + fn_props[qual_name]["logs"](user, params))
     log_data = {"timestamp": time(), "operation": qual_name, "user": user, "params": dumps(params)}
-    logs.post(log_data)
+    log_post(log_data)
 
 ## UTILS functions
 
@@ -117,6 +117,7 @@ def get_level(mat_no):
     student_data = PersonalInfo.query.filter_by(mat_no=mat_no).first_or_404()
     return student_data.current_level
 
+## USER-specific functions
 
 def dict_render(dictionary, indent = 0):
     rendered_dict = ""
@@ -138,6 +139,12 @@ def get_kwargs(func, args, kwargs):
             kw = func.__code__.co_varnames[idx]
             my_kwargs[kw] = args[idx]
     return my_kwargs
+
+
+def log_post(log_data):
+    log_record = LogsSchema().load(log_data)
+    db.session.add(log_record)
+    db.session.commit()
 
 ## PERFORM LOGIN, REMOVE IN PROD
 
@@ -168,4 +175,7 @@ fn_props = {
     "course_reg.post": {"perms": ["write"],
                         "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, params.get("course_reg").get("mat_no"), dict_render(params))
                         },
+    "logs.get": {"perms": ["read"],
+                 "logs": lambda user, params: "{} requested logs".format(user)
+                },
 }
