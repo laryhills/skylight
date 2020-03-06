@@ -24,11 +24,17 @@ def get(mat_no, acad_session=None):
         person['surname'] += " (Miss)"
 
     course_reg_frame = {}
-    some_personal_info = {'surname': person['surname'], 'othernames': person['othernames'].upper(),
-                          'depat': depat, 'mode_of_entry': mode_of_entry, 'current_level': str(current_level),
-                          'phone_no': phone_no, 'sex': sex, 'email': person['email_address'],
+    some_personal_info = {'surname': person['surname'],
+                          'othernames': person['othernames'].upper(),
+                          'depat': depat,
+                          'mode_of_entry': mode_of_entry,
+                          'current_level': str(current_level),
+                          'phone_no': phone_no,
+                          'sex': sex,
+                          'email': person['email_address'],
                           'state_of_origin': person['state_of_origin'],
-                          'lga_of_origin': person['lga'] if 'lga_of_origin' in person else ''}
+                          'lga_of_origin': person['lga'] if 'lga' in person else ''}
+
     mode_of_entry = person["mode_of_entry"]
 
     # use last course_reg table to account for temp withdrawals
@@ -70,7 +76,7 @@ def get(mat_no, acad_session=None):
                             'others': others,
                             'error': 'Student cannot carry out course reg as he has exceeded the 8-year limit'}
 
-    elif table_to_populate != 'CourseReg100' and res and category not in ['A', 'B', 'C']:
+    elif not acad_session and table_to_populate != 'CourseReg100' and category not in ['A', 'B', 'C']:
         course_reg_frame = {'personal_info': some_personal_info,
                             'table_to_populate': None,
                             'course_reg_session': current_session,
@@ -112,9 +118,12 @@ def get(mat_no, acad_session=None):
 
         first_sem_carry_courses, second_sem_carry_courses = [], []
         for index in range(len(first_sem_carryover_courses)):
-            first_sem_carry_courses.append((first_sem_carryover_courses[index], int(first_sem_carryover_credits[index])))
+            crse_dets = utils.course_details.get(first_sem_carryover_courses[index], 0)
+            first_sem_carry_courses.append((first_sem_carryover_courses[index], crse_dets['course_title'], int(first_sem_carryover_credits[index])))
         for index in range(len(second_sem_carryover_courses)):
-            second_sem_carry_courses.append((second_sem_carryover_courses[index], int(second_sem_carryover_credits[index])))
+            crse_dets = utils.course_details.get(second_sem_carryover_courses[index], 0)
+            second_sem_carry_courses.append((second_sem_carryover_courses[index], crse_dets['course_title'], int(second_sem_carryover_credits[index])))
+
         # populating choices
         courses = utils.get_courses(mat_no, mode_of_entry)
         index = (current_level // 100) - 1 if current_level != 0 else -99
@@ -122,30 +131,31 @@ def get(mat_no, acad_session=None):
         for crse in courses[index][0]:
             if crse not in first_sem_carryover_courses:
                 crse_dets = utils.course_details.get(crse, 0)
-                first_sem_choices.append((crse, crse_dets['course_credit']))
+                first_sem_choices.append((crse, crse_dets['course_title'], crse_dets['course_credit']))
         for crse in courses[index][1]:
             if crse not in second_sem_carryover_courses:
                 crse_dets = utils.course_details.get(crse, 0)
-                second_sem_choices.append((crse, crse_dets['course_credit']))
+                second_sem_choices.append((crse, crse_dets['course_title'], crse_dets['course_credit']))
 
+        # Getting maximum possible credits to register
         level_max_credits = utils.get_maximum_credits_for_course_reg()['normal']
         # Implementing the "clause of 51"
         if current_level >= 500:
             credit_sum = sum(map(int, first_sem_carryover_credits)) + sum(map(int, second_sem_carryover_credits))
-            for crs, credit in first_sem_choices:
+            for crs, title, credit in first_sem_choices:
                 credit_sum += credit
-            for crs, credit in second_sem_choices:
+            for crs, title, credit in second_sem_choices:
                 credit_sum += credit
             if credit_sum == 51:
                 level_max_credits = utils.get_maximum_credits_course_reg()['clause_of_51']
-        else:
-            credit_sum = sum(map(int, first_sem_carryover_credits)) + sum(map(int, second_sem_carryover_credits))
-            # Handle any case where carryover course credits exceeds the limit
-            if credit_sum > level_max_credits:
-                # dump everything to choices
-                first_sem_choices.extend(first_sem_carry_courses)
-                second_sem_choices.extend(second_sem_carry_courses)
-                first_sem_carry_courses, second_sem_carry_courses = [], []
+
+        # Handle any case where carryover course credits exceeds the limit
+        credit_sum = sum(map(int, first_sem_carryover_credits)) + sum(map(int, second_sem_carryover_credits))
+        if credit_sum > level_max_credits or len(first_sem_carry_courses) > 12 or len(second_sem_carry_courses) > 12:
+            # dump everything to choices
+            first_sem_choices.extend(first_sem_carry_courses)
+            second_sem_choices.extend(second_sem_carry_courses)
+            first_sem_carry_courses, second_sem_carry_courses = [], []
 
         course_reg_frame = {'personal_info': some_personal_info,
                             'table_to_populate': table_to_populate,
@@ -162,7 +172,6 @@ def get(mat_no, acad_session=None):
                             'error': None}
     else:
         # getting old course registrations
-
         course_registration = {}
         for key in course_reg:
             db_entry = course_reg[key]
@@ -194,9 +203,9 @@ def get(mat_no, acad_session=None):
             others             = course_registration['others'] if 'others' in course_registration else None
 
             courses = [[], []]  # first_sem, second_sem
-            for course in courses_registered:
-                course_dets = utils.course_details.get(course, 0)
-                courses[course_dets['course_semester']-1].append((course, course_dets['course_credit']))
+            for course_code in courses_registered:
+                course_dets = utils.course_details.get(course_code, 0)
+                courses[course_dets['course_semester']-1].append((course_code, course_dets['course_title'], course_dets['course_credit']))
             first_sem = courses[0]
             second_sem = courses[1]
 
