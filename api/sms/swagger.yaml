@@ -167,7 +167,7 @@ paths:
         - in: query
           name: acad_session
           type: integer
-          required: true
+          required: false
       responses:
         200:
           description: Success
