@@ -12,6 +12,8 @@ def get(mat_no, acad_session=None):
     # for new registrations, the assumption is that the level has been updated by admin
     current_level = utils.get_level(mat_no)
     current_session = utils.get_current_session()
+    if not acad_session:
+        acad_session = current_session
     depat = utils.get_depat('long')
 
     person = personal_info.get(mat_no, 0)
@@ -39,29 +41,49 @@ def get(mat_no, acad_session=None):
 
     # use last course_reg table to account for temp withdrawals
     # these guys break any computation that relies on sessions
-    table_to_populate = ''
     course_reg = utils.get_registered_courses(mat_no, level=None, true_levels=False)
     probation_status = None
     fees_status = None
     others = None
 
-    for key in range(800, 0, -100):
-        if course_reg[key]['courses']:
-            table_to_populate = course_reg[key+100]['table']
-            # Infer probation status for the new table
-            if course_reg[key]['course_reg_level'] == current_level and course_reg[key]['course_reg_session'] != current_session:
-                probation_status = 1
-            else:
-                probation_status = 0
-            break
-    # if no previous course_reg: either new student or temp withdrawal at 100 level
-    # Guess that still qualifies as new student
-    if table_to_populate == '':
-        table_to_populate = 'CourseReg100'
     res = [x for x in utils.result_poll(mat_no) if x]
     category = res[-1]["category"] if res else ''
+    if category == 'C':
+        probation_status = 1
+    elif category in 'AB':
+        probation_status = 0
 
-    if not acad_session and (int(table_to_populate[-3:]) + 100 > 800):
+    table_to_populate = ''
+    for key in range(100, 900, 100):
+        if not course_reg[key]['courses']:
+            table_to_populate = course_reg[key]['table']
+            break
+
+    error_text = ''
+    if graduation_status == 1 if graduation_status else False:
+        error_text = 'Student cannot carry out course reg as he has graduated'
+    elif int(table_to_populate[-3:]) + 100 > 800:
+        error_text = 'Student cannot carry out course reg as he has exceeded the 8-year limit'
+    elif category not in 'ABC':
+        error_text = 'Student cannot carry out course reg as his category is {}'.format(category)
+
+    table_to_get = ''
+    course_registration = {}
+    get_new_registration = False
+    for reg in course_reg:
+        if course_reg[reg]['courses'] and course_reg[reg]['course_reg_session'] == acad_session:
+            table_to_get = course_reg[reg]['table']
+            course_registration = course_reg[reg]
+            break
+
+    if table_to_get == '':
+        if acad_session != current_session:
+            error_text = 'No course registration for entered session'
+        elif acad_session == current_session:
+            table_to_get = table_to_populate
+            get_new_registration = True
+
+    if error_text != '':
         course_reg_frame = {'personal_info': some_personal_info,
                             'table_to_populate': None,
                             'course_reg_session': current_session,
@@ -74,26 +96,9 @@ def get(mat_no, acad_session=None):
                             'probation_status': None,
                             'fees_status': fees_status,
                             'others': others,
-                            'error': 'Student cannot carry out course reg as he has exceeded the 8-year limit'}
+                            'error': error_text}
 
-    elif not acad_session and table_to_populate != 'CourseReg100' and category not in ['A', 'B', 'C']:
-        course_reg_frame = {'personal_info': some_personal_info,
-                            'table_to_populate': None,
-                            'course_reg_session': current_session,
-                            'course_reg_level': None,
-                            'level_max_credits': None,
-                            'courses': {'first_sem': [],
-                                        'second_sem': []},
-                            'choices': {'first_sem': [],
-                                        'second_sem': []},
-                            'probation_status': None,
-                            'fees_status': fees_status,
-                            'others': others,
-                            'error': 'Student cannot carry out course reg as his category is {}'.format(res[-1]['category'])}
-
-    elif not acad_session and (graduation_status != 1 if graduation_status else True):
-        # checks to confirm that this is a new registration
-        # if not, it means we are just getting data for viewing (go to else)
+    elif get_new_registration:
         courses = loads(get_carryovers(mat_no))
         first_sem = courses['first_sem']
         if first_sem:
@@ -170,58 +175,37 @@ def get(mat_no, acad_session=None):
                             'fees_status': fees_status,
                             'others': others,
                             'error': None}
-    else:
+
+    elif not get_new_registration:
         # getting old course registrations
-        course_registration = {}
-        for key in course_reg:
-            db_entry = course_reg[key]
-            if db_entry['course_reg_session'] == acad_session:
-                course_registration = db_entry
+        course_reg_level   = course_registration['course_reg_level']
+        course_reg_session = course_registration['course_reg_session']
+        table_to_get       = course_registration['table']
+        courses_registered = course_registration['courses']
+        probation_status   = course_registration['probation'] if 'probation' in course_registration else None
+        fees_status        = course_registration['fees_status'] if 'fees_status' in course_registration else None
+        others             = course_registration['others'] if 'others' in course_registration else None
 
-        if course_registration == {}:
-            # No course reg found for the supplied session
-            course_reg_frame = {'personal_info': some_personal_info,
-                                'table_to_populate': None,
-                                'course_reg_session': acad_session,
-                                'course_reg_level': None,
-                                'max_credits': None,
-                                'courses': {'first_sem': [],
-                                            'second_sem': []},
-                                'choices': {'first_sem': [],
-                                            'second_sem': []},
-                                'probation_status': None,
-                                'fees_status': None,
-                                'others': None,
-                                'error': 'No course registration for entered session'}
-        else:
-            course_reg_level   = course_registration['course_reg_level']
-            course_reg_session = course_registration['course_reg_session']
-            table_to_get       = course_registration['table']
-            courses_registered = course_registration['courses']
-            probation_status   = course_registration['probation'] if 'probation' in course_registration else None
-            fees_status        = course_registration['fees_status'] if 'fees_status' in course_registration else None
-            others             = course_registration['others'] if 'others' in course_registration else None
+        courses = [[], []]  # first_sem, second_sem
+        for course_code in courses_registered:
+            course_dets = utils.course_details.get(course_code, 0)
+            courses[course_dets['course_semester']-1].append((course_code, course_dets['course_title'], course_dets['course_credit']))
+        first_sem = courses[0]
+        second_sem = courses[1]
 
-            courses = [[], []]  # first_sem, second_sem
-            for course_code in courses_registered:
-                course_dets = utils.course_details.get(course_code, 0)
-                courses[course_dets['course_semester']-1].append((course_code, course_dets['course_title'], course_dets['course_credit']))
-            first_sem = courses[0]
-            second_sem = courses[1]
-
-            course_reg_frame = {'personal_info': some_personal_info,
-                                'table_to_populate': table_to_get,
-                                'course_reg_session': course_reg_session,
-                                'course_reg_level': course_reg_level,
-                                'max_credits': None,
-                                'courses': {'first_sem': multisort(first_sem),
-                                            'second_sem': multisort(second_sem)},
-                                'choices': {'first_sem': [],
-                                            'second_sem': []},
-                                'probation_status': probation_status,
-                                'fees_status': fees_status,
-                                'others': others,
-                                'error': None}
+        course_reg_frame = {'personal_info': some_personal_info,
+                            'table_to_populate': table_to_get,
+                            'course_reg_session': course_reg_session,
+                            'course_reg_level': course_reg_level,
+                            'max_credits': None,
+                            'courses': {'first_sem': multisort(first_sem),
+                                        'second_sem': multisort(second_sem)},
+                            'choices': {'first_sem': [],
+                                        'second_sem': []},
+                            'probation_status': probation_status,
+                            'fees_status': fees_status,
+                            'others': others,
+                            'error': None}
     return course_reg_frame
 
 
@@ -246,9 +230,6 @@ def post(course_reg):
     example...
     c_reg = {'mat_no': 'ENG1503886', 'table_to_populate': 'CourseReg500', 'course_reg_session': 2019, 'course_reg_level': 500, 'max_credits': 50, 'courses': {'first_sem': ['MEE521', 'MEE551', 'MEE561', 'MEE571', 'EMA481', 'MEE502'], 'second_sem': []}, 'probation_status': 0, 'fees_status': None, 'others': None}
     """
-
-    # todo: Get "session_admitted" from "current_session" in master.db for 100l
-    # todo: On opening the personal info tab, the backend should supply this data
 
     courses = []
     courses.extend(course_reg['courses']['first_sem'])
@@ -287,7 +268,7 @@ def post(course_reg):
     registration['mat_no'] = mat_no
     registration['probation'] = probation
     registration['others'] = others
-    # registration['fees_status'] = fees_status if 'fees_status' in table_columns else None todo: uncommit when implemented
+    registration['fees_status'] = fees_status
     registration['level'] = course_reg_level
     registration['session'] = course_reg_session
 
