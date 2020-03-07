@@ -8,3 +8,5 @@
 8) Clear all logs (superuser)
 9) Fix child endpoint logging
 10) HOD's access permmission
+11) Create session expose, change session updates personal info level
+12) Make sure course reg and Result table have matching tables
