@@ -48,6 +48,7 @@ paths:
 
   /personal_info:
     get:
+      tags: [Personal Information]
       operationId: sms.personal_info.get
       summary: Personal_info query
       description: Gets a student or a group of students bio data
@@ -69,6 +70,7 @@ paths:
           description: Session expired, login again
 
     post:
+      tags: [Personal Information]
       operationId: sms.personal_info.post
       parameters:
         - name: student_data
@@ -86,6 +88,7 @@ paths:
 
   /course_details:
     post:
+      tags: [Course Details]
       operationId: sms.course_details.post
       parameters:
         - in: body
@@ -102,6 +105,7 @@ paths:
 
   /course_form:
     get:
+      tags: [Sheets]
       operationId: sms.course_form.get
       summary: Course form generation
       description: Generates course form of a student as a png (for preview) or as a png (for printing)
@@ -131,6 +135,7 @@ paths:
 
   /result_update:
     get:
+      tags: [Sheets]
       operationId: sms.result_update.get
       produces:
         - image/png
@@ -158,6 +163,7 @@ paths:
 
   /course_reg:
     get:
+      tags: [Course Registration]
       operationId: sms.course_reg.get
       parameters:
         - in: query
@@ -178,6 +184,7 @@ paths:
         440:
           description: Session expired, login again
     post:
+      tags: [Course Registration]
       operationId: sms.course_reg.post
       parameters:
         - in: body
@@ -194,6 +201,7 @@ paths:
 
   /logs:
     get:
+      tags: [Logs]
       operationId: sms.logs.get
       parameters:
         - in: query
