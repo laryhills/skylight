@@ -186,6 +186,10 @@ paths:
             $ref: '#/definitions/CourseRegistration_get'
         401:
           description: Authentication failed
+        403:
+          description: Forbidden - Course reg not available
+          schema:
+            type: string
         440:
           description: Session expired, login again
     post:
