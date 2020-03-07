@@ -38,12 +38,12 @@
  @page 
  {size: A4;
   margin: .5in;}
-  {{% for num in range(1, no_of_pages + 1) %}}
+  {% for num in range(1, no_of_pages + 1) %}
     @page WordSection{{ num  }}
     {}
     div.WordSection{{ num }}
       {page:WordSection{{ num }};}
-  {{% endfor %}}
+  {% endfor %}
 /* @page WordSection1
 	{}
 div.WordSection1
@@ -67,7 +67,7 @@ ul
 <div class=WordSection1>
 
 <table class=MsoTable15Plain2 border=1 cellspacing=0 cellpadding=0 width=699
- style='width:524.25pt;border-collapse:collapse;border:none'>
+ style='width:524.25pt;border-collapse:collapse;+border:none'>
  <tr style='height:48.6pt;border-top:solid 1.0pt;
   border-left:none;border-bottom:double black 3.0pt;border-right:none;
   padding:0in 5.4pt 0in 5.4pt;height:48.6pt'>
@@ -77,13 +77,13 @@ ul
   <td width=699 valign=top style="width:469.4pt">
   <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
   text-align:center;line-height:normal'><span style='font-size:14.0pt;
-  font-family:"Arial",sans-serif'>DEPARTMENT OF {{ dept }} ENGINEERING</span></p>
+  font-family:"Arial",sans-serif'>DEPARTMENT OF {{ depat|upper }}</span></p>
   <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
   text-align:center;line-height:normal'><span style='font-size:14.0pt;
   font-family:"Arial",sans-serif'>UNIVERSITY OF BENIN, NIGERIA</span></p>
   <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
   text-align:center;line-height:normal'><span style='font-size:14.0pt;
-  font-family:"Arial",sans-serif'>STUDENT’S ACADEMIC UPDATE</span></p>
+  font-family:"Arial",sans-serif'>STUDENT&#39;S ACADEMIC UPDATE</span></p>
   </td>
  </tr>
 </table>
@@ -193,7 +193,7 @@ style='font-size:9.0pt'>
 style='font-size:9.0pt;'>{{ name }}</span></i></p>
 
 <p class=MsoNormal style='line-height:normal'><b><u><span style='font-size:
-10.0pt'>100 LEVEL {{ session }} SESSION</span></u></b></p>
+10.0pt'>{{ results[0]['level'] }} LEVEL {{ '{}/{}'.format(results[0]['session'], results[0]['session'] + 1) }} SESSION</span></u></b></p>
 
 <p class=MsoNormal style='line-height:normal'><b><i><span style='font-size:
 10.0pt'>First Semester</span></i></b></p>
@@ -226,90 +226,96 @@ style='font-size:9.0pt;'>{{ name }}</span></i></p>
   text-align:center;line-height:normal'><b><span style='font-size:9.0pt'>GRADE</span></b></p>
   </td>
  </tr>
- <tr>
-  <td class="Base1" width=100 style='width:75.25pt;border-top:none;'>
-  <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{course_code}}</span></p>
-  </td>
-  <td class="Base1" width=415 style='width:250pt;border-top:none;border-left:none;'>
-  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
-  normal'><span style='font-size:9.0pt'>{{ course_title }}</span></p>
-  </td>
-  <td class="Base1" width=76 style='width:46.9pt;border-top:none;border-left:none;'>
-  <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{credit}}</span></p>
-  </td>
-  <td class="Base1" width=76 style='width:46.9pt;border-top:none;border-left:none;'>
-  <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{score}}</span></p>
-  </td>
-  <td class="Base1" width=76 style='width:46.9pt;border-top:none;border-left:none;'>
-  <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{grade}}</span></p>
-  </td>
- </tr>
+ {% for index, res in enumerate(results[0]['first_sem']) %}
+   <tr>
+    <td class={{ 'Base' if index % 2 else 'Base1' }} width=100 style='width:75.25pt;border-top:none;'>
+    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+    text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ res[1] }}</span></p>
+    </td>
+    <td class={{ 'Base' if index % 2 else 'Base1' }} width=415 style='width:250pt;border-top:none;border-left:none;'>
+    <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+    normal'><span style='font-size:9.0pt'>{{ res[2] }}</span></p>
+    </td>
+    <td class={{ 'Base' if index % 2 else 'Base1' }} width=76 style='width:46.9pt;border-top:none;border-left:none;'>
+    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+    text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ res[3] }}</span></p>
+    </td>
+    <td class={{ 'Base' if index % 2 else 'Base1' }} width=76 style='width:46.9pt;border-top:none;border-left:none;'>
+    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+    text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ res[4] }}</span></p>
+    </td>
+    <td class={{ 'Base' if index % 2 else 'Base1' }} width=76 style='width:46.9pt;border-top:none;border-left:none;'>
+    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+    text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ res[5] }}</span></p>
+    </td>
+   </tr>
+ {% endfor %}
 </table>
 
 </div>
 
 <p class=MsoNormal style='line-height:8pt;margin-bottom: 0pt'><b><span style='font-size:9.0pt'>&nbsp;</span></b></p>
 
-<p class=MsoNormal style='line-height:normal'><b><i><span style='font-size:
-10.0pt'>Second Semester</span></i></b></p>
+{% if results[0]['second_sem'] %}
+  <p class=MsoNormal style='line-height:normal'><b><i><span style='font-size:
+  10.0pt'>Second Semester</span></i></b></p>
 
-<div align=center>
+  <div align=center>
 
-<table class=MsoTable15Plain1 border=1 cellspacing=0 cellpadding=0 width=743
- style='border-collapse:collapse;border:none'>
- <tr>
-  <td class="Base" width=100 style='width:75.25pt;'>
-  <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><b><span style='font-size:9.0pt'>COURSE
-  CODE</span></b></p>
-  </td>
-  <td class="Base" width=415 style='width:250pt;border-left:none'>
-  <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><b><span style='font-size:9.0pt'>COURSE
-  TITLE</span></b></p>
-  </td>
-  <td class="Base" width=76 style='width:46.9pt;border-left:none;'>
-  <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><b><span style='font-size:9.0pt'>CREDIT</span></b></p>
-  </td>
-  <td class="Base" width=76 style='width:46.9pt;border-left:none;'>
-  <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><b><span style='font-size:9.0pt'>SCORE</span></b></p>
-  </td>
-  <td class="Base" width=76 style='width:46.9pt;border-left:none;'>
-  <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><b><span style='font-size:9.0pt'>GRADE</span></b></p>
-  </td>
- </tr>
- <tr>
-  <td class="Base1" width=100 style='width:75.25pt;border-top:none;'>
-  <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{course_code}}</span></p>
-  </td>
-  <td class="Base1" width=415 style='width:250pt;border-top:none;border-left:none;'>
-  <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
-  normal'><span style='font-size:9.0pt'>{{ course_title }}</span></p>
-  </td>
-  <td class="Base1" width=76 style='width:46.9pt;border-top:none;border-left:none;'>
-  <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{credit}}</span></p>
-  </td>
-  <td class="Base1" width=76 style='width:46.9pt;border-top:none;border-left:none;'>
-  <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{score}}</span></p>
-  </td>
-  <td class="Base1" width=76 style='width:46.9pt;border-top:none;border-left:none;'>
-  <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{grade}}</span></p>
-  </td>
- </tr>
-</table>
+  <table class=MsoTable15Plain1 border=1 cellspacing=0 cellpadding=0 width=743
+   style='border-collapse:collapse;border:none'>
+   <tr>
+    <td class="Base" width=100 style='width:75.25pt;'>
+    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+    text-align:center;line-height:normal'><b><span style='font-size:9.0pt'>COURSE
+    CODE</span></b></p>
+    </td>
+    <td class="Base" width=415 style='width:250pt;border-left:none'>
+    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+    text-align:center;line-height:normal'><b><span style='font-size:9.0pt'>COURSE
+    TITLE</span></b></p>
+    </td>
+    <td class="Base" width=76 style='width:46.9pt;border-left:none;'>
+    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+    text-align:center;line-height:normal'><b><span style='font-size:9.0pt'>CREDIT</span></b></p>
+    </td>
+    <td class="Base" width=76 style='width:46.9pt;border-left:none;'>
+    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+    text-align:center;line-height:normal'><b><span style='font-size:9.0pt'>SCORE</span></b></p>
+    </td>
+    <td class="Base" width=76 style='width:46.9pt;border-left:none;'>
+    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+    text-align:center;line-height:normal'><b><span style='font-size:9.0pt'>GRADE</span></b></p>
+    </td>
+   </tr>
+   {% for index, res in enumerate(results[0]['second_sem']) %}
+     <tr>
+      <td class={{ 'Base' if index % 2 else 'Base1' }} width=100 style='width:75.25pt;border-top:none;'>
+      <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+      text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ res[1] }}</span></p>
+      </td>
+      <td class={{ 'Base' if index % 2 else 'Base1' }} width=415 style='width:250pt;border-top:none;border-left:none;'>
+      <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+      normal'><span style='font-size:9.0pt'>{{ res[2] }}</span></p>
+      </td>
+      <td class={{ 'Base' if index % 2 else 'Base1' }} width=76 style='width:46.9pt;border-top:none;border-left:none;'>
+      <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+      text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ res[3] }}</span></p>
+      </td>
+      <td class={{ 'Base' if index % 2 else 'Base1' }} width=76 style='width:46.9pt;border-top:none;border-left:none;'>
+      <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+      text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ res[4] }}</span></p>
+      </td>
+      <td class={{ 'Base' if index % 2 else 'Base1' }} width=76 style='width:46.9pt;border-top:none;border-left:none;'>
+      <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+      text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ res[5] }}</span></p>
+      </td>
+     </tr>
+   {% endfor %}
+  </table>
 
-</div>
+  </div>
+{% endif %}
 
 <p class=MsoNormal style='line-height:8pt;margin-bottom: 0pt'><b><span style='font-size:9.0pt'>&nbsp;</span></b></p>
 
@@ -322,7 +328,7 @@ style='font-size:9.0pt;'>{{ name }}</span></i></p>
   padding:2.9pt 5.75pt 2.9pt 5.75pt'>
   <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
   text-align:center;line-height:normal'><b><span style='font-size:9.0pt'>SESSIONAL
-  SUMMARY FOR {{ session }}</span></b></p>
+  SUMMARY FOR {{ '{}/{}'.format(results[0]['session'], results[0]['session'] + 1) }}</span></b></p>
   </td>
   <td width=278 style='width:208.85pt;border-top:solid 1.0pt;
   border-left:none;border-bottom:solid #7F7F7F 1.0pt;border-right:none;
@@ -340,7 +346,7 @@ style='font-size:9.0pt;'>{{ name }}</span></i></p>
     <td width=60 style='width:44.95pt;border:solid 1.0pt;border-left:
     none;padding:0in 5.4pt 0in 5.4pt'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{cr}}</span></p>
+    .0001pt;text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{credits[0][0]}}</span></p>
     </td>
    </tr>
    <tr>
@@ -354,7 +360,7 @@ style='font-size:9.0pt;'>{{ name }}</span></i></p>
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'><span style='font-size:9.0pt'>((cp))</span></p>
+    .0001pt;text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{credits[0][1]}}</span></p>
     </td>
    </tr>
    <tr>
@@ -368,7 +374,7 @@ style='font-size:9.0pt;'>{{ name }}</span></i></p>
     border-bottom:solid 1.0pt;border-right:solid 1.0pt;
     padding:0in 5.4pt 0in 5.4pt'>
     <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
-    .0001pt;text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{cf}}</span></p>
+    .0001pt;text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{credits[0][2]}}</span></p>
     </td>
    </tr>
   </table>
@@ -392,7 +398,222 @@ clear=all style='page-break-before:always'>
 style='page-break-before:always'>
 </span>
 
-<div class=WordSection2>
+
+{% for num in range(1, no_of_pages - 1) %}
+  <div class=WordSection{{ num }}>
+    <p class=MsoNormal style='line-height:normal;text-align: right;margin-bottom:0pt;'><i><span
+    style='font-size:9.0pt;'>{{ name }}</span></i></p>
+
+    <p class=MsoNormal style='line-height:normal'><b><u><span style='font-size:
+    10.0pt'>{{ results[num]['level'] }} LEVEL {{ '{}/{}'.format(results[num]['session'], results[num]['session'] + 1) }} SESSION</span></u></b></p>
+
+    <p class=MsoNormal style='line-height:normal'><b><i><span style='font-size:
+    10.0pt'>First Semester</span></i></b></p>
+
+    <div align=center>
+
+    <table border=1 cellspacing=0 cellpadding=0 width=743
+     style='border-collapse:collapse;border:none;'>
+     <tr>
+      <td class="Base" width=100 style='width:75.25pt;'>
+      <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+      text-align:center;line-height:normal'><b><span style='font-size:9.0pt'>COURSE
+      CODE</span></b></p>
+      </td>
+      <td class="Base" width=415 style='width:250pt;border-left:none'>
+      <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+      text-align:center;line-height:normal'><b><span style='font-size:9.0pt'>COURSE
+      TITLE</span></b></p>
+      </td>
+      <td class="Base" width=76 style='width:46.9pt;border-left:none;'>
+      <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+      text-align:center;line-height:normal'><b><span style='font-size:9.0pt'>CREDIT</span></b></p>
+      </td>
+      <td class="Base" width=76 style='width:46.9pt;border-left:none;'>
+      <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+      text-align:center;line-height:normal'><b><span style='font-size:9.0pt'>SCORE</span></b></p>
+      </td>
+      <td class="Base" width=76 style='width:46.9pt;border-left:none;'>
+      <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+      text-align:center;line-height:normal'><b><span style='font-size:9.0pt'>GRADE</span></b></p>
+      </td>
+     </tr>
+     {% for index, res in enumerate(results[num]['first_sem']) %}
+       <tr>
+        <td class={{ 'Base' if index % 2 else 'Base1' }} width=100 style='width:75.25pt;border-top:none;'>
+        <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+        text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ res[1] }}</span></p>
+        </td>
+        <td class={{ 'Base' if index % 2 else 'Base1' }} width=415 style='width:250pt;border-top:none;border-left:none;'>
+        <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+        normal'><span style='font-size:9.0pt'>{{ res[2] }}</span></p>
+        </td>
+        <td class={{ 'Base' if index % 2 else 'Base1' }} width=76 style='width:46.9pt;border-top:none;border-left:none;'>
+        <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+        text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ res[3] }}</span></p>
+        </td>
+        <td class={{ 'Base' if index % 2 else 'Base1' }} width=76 style='width:46.9pt;border-top:none;border-left:none;'>
+        <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+        text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ res[4] }}</span></p>
+        </td>
+        <td class={{ 'Base' if index % 2 else 'Base1' }} width=76 style='width:46.9pt;border-top:none;border-left:none;'>
+        <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+        text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ res[5] }}</span></p>
+        </td>
+       </tr>
+     {% endfor %}
+    </table>
+
+    </div>
+
+    <p class=MsoNormal style='line-height:8pt;margin-bottom: 0pt'><b><span style='font-size:9.0pt'>&nbsp;</span></b></p>
+
+    {% if results[num]['second_sem'] %}
+      <p class=MsoNormal style='line-height:normal'><b><i><span style='font-size:
+      10.0pt'>Second Semester</span></i></b></p>
+
+      <div align=center>
+
+      <table class=MsoTable15Plain1 border=1 cellspacing=0 cellpadding=0 width=743
+       style='border-collapse:collapse;border:none'>
+       <tr>
+        <td class="Base" width=100 style='width:75.25pt;'>
+        <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+        text-align:center;line-height:normal'><b><span style='font-size:9.0pt'>COURSE
+        CODE</span></b></p>
+        </td>
+        <td class="Base" width=415 style='width:250pt;border-left:none'>
+        <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+        text-align:center;line-height:normal'><b><span style='font-size:9.0pt'>COURSE
+        TITLE</span></b></p>
+        </td>
+        <td class="Base" width=76 style='width:46.9pt;border-left:none;'>
+        <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+        text-align:center;line-height:normal'><b><span style='font-size:9.0pt'>CREDIT</span></b></p>
+        </td>
+        <td class="Base" width=76 style='width:46.9pt;border-left:none;'>
+        <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+        text-align:center;line-height:normal'><b><span style='font-size:9.0pt'>SCORE</span></b></p>
+        </td>
+        <td class="Base" width=76 style='width:46.9pt;border-left:none;'>
+        <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+        text-align:center;line-height:normal'><b><span style='font-size:9.0pt'>GRADE</span></b></p>
+        </td>
+       </tr>
+       {% for index, res in enumerate(results[num]['second_sem']) %}
+         <tr>
+          <td class={{ 'Base' if index % 2 else 'Base1' }} width=100 style='width:75.25pt;border-top:none;'>
+          <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+          text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ res[1] }}</span></p>
+          </td>
+          <td class={{ 'Base' if index % 2 else 'Base1' }} width=415 style='width:250pt;border-top:none;border-left:none;'>
+          <p class=MsoNormal style='margin-bottom:0in;margin-bottom:.0001pt;line-height:
+          normal'><span style='font-size:9.0pt'>{{ res[2] }}</span></p>
+          </td>
+          <td class={{ 'Base' if index % 2 else 'Base1' }} width=76 style='width:46.9pt;border-top:none;border-left:none;'>
+          <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+          text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ res[3] }}</span></p>
+          </td>
+          <td class={{ 'Base' if index % 2 else 'Base1' }} width=76 style='width:46.9pt;border-top:none;border-left:none;'>
+          <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+          text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ res[4] }}</span></p>
+          </td>
+          <td class={{ 'Base' if index % 2 else 'Base1' }} width=76 style='width:46.9pt;border-top:none;border-left:none;'>
+          <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+          text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ res[5] }}</span></p>
+          </td>
+         </tr>
+       {% endfor %}
+      </table>
+
+      </div>
+    {% endif %}
+
+    <p class=MsoNormal style='line-height:8pt;margin-bottom: 0pt'><b><span style='font-size:9.0pt'>&nbsp;</span></b></p>
+
+    <table class=MsoTable15Plain2 border=1 cellspacing=0 cellpadding=0 align=left
+     width=740 style='border-collapse:collapse;border:none;
+     margin-left:6.75pt;margin-right:6.75pt'>
+     <tr>
+      <td width=462 style='width:246.25pt;border-top:solid 1.0pt;
+      border-left:none;border-bottom:solid #7F7F7F 1.0pt;border-right:none;
+      padding:2.9pt 5.75pt 2.9pt 5.75pt'>
+      <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+      text-align:center;line-height:normal'><b><span style='font-size:9.0pt'>SESSIONAL
+      SUMMARY FOR {{ '{}/{}'.format(results[num]['session'], results[num]['session'] + 1) }}</span></b></p>
+      </td>
+      <td width=278 style='width:208.85pt;border-top:solid 1.0pt;
+      border-left:none;border-bottom:solid #7F7F7F 1.0pt;border-right:none;
+      padding:2.9pt 5.75pt 2.9pt 5.75pt'>
+      <table class=MsoTable15Plain1 border=1 cellspacing=0 cellpadding=0
+       align=left width=262 style='width:196.85pt;border-collapse:collapse;
+       border:none;margin-left:-2.25pt;margin-right:-2.25pt'>
+       <tr>
+        <td width=203 valign=top style='width:151.9pt;border:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt'>
+        <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
+        .0001pt;text-align:center;line-height:normal'><b><span style='font-size:
+        10.0pt'>TOTAL CREDITS REGISTERED</span></b></p>
+        </td>
+        <td width=60 style='width:44.95pt;border:solid 1.0pt;border-left:
+        none;padding:0in 5.4pt 0in 5.4pt'>
+        <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
+        .0001pt;text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ credits[num][0] }}</span></p>
+        </td>
+       </tr>
+       <tr>
+        <td width=203 valign=top style='width:151.9pt;border:solid 1.0pt;
+        border-top:none;background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
+        <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
+        .0001pt;text-align:center;line-height:normal'><b><span style='font-size:
+        10.0pt'>TOTAL CREDITS PASSED</span></b></p>
+        </td>
+        <td width=60 style='width:44.95pt;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
+        <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
+        .0001pt;text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ credits[num][1] }}</span></p>
+        </td>
+       </tr>
+       <tr>
+        <td width=203 valign=top style='width:151.9pt;border:solid 1.0pt;
+        border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+        <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
+        .0001pt;text-align:center;line-height:normal'><b><span style='font-size:
+        10.0pt'>TOTAL CREDITS FAILED</span></b></p>
+        </td>
+        <td width=60 style='width:44.95pt;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt'>
+        <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:
+        .0001pt;text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ credits[num][2] }}</span></p>
+        </td>
+       </tr>
+      </table>
+      <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
+      text-align:center;line-height:normal'></p>
+      </td>
+     </tr>
+    </table>
+
+    <p class=MsoNormal style='line-height:normal'><span style='font-size:9.0pt'>&nbsp;</span></p>
+
+    <span style='font-size:9.0pt;line-height:107%;font-family:"Calibri",sans-serif'><br
+    clear=all style='page-break-before:always'>
+    </span>
+
+    <p class=MsoNormal><span style='font-size:9.0pt;line-height:107%'>&nbsp;</span></p>
+
+  </div>
+
+
+    <span style='font-size:9.0pt;font-family:"Calibri",sans-serif'><br clear=all
+    style='page-break-before:always'>
+    </span>
+{% endfor %}
+
+
+<div class=WordSection{{ no_of_pages }}>
 
 <p class=MsoNormal style='line-height:normal;text-align: right;margin-bottom:3pt;'><i><span
 style='font-size:9.0pt;'>{{ name }}</span></i></p>
@@ -447,19 +668,19 @@ style='font-size:9.0pt;'>{{ name }}</span></i></p>
   border-bottom:solid 1.0pt;border-right:solid 1.0pt;
   background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
   <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span style='font-size:9.0pt'>&nbsp;</span></p>
+  text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ gpas[0] }}</span></p>
   </td>
   <td width=120 style='width:90.2pt;border-top:none;border-left:none;
   border-bottom:solid 1.0pt;border-right:solid 1.0pt;
   background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
   <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span style='font-size:9.0pt'>&nbsp;</span></p>
+  text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ level_weightings[0] }}</span></p>
   </td>
   <td width=120 style='width:90.2pt;border-top:none;border-left:none;
   border-bottom:solid 1.0pt;border-right:solid 1.0pt;
   background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
   <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span style='font-size:9.0pt'>&nbsp;</span></p>
+  text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ weighted_gpas[0] }}</span></p>
   </td>
  </tr>
  <tr>
@@ -479,19 +700,19 @@ style='font-size:9.0pt;'>{{ name }}</span></i></p>
   border-bottom:solid 1.0pt;border-right:solid 1.0pt;
   padding:0in 5.4pt 0in 5.4pt'>
   <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span style='font-size:9.0pt'>&nbsp;</span></p>
+  text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ gpas[1] }}</span></p>
   </td>
   <td width=120 style='width:90.2pt;border-top:none;border-left:none;
   border-bottom:solid 1.0pt;border-right:solid 1.0pt;
   padding:0in 5.4pt 0in 5.4pt'>
   <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span style='font-size:9.0pt'>&nbsp;</span></p>
+  text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ level_weightings[1] }}</span></p>
   </td>
   <td width=120 style='width:90.2pt;border-top:none;border-left:none;
   border-bottom:solid 1.0pt;border-right:solid 1.0pt;
   padding:0in 5.4pt 0in 5.4pt'>
   <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span style='font-size:9.0pt'>&nbsp;</span></p>
+  text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ weighted_gpas[1] }}</span></p>
   </td>
  </tr>
  <tr>
@@ -511,19 +732,19 @@ style='font-size:9.0pt;'>{{ name }}</span></i></p>
   border-bottom:solid 1.0pt;border-right:solid 1.0pt;
   background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
   <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span style='font-size:9.0pt'>&nbsp;</span></p>
+  text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ gpas[2] }}</span></p>
   </td>
   <td width=120 style='width:90.2pt;border-top:none;border-left:none;
   border-bottom:solid 1.0pt;border-right:solid 1.0pt;
   background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
   <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span style='font-size:9.0pt'>&nbsp;</span></p>
+  text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ level_weightings[2] }}</span></p>
   </td>
   <td width=120 style='width:90.2pt;border-top:none;border-left:none;
   border-bottom:solid 1.0pt;border-right:solid 1.0pt;
   background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
   <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span style='font-size:9.0pt'>&nbsp;</span></p>
+  text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ weighted_gpas[2] }}</span></p>
   </td>
  </tr>
  <tr>
@@ -543,19 +764,19 @@ style='font-size:9.0pt;'>{{ name }}</span></i></p>
   border-bottom:solid 1.0pt;border-right:solid 1.0pt;
   padding:0in 5.4pt 0in 5.4pt'>
   <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span style='font-size:9.0pt'>&nbsp;</span></p>
+  text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ gpas[3] }}</span></p>
   </td>
   <td width=120 style='width:90.2pt;border-top:none;border-left:none;
   border-bottom:solid 1.0pt;border-right:solid 1.0pt;
   padding:0in 5.4pt 0in 5.4pt'>
   <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span style='font-size:9.0pt'>&nbsp;</span></p>
+  text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ level_weightings[3] }}</span></p>
   </td>
   <td width=120 style='width:90.2pt;border-top:none;border-left:none;
   border-bottom:solid 1.0pt;border-right:solid 1.0pt;
   padding:0in 5.4pt 0in 5.4pt'>
   <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span style='font-size:9.0pt'>&nbsp;</span></p>
+  text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ weighted_gpas[3] }}</span></p>
   </td>
  </tr>
  <tr>
@@ -575,19 +796,19 @@ style='font-size:9.0pt;'>{{ name }}</span></i></p>
   border-bottom:solid 1.0pt;border-right:solid 1.0pt;
   background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
   <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span style='font-size:9.0pt'>&nbsp;</span></p>
+  text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ gpas[4] }}</span></p>
   </td>
   <td width=120 style='width:90.2pt;border-top:none;border-left:none;
   border-bottom:solid 1.0pt;border-right:solid 1.0pt;
   background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
   <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span style='font-size:9.0pt'>&nbsp;</span></p>
+  text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ level_weightings[4] }}</span></p>
   </td>
   <td width=120 style='width:90.2pt;border-top:none;border-left:none;
   border-bottom:solid 1.0pt;border-right:solid 1.0pt;
   background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
   <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span style='font-size:9.0pt'>&nbsp;</span></p>
+  text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ weighted_gpas[4] }}</span></p>
   </td>
  </tr>
  <tr>
@@ -612,13 +833,13 @@ style='font-size:9.0pt;'>{{ name }}</span></i></p>
   border-bottom:solid 1.0pt;border-right:solid 1.0pt;
   padding:0in 5.4pt 0in 5.4pt'>
   <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span style='font-size:9.0pt'>&nbsp;</span></p>
+  text-align:center;line-height:normal'><span style='font-size:9.0pt'>1</span></p>
   </td>
   <td width=120 style='width:90.2pt;border-top:none;border-left:none;
   border-bottom:solid 1.0pt;border-right:solid 1.0pt;
   padding:0in 5.4pt 0in 5.4pt'>
   <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span style='font-size:9.0pt'>&nbsp;</span></p>
+  text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ weighted_gpas|sum }}</span></p>
   </td>
  </tr>
  <tr>
