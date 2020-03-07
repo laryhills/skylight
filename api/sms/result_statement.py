@@ -64,23 +64,3 @@ def get(mat_no, retJSON=True):
     if retJSON:
         return dumps(student_details)
     return student_details
-
-
-def get_gpa(mat_no):
-    person = loads(personal_info.get(mat_no=mat_no))
-    mode_of_entry = person['mode_of_entry']
-    gpas = [[0,0,0,0,0],[0,0,0,0],[0,0,0]][mode_of_entry-1]
-    level_percent = [[10,15,20,25,30],[10,20,30,40],[25,35,40]][mode_of_entry-1]
-    level_credits = utils.get_credits(mat_no, mode_of_entry)
-    grade_weight = {"A":5, "B":4, "C":3, "D":2, "E":1, "F":0}
-    
-    for result in loads(get(mat_no))["results"]:
-        for record in (result["first_sem"]+result["second_sem"]):
-            (course, grade) = (record[1], record[5])
-            course_props = loads(course_details.get(course))
-            lvl = int(course_props["course_level"]/100)-1
-            credit = course_props["course_credit"]
-            product = grade_weight[grade]*credit
-            gpas[lvl]+=(product/level_credits[lvl])
-
-    return dumps(gpas)
