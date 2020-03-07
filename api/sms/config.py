@@ -38,3 +38,8 @@ def add_token(token, username, permissions):
 
 def get_token(token):
     return tokens.get(token)
+
+
+def get_current_session():
+    # Code stub that returns current session, TODO take from master.db
+    return 2019
