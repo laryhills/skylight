@@ -97,6 +97,7 @@ def get(mat_no, acad_session=None):
                             'fees_status': fees_status,
                             'others': others,
                             'error': error_text}
+        return error_text, 403
 
     elif get_new_registration:
         courses = loads(get_carryovers(mat_no))
