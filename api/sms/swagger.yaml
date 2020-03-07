@@ -17,20 +17,12 @@ paths:
       tags: [Login]
       operationId: sms.users.login
       summary: User authentication
-      description: Tries to login in the user while returning a token
+      description: Logs in a user using supplied token
       parameters:
-        - in: body
-          name: user
-          schema:
-            type: object
-            required:
-              - username
-              - password
-            properties:
-              username:
-                type: string
-              password:
-                type: string
+        - name: token
+          in: query
+          required: true
+          type: string
       responses:
         200:
           description: Returns the user specific token
@@ -39,6 +31,20 @@ paths:
             properties:
               token:
                 type: string
+        401:
+          description: Authentication failed
+
+  /session_key:
+    get:
+      tags: [Login]
+      operationId: sms.users.session_key
+      summary: Session key
+      description: Get session key for use in generating token on client
+      responses:
+        200:
+          description: Returns the current session key for use by client
+          schema:
+            type: string
 
   /personal_info:
     get:
@@ -57,6 +63,10 @@ paths:
             $ref: '#/definitions/PersonalInfo'
         404:
           description: Mat no does not exist
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
 
     post:
       operationId: sms.personal_info.post
@@ -69,20 +79,12 @@ paths:
       responses:
         200:
           description: Record successfully added
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
 
   /course_details:
-    get:
-      operationId: sms.course_details.get
-      parameters:
-        - in: query
-          name: course_code
-          type: string
-          required: true
-      responses:
-        200:
-          description: Success
-          schema:
-            $ref: '#/definitions/CourseDetails'
     post:
       operationId: sms.course_details.post
       parameters:
@@ -93,46 +95,10 @@ paths:
       responses:
         200:
           description: Success
-
-  /result_statement:
-    get:
-      operationId: sms.result_statement.get
-      summary: Result_statement query
-      description: Gets a student result statement till date
-      parameters:
-        - name: mat_no
-          in: query
-          type: string
-          required: true
-      responses:
-        200:
-          description: Returns the result statement data for a student
-          schema:
-            $ref: '#/definitions/ResultStatement'
-        404:
-          description: Mat no does not exist
-
-  /carryovers:
-    get:
-      operationId: sms.utils.get_carryovers
-      summary: carryover query
-      description: Gets a student carryover as at present time or level if specified
-      parameters:
-        - name: mat_no
-          in: query
-          type: string
-          required: true
-        - in: query
-          name: level
-          type: integer
-          required: false
-      responses:
-        200:
-          description: Returns the carryover course codes for a student
-          schema:
-            $ref: '#/definitions/Carryovers'
-        404:
-          description: Mat no does not exist
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
 
   /course_form:
     get:
@@ -158,6 +124,10 @@ paths:
           description: Success
           schema:
             type: file
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
 
   /result_update:
     get:
@@ -181,6 +151,10 @@ paths:
           description: Success
           schema:
             type: file
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
 
   /course_reg:
     get:
@@ -193,12 +167,16 @@ paths:
         - in: query
           name: acad_session
           type: integer
-          required: true
+          required: false
       responses:
         200:
           description: Success
           schema:
             $ref: '#/definitions/CourseRegistration_get'
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
     post:
       operationId: sms.course_reg.post
       parameters:
@@ -209,6 +187,35 @@ paths:
       responses:
         200:
           description: Success
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+
+  /logs:
+    get:
+      operationId: sms.logs.get
+      parameters:
+        - in: query
+          name: limit
+          type: integer
+          required: false
+        - in: query
+          name: offset
+          type: integer
+          required: false
+      responses:
+        200:
+          description: Successfully retrieved logs
+          schema:
+            type: array
+            items:
+                type: array
+                items: {}
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
 
 definitions:
   PersonalInfo:
@@ -259,59 +266,6 @@ definitions:
       teaching_dept:
         type: string
 
-  ResultStatement:
-    type: object
-    properties:
-      name:
-        type: string
-      depat:
-        type: string
-      dob:
-        type: string
-      mode_of_entry:
-        type: integer
-      results:
-        type: array
-        items:
-            type: object
-            properties:
-                first_sem:
-                  type: array
-                  items: {}
-                second_sem:
-                  type: array
-                  items: {}
-                level:
-                  type: integer
-                session:
-                  type: integer
-      credits:
-        type: array
-        items:
-            type: array
-            items:
-                type: integer
-      entry_session:
-        type: integer
-      grad_session:
-        type: string
-
-  Carryovers:
-    type: object
-    properties:
-        first_sem:
-            type: array
-            items:
-                type: array
-                items:
-                    type: string
-        second_sem:
-            type: array
-            items:
-                type: array
-                items:
-                    type: string
-
   CourseRegistration_get:
     type: object
     properties:
@@ -343,6 +297,8 @@ definitions:
       course_reg_session:
         type: integer
       course_reg_level:
+        type: integer
+      max_credits:
         type: integer
       courses:
         type: object
@@ -390,18 +346,9 @@ definitions:
         type: integer
       course_reg_level:
         type: integer
+      max_credits:
+        type: integer
       courses:
-        type: object
-        properties:
-          first_sem:
-            type: array
-            items:
-              type: string
-          second_sem:
-            type: array
-            items:
-              type: string
-      choices:
         type: object
         properties:
           first_sem:

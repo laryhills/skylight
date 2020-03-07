@@ -1,13 +1,10 @@
 from collections import defaultdict
 from json import loads, dumps
-from sms.config import db
 from sms import personal_info
 from sms import result_statement
 from sms import course_details
 from sms import users
-from sms.models.master import Master, MasterSchema
 from sms.models.courses import Options, OptionsSchema
-from sms.result_input import get_result_for_edit
 from sqlalchemy.orm import class_mapper
 import sqlalchemy.orm
 
@@ -16,23 +13,14 @@ Handle frequently called or single use simple utility functions
 These aren't exposed endpoints and needn't return json data (exc get_carryovers)
 '''
 
+get_DB = users.get_DB
+get_level = users.get_level
+load_session = users.load_session
 
 def get_depat(form='long'):
     if form == 'short':
         return 'MEE'
     return 'MECHANICAL ENGINEERING'
-
-
-def get_DB(mat_no):
-    return users.get_DB(mat_no)
-
-
-def load_session(session):
-    return users.load_session(session)
-
-
-def get_level(mat_no, next = False):
-    return users.get_level(mat_no, next)
 
 
 def get_current_session():
@@ -52,6 +40,11 @@ def get_credits(mat_no, mode_of_entry=None):
     credits = CreditsSchema().dump(Credits.query.filter_by(mode_of_entry=mode_of_entry).first())
     level_credits = [credits['level{}'.format(lvl)] for lvl in range(mode_of_entry*100,600,100)]
     return level_credits
+
+
+def get_maximum_credits_for_course_reg():
+    return {'normal': 50,
+            'clause_of_51': 51}
 
 
 def get_courses(mat_no, mode_of_entry=None):
@@ -85,7 +78,7 @@ def get_carryovers(mat_no, retJSON=True):
     level = get_level(mat_no)
     first_sem, second_sem = set(), set()
     results = loads(result_statement.get(mat_no))["results"]
-    for course in get_courses(mat_no)[:int(level/100)]:
+    for course in get_courses(mat_no)[:int(level/100-1)]:
         first_sem |= set(course[0] if course else set())
         second_sem |= set(course[1] if course else set())
 
@@ -122,7 +115,8 @@ def get_carryovers(mat_no, retJSON=True):
                 if course in second_sem:
                     second_sem.remove(course)
 
-    if level == get_level(mat_no,1) and level in (200, 300, 400):
+    results = [x for x in result_poll(mat_no) if x]
+    if results and results[-1]["category"] == "C" and level in (200, 300, 400):
         # Handle probation carryovers
         print ("Probating {} student".format(level))
         first_sem |= set(get_courses(mat_no)[int(level/100)-1][0])
@@ -184,11 +178,12 @@ def get_registered_courses(mat_no, level=None, true_levels=False):
 
         if 'carryovers' in courses_regd_str and courses_regd_str['carryovers']:
             courses_registered[levs]['courses'].extend(sorted(courses_regd_str['carryovers'].split(',')))
-        courses_registered[levs]['courses'] = courses_registered[levs]['courses']
 
         courses_registered[levs]['course_reg_level'] = courses_regd_str['level'] if 'level' in courses_regd_str else None
         courses_registered[levs]['course_reg_session'] = courses_regd_str['session'] if 'session' in courses_regd_str else None
         courses_registered[levs]['probation'] = courses_regd_str['probation'] if 'probation' in courses_regd_str else None
+        courses_registered[levs]['fees_status'] = courses_regd_str['fees_status'] if 'fees_status' in courses_regd_str else None
+        courses_registered[levs]['others'] = courses_regd_str['others'] if 'others' in courses_regd_str else None
         levs += 100
     if level:
         return courses_registered[level]

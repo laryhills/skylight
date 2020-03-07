@@ -6,11 +6,13 @@ from weasyprint import HTML
 from sms import result_statement
 from sms.config import app, cache_base_dir
 from sms.utils import get_gpa, get_level_weightings
+from sms.users import access_decorator
+
 
 base_dir = os.path.dirname(__file__)
 uniben_logo_path = 'file:///' + os.path.join(base_dir, 'templates', 'static', 'Uniben_logo.png')
 
-
+@access_decorator
 def get(mat_no, to_print=False):
     result_stmt = result_statement.get(mat_no, 0)
 

@@ -1,5 +1,7 @@
 from sms.config import db
 from sms.models.courses import CoursesSchema
+from sms.users import access_decorator
+
 
 def get(course_code, retJSON=True):
     level = int(course_code[3]) if course_code[:3] != 'CED' else 4
@@ -10,6 +12,7 @@ def get(course_code, retJSON=True):
     return CoursesSchema().dump(course)
 
 
+@access_decorator
 def post(course):
     course_schema = CoursesSchema()
     course = course_schema.load(course)
