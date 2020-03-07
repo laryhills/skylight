@@ -4,6 +4,7 @@ from sms import personal_info
 from sms import result_statement
 from sms import course_details
 from sms import users
+from sms import config
 from sms.models.courses import Options, OptionsSchema
 from sqlalchemy.orm import class_mapper
 import sqlalchemy.orm
@@ -16,16 +17,13 @@ These aren't exposed endpoints and needn't return json data (exc get_carryovers)
 get_DB = users.get_DB
 get_level = users.get_level
 load_session = users.load_session
+get_current_session = config.get_current_session
+
 
 def get_depat(form='long'):
     if form == 'short':
         return 'MEE'
     return 'MECHANICAL ENGINEERING'
-
-
-def get_current_session():
-    # Code stub that returns current session, TODO take from master.db
-    return 2019
 
 
 def get_credits(mat_no, mode_of_entry=None):

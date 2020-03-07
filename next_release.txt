@@ -1,0 +1,10 @@
+1) course addition
+2) props in MasterDB -> grading rule, current session
+3) Result auto computation, recompute categories and update level in personal info and course reg if present and update gpas, credits passed for level (modify GPAs table in DB to tuple of passed credits and GPAs)
+4) Account creation and account management (deletion and modifying permissions)
+5) Add extra column in Resultsx00 to handle unregistered courses
+6) Sheets report generation
+7) Backup and Restore DBs
+8) Clear all logs (superuser)
+9) Fix child endpoint logging
+10) HOD's access permmission
