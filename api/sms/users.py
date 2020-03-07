@@ -15,11 +15,11 @@ from itsdangerous import JSONWebSignatureSerializer as Serializer
 
 def login(token):
     try:
-        user = detokenize(token)
+        user = detokenize(token['token'])
         stored_user = User.query.filter_by(username=user['username']).first()
         if bcrypt.check_password_hash(stored_user.password, user['password']):
-            token_dict = {'token': token}
-            add_token(token, stored_user.username, loads(stored_user.permissions))
+            token_dict = {'token': token['token']}
+            add_token(token['token'], stored_user.username, loads(stored_user.permissions))
             return token_dict, 200
         abort(401)
     except Exception:
@@ -148,9 +148,9 @@ def log_post(log_data):
 
 ## PERFORM LOGIN, REMOVE IN PROD
 
-my_token = tokenize("ucheigbeka:testing")
-print ("Using token ", my_token)
-login(my_token)
+# my_token = {'token': tokenize("ucheigbeka:testing")}
+# print("Using token ", my_token['token'])
+# login(my_token)
 
 ## Function mapping to perms and logs
 fn_props = {
