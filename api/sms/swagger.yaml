@@ -192,6 +192,31 @@ paths:
         440:
           description: Session expired, login again
 
+  /logs:
+    get:
+      operationId: sms.logs.get
+      parameters:
+        - in: query
+          name: limit
+          type: integer
+          required: false
+        - in: query
+          name: offset
+          type: integer
+          required: false
+      responses:
+        200:
+          description: Successfully retrieved logs
+          schema:
+            type: array
+            items:
+                type: array
+                items: {}
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+
 definitions:
   PersonalInfo:
     type: object
