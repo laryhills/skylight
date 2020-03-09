@@ -55,8 +55,9 @@ def access_decorator(func):
             # IN PROD replace with `.get("token") and rm try and exc block`
             token = request.headers["token"]
         except Exception:
-            print ("Running from command line or swagger UI, token not supplied!")
-            token = tokenize("ucheigbeka:testing")
+            # print ("Running from command line or swagger UI, token not supplied!")
+            # token = tokenize("ucheigbeka:testing")
+            abort(401)
         req_perms, token_dict = fn_props[qual_name]["perms"], get_token(token)
         user_perms, mat_no = token_dict["perms"], kwargs.get("mat_no")
         if not token_dict:
