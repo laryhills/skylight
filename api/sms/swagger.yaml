@@ -151,8 +151,8 @@ paths:
           type: string
           required: true
         - in: query
-          name: session
-          type: integer
+          name: raw_score
+          type: boolean
         - in: query
           name: to_print
           type: boolean
