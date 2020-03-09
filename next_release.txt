@@ -11,3 +11,4 @@
 11) Create session expose, change session updates personal info level
 12) Make sure course reg and Result table have matching tables
 13) Log user login
+14) Search student by name (say surname) and perhaps streamlined to an entry session or some other filter ==> special cases
