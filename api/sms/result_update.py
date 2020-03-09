@@ -13,7 +13,7 @@ base_dir = os.path.dirname(__file__)
 uniben_logo_path = 'file:///' + os.path.join(base_dir, 'templates', 'static', 'Uniben_logo.png')
 
 @access_decorator
-def get(mat_no, to_print=False):
+def get(mat_no, raw_score=True, to_print=False):
     result_stmt = result_statement.get(mat_no, 0)
 
     no_of_pages = len(result_stmt['results']) + 1
@@ -34,7 +34,7 @@ def get(mat_no, to_print=False):
                                no_of_pages=no_of_pages, mat_no=mat_no, name=name, depat=depat, dob=dob,
                                mode_of_entry=mod, entry_session=entry_session, grad_session=grad_session,
                                results=results, credits=credits, gpas=gpas, level_weightings=level_weightings,
-                               weighted_gpas=weighted_gpas, enumerate=enumerate)
+                               weighted_gpas=weighted_gpas, enumerate=enumerate, raw_score=raw_score)
 
     if to_print:
         file_name = secrets.token_hex(8) + '.pdf'
