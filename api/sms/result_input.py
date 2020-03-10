@@ -1,120 +1,155 @@
-from sms import result_statement
-from sms import utils, course_details, personal_info
-
-'''
-The result format is as below
-         results = get('ENG1503886',0)['results']
-     res300 = results[2]
->>> res300
-{'first_sem': [(300, 'PRE311', 'Manufacturing Technology III', 2, 64, 'B'),
-               (300, 'MEE311', 'Mechanics of Machines I', 3, 78, 'A'),
-               (300, 'ELA301', 'Laboratory III', 2, 70, 'A'),
-               (300, 'EMA381', 'Engineering Mathematics III', 3, 73, 'A'),
-               (300, 'MEE321', 'Engineering Drawing III', 3, 83, 'A'),
-               (300, 'MEE351', 'Thermodynamics I', 2, 81, 'A'),
-               (300, 'MEE361', 'Fluid Mechanics I', 2, 72, 'A'),
-               (300, 'CVE311', 'Theory of Structures & Strength of Materials II', 3, 80, 'A'),
-               (300, 'EEE317', 'Electrical Engineering III', 3, 83, 'A')],
-
-'second_sem': [(300, 'EMA382', 'Engineering Mathematics IV', 4, 68, 'B'),
-               (300, 'MEE362', 'Fluid Mechanics II', 2, 92, 'A'),
-               (300, 'MEE312', 'Mechanics of Machines II', 3, 80, 'A'),
-               (300, 'MEE322', 'Creative Problem Solving', 3, 68, 'B'),
-               (300, 'MEE332', 'Strength of Materials III', 2, 81, 'A'),
-               (300, 'MEE372', 'Engineering Computers Graphics', 1, 50, 'C'),
-               (300, 'EEE318', 'Electrical Engineering IV', 2, 64, 'B'),
-               (300, 'MEE342', 'Materials Science & Production Processes', 2, 86, 'A'),
-               (300, 'ELA302', 'Laboratory IV', 2, 58, 'C'),
-               (300, 'MEE352', 'Engineering Thermodynamics II', 2, 61, 'B')]}
-'''
-# TODO: Also supply some personal details such as name, level, dept
-# TODO: Supply grading scheme on selection of result input tab by course adviser
-#       (choice is by level and current_session)
-# TODO: Add a way to edit scores (overwrite scores with new data)
+from flask import abort
+from sms.config import db
+from sms import utils
 
 
-def post_results(list_of_results):
+def post(list_of_results):
     """  ==== JSON FORMAT FOR THE RESULTS ====
        [['MEE551', '2019', 'ENG1503886', '98'],
         ['MEE561', '2019', 'ENG1503886', '98'],
         ['MEE571', '2019', 'ENG1503886', '98'],
-        ['MEE521', '2019', 'ENG1503886', '98']]"""
+        ['MEE521', '2019', 'ENG1503886', '98']]
 
-    errors = []
+        er = [['EMA481', '2019', 'ENG1503886', '98'],['MEE561', '2019', 'ENG1503886', '98'],['MEE571', '2019', 'ENG1503886', '98'],['MEE521', '2019', 'ENG1503886', '98']]
+        """
+
+    # List of tuples ==> [(result, error), (result, error)]
+    results_with_errors = []
 
     for index, result_details in enumerate(list_of_results):
         course_code, session_taken, mat_no, score = result_details
         session_taken, score = map(int, [session_taken, score])
 
-        courses_registered, table_found_in = utils.get_courses_in_recent_course_reg(mat_no)
+        course_reg = utils.get_registered_courses(mat_no, level=None, true_levels=False)
+        course_registration = {}
+        for key in course_reg:
+            if course_reg[key]['course_reg_session'] == session_taken:
+                course_registration = course_reg[key]
+        if course_registration == {}:
+            # todo: add these results to a new column in results table for such errors
+            # todo: perhaps this guy's results can only be entered with admin approval
+            results_with_errors.append((result_details, 'No course registration found for {0} at index {1} for the '
+                                                        '{2}/{3} session'.format(mat_no, index, session_taken,
+                                                                                 session_taken+1)))
+            print(results_with_errors[-1][1])
+            continue
+        courses_registered = course_registration['courses']
         if course_code not in courses_registered:
-            errors.append('{0} at index {1} did not register {2} in the {3}/{4} session'.format(
-                mat_no, index, course_code, session_taken, session_taken+1))
-            break
+            # todo: add these results to a new column in results table for such errors
+            # todo: front end persists the error message encountered in results in memory for each session
+            results_with_errors.append((result_details, '{0} at index {1} did not register {2} in the {3}/{4} '
+                                                        'session'.format(mat_no, index, course_code, session_taken,
+                                                                         session_taken+1)))
+            print(results_with_errors[-1][1])
+            continue
         else:
-            # find a way to post to the right results table
-            pass
+            res = utils.result_poll(mat_no)
+            result_record = {}
+            table_to_populate = ''
+            for index, result in enumerate(res):
+                if result and result['session'] == session_taken:
+                    result_record = result
+                    table_to_populate = 'Result' + str((index + 1) * 100)
+                    break
+
+            db_name = utils.get_DB(mat_no)[:-3]
+            session = utils.load_session(db_name)
+
+            if not result_record:
+                table_to_populate = 'Result' + str(100 * ([ind for ind, result in enumerate(res) if not result][0] + 1))
+                result_level = course_registration['course_reg_level']
+                table_columns = utils.get_attribute_names(eval('session.{}'.format(table_to_populate)))
+                result_record = {'mat_no': mat_no, 'session': session_taken, 'level': result_level, 'category': None,
+                                 'carryovers': ''}
+                for col in table_columns:
+                    if col not in result_record:
+                        result_record[col] = None
+
+            if (course_code in result_record and result_record[course_code]) or course_code in result_record['carryovers']:
+                print('overwriting previous {} result of {} for the {}/{} session'.format(course_code, mat_no, session_taken, session_taken+1))
+                # todo add the old and new scores to the error log or sth ...': {old} ==> {new}'
+
+            grading_rules = utils.get_grading_rule(mat_no)
+            grade = 'A'
+
+            if course_code in result_record:
+                result_record[course_code] = '{},{}'.format(score, grade) # todo get grading rules
+            elif course_code in result_record['carryovers']:
+                # some pretty hard work here
+                pass
+            else:
+                container = ',{} {} {}' if result_record['carryovers'] else '{} {} {}'
+                result_record['carryovers'] += container.format(course_code, score, grade)
+
+            # todo: handle category
+            #       * (re)calculate GPAs if results complete... check with course_reg
+            #       * recalculate other stuff when done... like category
+
+            res_record = eval('session.{}Schema().load(result_record)'.format(table_to_populate))
+            db.session.add(res_record)
+            db.session.commit()
+    print('result input done with {} errors'.format(len(results_with_errors)))
+    return results_with_errors
 
 
-def get_result_for_edit(mat_no, level):
-    # TODO level should be gotten from course_adviser's account
+def get(mat_no, acad_session):
+    res = utils.result_poll(mat_no)
+    results = {}
+    table_to_populate = ''
+    for index, result in enumerate(res):
+        if result and result['session'] == acad_session:
+            results = result
+            table_to_populate = 'Result' + str((index+1) * 100)
+            break
+    if results == {}:
+        return 'No result available for entered session', 404
 
-    courses_registered = utils.get_registered_courses(mat_no, level)
-    courses_regd = courses_registered['courses']
-    table_to_input_results = 'Result' + courses_registered['table'][-3:]
-    results_already_present = False
-    error_text = ''
-    frame = {'courses': {'first_sem': [], 'second_sem': []}}
-    personal_dets = personal_info.get(mat_no, 0)
-    frame['personal_dets'] = {'mat_no': mat_no, 'current_level': personal_dets['current_level'],
-                              'session_admitted': personal_dets['session_admitted'],
-                              'surname': personal_dets['surname'], 'othernames': personal_dets['othernames']}
+    frame = {'table_to_populate': table_to_populate}
+    results.pop('mat_no')
+    results.pop('category')
+    results.pop('session')
+    result_level = results.pop('level')
+    carryovers = results.pop('carryovers')
+    if carryovers:
+        carryovers = carryovers.split(',')
+        carryovers = [x.split(' ')[:2] for x in carryovers if carryovers]
+    all_courses = [[x, results[x].split(',')[0]] for x in results if results[x]]
+    all_courses.extend(carryovers)
 
-    if not courses_regd:
-        error_text = 'No Course Registration Available yet for this Level'
-        return
+    # check if anything in course_reg is not in results... and vice versa
+    course_reg = utils.get_registered_courses(mat_no)
+    for reg in course_reg:
+        if course_reg[reg]['courses'] and course_reg[reg]['course_reg_session'] == acad_session:
+            course_reg = course_reg[reg]['courses']
+            break
+    reg_extras = [[x, '', 0, 'Registered, no result'] for x in set(course_reg).difference(set(list(zip(*all_courses))[0]))]
+    res_extras = [[x, '', 0, 'Course not registered'] for x in set(list(zip(*all_courses))[0]).difference(set(course_reg))]
+    for index in range(len(res_extras)):
+        for x in range(len(all_courses)):
+            if all_courses[x][0] == res_extras[index][0]:
+                res_extras[index][1] = all_courses[x][1]
+                del all_courses[x]
+                break
 
-    try:
-        # get any existing result
-        # to enable inputting second semester results or edit of results by admin
-        results_available = result_statement.get(mat_no, 0)['results'][(level//100)-1]
-        if results_available:
-            results_already_present = True
-        table_to_input = 'Result' + str(results_available['first_sem'][0][0])
-    except IndexError:
-        # no result yet as should be
-        results_available = {}
-        table_to_input = 'Result' + str(result_statement.get(mat_no,0)['results'][-1]['first_sem'][0][0] + 100)
-    frame['table_to_input'] = table_to_input
-    frame['table_to_input_results'] = table_to_input_results
-
-    done = []
-    if results_already_present:
-        for res in results_available['first_sem']:
-            if res[1] in courses_regd:
-                frame['courses']['first_sem'].append(res[1:])
-                done.append(res[1])
-        for res in results_available['second_sem']:
-            if res[1] in courses_regd:
-                frame['courses']['second_sem'].append(res[1:])
-                done.append(res[1])
-    done = set(done)
-    courses = set(courses_regd)
-
-    # src = []
-
-    for course in courses.difference(done):
-        course_dets = course_details.get(course, 0)
-        if course_dets['course_semester'] == 1:
-            frame['courses']['first_sem'].append((course_dets['course_code'], course_dets['course_title'],
-                                                  course_dets['course_credit'], None, None))
-        if course_dets['course_semester'] == 2:
-            frame['courses']['second_sem'].append((course_dets['course_code'], course_dets['course_title'],
-
-                                                  course_dets['course_credit'], None, None))
-
+    all_courses.extend(reg_extras)
+    all_courses.extend(res_extras)
+    for index in range(len(all_courses)):
+        course_dets = utils.course_details.get(all_courses[index][0], 0)
+        if len(all_courses[index]) == 4:
+            all_courses[index][2] = course_dets['course_semester']
+        else:
+            all_courses[index].extend([course_dets['course_semester'], ''])
+    frame['level_written'] = result_level
+    frame['session_written'] = acad_session
+    frame['mat_no'] = mat_no
+    frame['courses'] = multisort(all_courses)
     return frame
 
 
-def post_results_for_edit(mat_no, frame):
-    pass
+def multisort(iters):
+    iters = sorted(iters, key=lambda x: x[0])
+    iters = sorted(iters, key=lambda x: x[0][3])
+    return sorted(iters, key=lambda x: x[2])
+
+# todo revert the changes in test's records: "ENG1508633"
+# w = result_input.get('ENG1508633',2018)
