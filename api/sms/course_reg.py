@@ -47,7 +47,7 @@ def get(mat_no, acad_session=None):
     others = None
 
     res = [x for x in utils.result_poll(mat_no) if x]
-    category = res[-1]["category"] if res else ''
+    category = res[-1]["category"] if res and res[-1]["category"] else ''
     if category == 'C':
         probation_status = 1
     elif category in 'AB':
@@ -229,7 +229,7 @@ def post(course_reg):
         =======================
 
     example...
-    c_reg = {'mat_no': 'ENG1503886', 'table_to_populate': 'CourseReg500', 'course_reg_session': 2019, 'course_reg_level': 500, 'max_credits': 50, 'courses': {'first_sem': ['MEE521', 'MEE551', 'MEE561', 'MEE571', 'EMA481', 'MEE502'], 'second_sem': []}, 'probation_status': 0, 'fees_status': None, 'others': None}
+    c_reg = {'mat_no': 'ENG1503886', 'table_to_populate': 'CourseReg500', 'course_reg_session': 2019, 'course_reg_level': 500, 'max_credits': 50, 'courses': {'first_sem': ['MEE521', 'MEE451', 'MEE561', 'MEE571', 'EMA481', 'MEE502'], 'second_sem': []}, 'probation_status': 0, 'fees_status': None, 'others': None}
     """
 
     courses = []
