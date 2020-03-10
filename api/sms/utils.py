@@ -146,12 +146,16 @@ def result_poll(mat_no, level=None):
 
 
 def get_grading_rule(mat_no):
-    grading_rule = ''
-    entry_session = int(get_DB(mat_no)[:4])
-    if entry_session in range(2013,2018):
-        grading_rule = "A 5,B 4,C 3,D 2,F 0"
-    else:
-        grading_rule = "A 5,B 4,C 3,D 2,E 1,F 0"
+    db_name = get_DB(mat_no)[:-3]
+    session = load_session(db_name)
+    grading_rule = session.GradingRule.query.all()[0].rule
+    grading_rule = grading_rule.split(',')
+    return grading_rule
+
+
+def get_grading_point(mat_no):
+    grading_rule = get_grading_rule(mat_no)
+    return dict(map(lambda x: x.split()[:-1], grading_rule))
 
 
 def get_registered_courses(mat_no, level=None, true_levels=False):
@@ -227,9 +231,9 @@ def compute_gpa(mat_no):
     gpas = [[0, 0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0]][mode_of_entry - 1]
     level_percent = [[10, 15, 20, 25, 30], [10, 20, 30, 40], [25, 35, 40]][mode_of_entry - 1]
     level_credits = get_credits(mat_no, mode_of_entry)
-    grade_weight = {"A": 5, "B": 4, "C": 3, "D": 2, "E": 1, "F": 0}
+    grade_weight = get_grading_point(mat_no)
 
-    for result in loads(get(mat_no))["results"]:
+    for result in loads(result_statement.get(mat_no))["results"]:
         for record in (result["first_sem"] + result["second_sem"]):
             (course, grade) = (record[1], record[5])
             course_props = loads(course_details.get(course))
