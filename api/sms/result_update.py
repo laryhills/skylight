@@ -5,7 +5,7 @@ from flask import render_template, send_from_directory
 from weasyprint import HTML
 from sms import result_statement
 from sms.config import app, cache_base_dir
-from sms.utils import get_gpa, get_level_weightings
+from sms.utils import get_gpa_credits, get_level_weightings
 from sms.users import access_decorator
 
 
@@ -25,7 +25,9 @@ def get(mat_no, raw_score=True, to_print=False):
     grad_session = result_stmt['grad_session']
     results = result_stmt['results']
     credits = result_stmt['credits']
-    gpas = list(map(lambda x: x if x else 0, get_gpa(mat_no)))
+    gpas, level_credits = get_gpa_credits(mat_no)
+    gpas = list(map(lambda x: x if x else 0, gpas))
+    level_credits = list(map(lambda x: x if x else 0, level_credits))
     level_weightings = get_level_weightings(result_stmt['mode_of_entry'])
     weighted_gpas = list(map(lambda x, y: round(x * y, 4), gpas, level_weightings))
 
@@ -34,7 +36,8 @@ def get(mat_no, raw_score=True, to_print=False):
                                no_of_pages=no_of_pages, mat_no=mat_no, name=name, depat=depat, dob=dob,
                                mode_of_entry=mod, entry_session=entry_session, grad_session=grad_session,
                                results=results, credits=credits, gpas=gpas, level_weightings=level_weightings,
-                               weighted_gpas=weighted_gpas, enumerate=enumerate, raw_score=raw_score)
+                               weighted_gpas=weighted_gpas, enumerate=enumerate, raw_score=raw_score,
+                               level_credits=level_credits)
 
     if to_print:
         file_name = secrets.token_hex(8) + '.pdf'
