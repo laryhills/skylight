@@ -245,11 +245,21 @@ def compute_gpa(mat_no):
     return dumps(gpas)
 
 
-def get_gpa(mat_no):
+def get_gpa_credits(mat_no):
     db_name = get_DB(mat_no)[:-3]
     session = load_session(db_name)
-    stud = session.GPA.query.filter_by(mat_no=mat_no).first()
-    return stud.level100, stud.level200, stud.level300, stud.level400, stud.level500
+    stud = session.GPA_Credits.query.filter_by(mat_no=mat_no).first()
+    gpa_credits =  stud.level100, stud.level200, stud.level300, stud.level400, stud.level500
+    gpas, credits = [], []
+    for gpa_credit in gpa_credits:
+        if gpa_credit:
+            gpa, credit = list(map(float, gpa_credit.split(',')))
+            credit = int(credit)
+        else: gpa, credit = None, None
+        gpas.append(gpa)
+        credits.append(credit)
+
+    return gpas, credits
 
 
 def get_level_weightings(mod):
