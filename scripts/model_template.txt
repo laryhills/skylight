@@ -224,16 +224,16 @@ class Credits(db.Model):
     level500 = db.Column('LEVEL500', db.Integer)
 
 
-class GPA(db.Model):
+class GPA_Credits(db.Model):
     __bind_key__ = '##NAME##'
-    __tablename__ = 'GPA'
+    __tablename__ = 'GPA_CREDITS'
     __table_args__ = {'extend_existing': True}
     mat_no = db.Column('MATNO', db.String(10), primary_key=True)
-    level100 = db.Column('LEVEL100', db.Float)
-    level200 = db.Column('LEVEL200', db.Float)
-    level300 = db.Column('LEVEL300', db.Float)
-    level400 = db.Column('LEVEL400', db.Float)
-    level500 = db.Column('LEVEL500', db.Float)
+    level100 = db.Column('LEVEL100', db.Text)
+    level200 = db.Column('LEVEL200', db.Text)
+    level300 = db.Column('LEVEL300', db.Text)
+    level400 = db.Column('LEVEL400', db.Text)
+    level500 = db.Column('LEVEL500', db.Text)
 
 
 class GradingRule(db.Model):
