@@ -24,7 +24,7 @@ def create_table_schema():
     courses = [list(x.keys()) for x in courses_dict]
     conn.close()
     
-    for course_list in courses[1:]:
+    for course_list in courses:
         course_list.append('CARRYOVERS')
 
     sessions = range(start_session, curr_session)
@@ -223,7 +223,7 @@ def get_grade(score, entry_session):
 
 def create_gpa_schema():
     try:
-        stmt = 'CREATE TABLE GPA(MATNO TEXT PRIMARY KEY, LEVEL100 REAL, LEVEL200 REAL, LEVEL300 REAL, LEVEL400 REAL, LEVEL500 REAL);'
+        stmt = 'CREATE TABLE GPA_CREDITS(MATNO TEXT PRIMARY KEY, LEVEL100 TEXT, LEVEL200 TEXT, LEVEL300 TEXT, LEVEL400 TEXT, LEVEL500 TEXT);'
         for session in range(start_session, curr_session + 1):
             db_name = '{}-{}.db'.format(session, session + 1)
             conn = sqlite3.connect(os.path.join(db_base_dir, db_name))
@@ -244,33 +244,38 @@ def store_gpa(conn, mat_no, level, result_frame, on_probation, mod):
         carryovers = result_frame['CARRYOVERS'].values.tolist()
     total_credits = conn.execute('SELECT * FROM Credits;').fetchall()[mod - 1][level]
     level_courses = courses_dict[level - 1]
-    prod_sum = 0
+    prod_sum, total_passed_level_credits = 0, 0
     
     if on_probation and level in [1, 5]:
-        level_gpa = conn.execute('SELECT LEVEL{} FROM GPA WHERE MATNO = "{}"'.format(level * 100, mat_no)).fetchone()[0]
-        level_gpa = level_gpa if level_gpa else 0
+        gpa_credits = conn.execute('SELECT LEVEL{} FROM GPA_CREDITS WHERE MATNO = "{}"'.format(level * 100, mat_no)).fetchone()[0]
+        gpa_credits = gpa_credits if gpa_credits else '0,0'
+        level_gpa, total_passed_level_credits = list(map(float, gpa_credits.split(',')))
+        total_passed_level_credits = int(total_passed_level_credits)
         for course_code, score_grade in level_results.iteritems():
             prev_result = conn.execute('SELECT {} FROM RESULT{} WHERE MATNO = "{}"'.format(course_code, level * 100, mat_no)).fetchone()
             prev_result = prev_result[0] if prev_result else '0,F'
             try:
                 prev_score, prev_grade = prev_result.split(',')
                 score, grade = score_grade.split(',')
+                total_passed_level_credits += level_courses[course_code] if grade_weight.get(grade, 0) else 0
                 level_gpa += (grade_weight.get(grade, 0) - grade_weight.get(prev_grade, 0)) * level_courses[course_code] / total_credits
             except ValueError:
                 pass
+        level_gpa = round(level_gpa, 4)
     else:
         for course_code, score_grade in level_results.iteritems():
             try:
                 score, grade = score_grade.split(',')
+                total_passed_level_credits += level_courses[course_code] if grade_weight.get(grade, 0) else 0
                 prod_sum += level_courses[course_code] * grade_weight.get(grade, 0)
             except ValueError:
                 pass
         level_gpa = round(prod_sum / total_credits, 4)
     
     try:
-        conn.execute('INSERT INTO GPA (MATNO, LEVEL{}) VALUES (?, ?);'.format(level * 100), (mat_no, level_gpa))
+        conn.execute('INSERT INTO GPA_CREDITS (MATNO, LEVEL{}) VALUES (?, ?);'.format(level * 100), (mat_no, '{},{}'.format(level_gpa, total_passed_level_credits)))
     except sqlite3.IntegrityError:
-        conn.execute('UPDATE GPA SET LEVEL{} = ? WHERE MATNO = "{}"'.format(level * 100, mat_no), (level_gpa,))
+        conn.execute('UPDATE GPA_CREDITS SET LEVEL{} = ? WHERE MATNO = "{}"'.format(level * 100, mat_no), ('{},{}'.format(level_gpa, total_passed_level_credits),))
     conn.commit()
 
     if carryovers[0]:
@@ -278,14 +283,17 @@ def store_gpa(conn, mat_no, level, result_frame, on_probation, mod):
             course_code, score, grade = carryover_result.split(' ')
             course_level = int(course_code[3]) if course_code != 'CED300' else 4
             course_level_index = mod if course_level < mod else course_level
-            gpa = conn.execute('SELECT LEVEL{} FROM GPA WHERE MATNO = "{}"'.format(course_level_index * 100, mat_no)).fetchone()[0]
-            gpa = gpa if gpa else 0
+            gpa_credits = conn.execute('SELECT LEVEL{} FROM GPA_CREDITS WHERE MATNO = "{}"'.format(course_level_index * 100, mat_no)).fetchone()[0]
+            gpa_credits = gpa_credits if gpa_credits else '0,0'
+            gpa, passed_level_credits = list(map(float, gpa_credits.split(',')))
+            passed_level_credits = int(passed_level_credits)
             total_level_credits = conn.execute('SELECT * FROM Credits;').fetchall()[mod - 1][course_level_index]
+            passed_level_credits += courses_dict[course_level - 1][course_code] if grade_weight.get(grade, 0) else 0
             gpa += grade_weight.get(grade, 0) * courses_dict[course_level - 1][course_code] / total_level_credits
             try:
-                conn.execute('INSERT INTO GPA (MATNO, LEVEL{}) VALUES (?, ?);'.format(course_level_index * 100), (mat_no, round(gpa, 4)))
+                conn.execute('INSERT INTO GPA_CREDITS (MATNO, LEVEL{}) VALUES (?, ?);'.format(course_level_index * 100), (mat_no, '{},{}'.format(round(gpa, 4), passed_level_credits)))
             except sqlite3.IntegrityError:
-                conn.execute('UPDATE GPA SET LEVEL{} = ? WHERE MATNO = "{}"'.format(course_level_index * 100, mat_no), (round(gpa, 4),))
+                conn.execute('UPDATE GPA_CREDITS SET LEVEL{} = ? WHERE MATNO = "{}"'.format(course_level_index * 100, mat_no), ('{},{}'.format(round(gpa, 4), passed_level_credits),))
             conn.commit()            
 
 
