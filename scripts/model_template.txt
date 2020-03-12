@@ -51,6 +51,7 @@ class Result100(db.Model):
     level = db.Column('LEVEL', db.Integer)
     session = db.Column('SESSION', db.Integer)
     category = db.Column('CATEGORY', db.Text)
+    unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
 class Result200(db.Model):
@@ -78,6 +79,7 @@ class Result200(db.Model):
     session = db.Column('SESSION', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
+    unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
 class Result300(db.Model):
@@ -108,6 +110,7 @@ class Result300(db.Model):
     session = db.Column('SESSION', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
+    unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
 class Result400(db.Model):
@@ -130,6 +133,7 @@ class Result400(db.Model):
     session = db.Column('SESSION', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
+    unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
 class Result500(db.Model):
@@ -165,6 +169,7 @@ class Result500(db.Model):
     session = db.Column('SESSION', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
+    unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
 class Result600(db.Model):
@@ -176,6 +181,7 @@ class Result600(db.Model):
     session = db.Column('SESSION', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
+    unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
 class Result700(db.Model):
@@ -187,6 +193,7 @@ class Result700(db.Model):
     session = db.Column('SESSION', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
+    unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
 class Result800(db.Model):
@@ -198,6 +205,7 @@ class Result800(db.Model):
     session = db.Column('SESSION', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
+    unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
 class Courses(db.Model):
