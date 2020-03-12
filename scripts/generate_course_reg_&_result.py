@@ -30,7 +30,7 @@ def create_table_schema():
     sessions = range(start_session, curr_session)
     for session in sessions:
         curr_db = '{}-{}.db'.format(session, session + 1)
-        result_stmt = 'CREATE TABLE Result{}(MATNO TEXT PRIMARY KEY, {}, LEVEL INTEGER, SESSION INTEGER, CATEGORY TEXT)'
+        result_stmt = 'CREATE TABLE Result{}(MATNO TEXT PRIMARY KEY, {}, LEVEL INTEGER, SESSION INTEGER, CATEGORY TEXT, UNUSUAL_RESULTS TEXT)'
         course_reg_stmt = 'CREATE TABLE CourseReg{}(MATNO TEXT PRIMARY KEY, {}, LEVEL INTEGER, SESSION INTEGER, FEES_STATUS INTEGER, PROBATION INTEGER, OTHERS TEXT)'
         conn = sqlite3.connect(os.path.join(db_base_dir, curr_db))
         for result_session in range(session, session + 8):
@@ -400,6 +400,8 @@ def populate_db(conn, mat_no, entry_session, mod):
         course_reg_df['FEES_STATUS'] = 1
         course_reg_dtype['LEVEL'] = 'INTEGER'
         course_reg_dtype['FEES_STATUS'] = 'INTEGER'
+        student_result['UNUSUAL_RESULTS'] = ''
+        result_dtype['UNUSUAL_RESULTS'] = 'TEXT'
         
         if count == len(groups):
             if count - num_probation >= 5 and student_result['CATEGORY'].iloc[0] == 'A':
