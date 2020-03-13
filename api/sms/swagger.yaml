@@ -170,6 +170,7 @@ paths:
     get:
       tags: [Course Registration]
       operationId: sms.course_reg.get
+      summary: Get course registration
       parameters:
         - in: query
           name: mat_no
@@ -195,6 +196,7 @@ paths:
     post:
       tags: [Course Registration]
       operationId: sms.course_reg.post
+      summary: Create/edit course registration
       parameters:
         - in: body
           name: course_reg
@@ -208,10 +210,11 @@ paths:
         440:
           description: Session expired, login again
 
-  /result_input:
+  /results:
     get:
       tags: [Results]
-      operationId: sms.result_input.get
+      operationId: sms.results.get
+      summary: Get results
       description: Gets the results of a particular student for the entered session
       parameters:
         - in: query
@@ -226,27 +229,32 @@ paths:
         200:
           description: Success
           schema:
-            $ref: '#/definitions/ResultInput_get'
+            $ref: '#/definitions/Results_get'
         401:
           description: Authentication failed
         403:
-          description: Forbidden - Course reg not available
+          description: Forbidden - No result available
           schema:
             type: string
         440:
           description: Session expired, login again
     post:
       tags: [Results]
-      operationId: sms.result_input.post
+      operationId: sms.results.post
+      summary: Add result records
       description: Post results to the database as a list of list ==> [ [course_code, session, mat_no, score], [next record], ... ]
       parameters:
         - in: body
           name: list_of_results
           schema:
-            $ref: '#/definitions/ResultInput_post'
+            $ref: '#/definitions/Results_post'
       responses:
         200:
           description: Success
+          schema:
+            type: array
+            items:
+              type: string
         401:
           description: Authentication failed
         440:
@@ -427,7 +435,7 @@ definitions:
       others:
         type: string
 
-  ResultInput_get:
+  Results_get:
     type: object
     properties:
       mat_no:
@@ -444,7 +452,7 @@ definitions:
       level_written:
         type: integer
 
-  ResultInput_post:
+  Results_post:
     type: array
     items:
       type: array
