@@ -514,6 +514,12 @@ class CreditsSchema(ma.ModelSchema):
         sqla_session = db.session
 
 
+class GPACreditsSchema(ma.ModelSchema):
+    class Meta:
+        model = GPA_Credits
+        sqla_session = db.session
+
+
 class CourseReg100Schema(ma.ModelSchema):
     class Meta:
         model = CourseReg100
