@@ -21,6 +21,7 @@ def get(mat_no, retJSON=True):
             session = result.pop('session')
             level = result.pop('level')
             category = result.pop('category')
+            result.pop('unusual_results')
             if lvl:
                 carryovers = result.pop('carryovers')
                 if carryovers != '':
