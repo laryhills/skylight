@@ -205,27 +205,8 @@ def get_attribute_names(cls):
     return [prop.key for prop in class_mapper(cls).iterate_properties
         if isinstance(prop, sqlalchemy.orm.ColumnProperty)]
 
-# def test_get_result():
-#     source = open("C:\\Users\\chima\\PycharmProjects\\skylight\\api\\sms\\er.txt", 'r')
-#     mat_nos = source.readlines()
-#     source.close()
-#     matr = []
-#     for mat_no in mat_nos:
-#         matr.append(mat_no[:10])
-#
-#     log = []
-#     for mat_no in matr:
-#         for level in range(100,600,100):
-#             try:
-#                 log.extend(get_result_for_edit(mat_no,level))
-#             except Exception as e:
-#                 log.append(mat_no + ':  exception')
-#         print('still working...')
-#     print('done')
-#     return log
 
-
-def compute_gpa(mat_no):
+def compute_gpa(mat_no, ret_json=True):
     person = loads(personal_info.get(mat_no=mat_no))
     mode_of_entry = person['mode_of_entry']
     gpas = [[0, 0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0]][mode_of_entry - 1]
@@ -238,18 +219,26 @@ def compute_gpa(mat_no):
             (course, grade) = (record[1], record[5])
             course_props = loads(course_details.get(course))
             lvl = int(course_props["course_level"] / 100) - 1
+            if mode_of_entry != 1:
+                if course in ['GST111', 'GST112', 'GST121', 'GST122', 'GST123']:
+                    lvl = 0
+                else:
+                    lvl -= 1
             credit = course_props["course_credit"]
-            product = grade_weight[grade] * credit
+            product = int(grade_weight[grade]) * credit
             gpas[lvl] += (product / level_credits[lvl])
 
-    return dumps(gpas)
+    if ret_json:
+        return dumps(gpas)
+    else:
+        return gpas
 
 
 def get_gpa_credits(mat_no):
     db_name = get_DB(mat_no)[:-3]
     session = load_session(db_name)
     stud = session.GPA_Credits.query.filter_by(mat_no=mat_no).first()
-    gpa_credits =  stud.level100, stud.level200, stud.level300, stud.level400, stud.level500
+    gpa_credits = stud.level100, stud.level200, stud.level300, stud.level400, stud.level500
     gpas, credits = [], []
     for gpa_credit in gpa_credits:
         if gpa_credit:
@@ -266,3 +255,18 @@ def get_level_weightings(mod):
     if mod == 1: return [.1, .15, .2, .25, .3]
     elif mod == 2: return [0, .1, .2, .3, .4]
     else: return [0, 0, .25, .35, .4]
+
+
+def compute_grade(mat_no, score):
+    if score > 100 or score < 0:
+        return ''
+    grading_rules = [rule.split(' ') for rule in get_grading_rule(mat_no)]
+    grading_rules = sorted(grading_rules, key=lambda x: int(x[2]), reverse=True)
+    for index in range(len(grading_rules)):
+        if score >= int(grading_rules[index][2]):
+            return grading_rules[index][0]
+    return ''
+
+
+def compute_category(mat_no):
+    return 'B'
