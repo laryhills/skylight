@@ -32,20 +32,21 @@ def post(list_of_results):
         for key in course_reg:
             if course_reg[key]['course_reg_session'] == session_taken:
                 course_registration = course_reg[key]
+                break
 
         if course_registration == {}:
             course_registration = {'course_reg_level': utils.get_level(mat_no), 'courses': []}
             is_unusual = True
             error_log.append('No course registration found for {0} at index {1} for the '
                              '{2}/{3} session'.format(mat_no, index, session_taken, session_taken+1))
-            print('\n', error_log[-1])
+            print('\n====>>  ', error_log[-1])
 
         courses_registered = course_registration['courses']
         if not is_unusual and course_code not in courses_registered:
             is_unusual = True
             error_log.append('{0} at index {1} did not register {2} in the {3}/{4} '
                              'session'.format(mat_no, index, course_code, session_taken, session_taken+1))
-            print('\n', error_log[-1])
+            print('\n====>>  ', error_log[-1])
 
         db_name = utils.get_DB(mat_no)[:-3]
         session = utils.load_session(db_name)
@@ -72,7 +73,9 @@ def post(list_of_results):
                 if col not in result_record:
                     result_record[col] = None
 
-        if (course_code in result_record and result_record[course_code]) or (course_code in result_record['carryovers']) or course_code in result_record['unusual_results']:
+        if not is_unusual and result_record['unusual_results'] and course_code in result_record['unusual_results']:
+            print('\n====>>  ', 'moving result record from store to result table')
+        elif (course_code in result_record and result_record[course_code]) or (course_code in result_record['carryovers']) or course_code in result_record['unusual_results']:
             old = ''
             if course_code in result_record and result_record[course_code]:
                 old = result_record[course_code].split(',')[0]
@@ -82,29 +85,31 @@ def post(list_of_results):
             elif course_code in result_record['unusual_results']:
                 unusual_results = result_record['unusual_results'].split(',')
                 old = [x.split(' ')[1] for x in unusual_results if x.split(' ')[0] == course_code][0]
-            print('\n', 'overwriting previous {} result of {} for the {}/{} session:'
+            print('\n====>>  ', 'overwriting previous {} result of {} for the {}/{} session:'
                   ' {} ==> {}'.format(course_code, mat_no, session_taken, session_taken+1, old, score))
 
-        if is_unusual:
+        if is_unusual or result_record['unusual_results']:
             unusual_results = result_record['unusual_results'].split(',')
             index = [ind for ind, x in enumerate(unusual_results) if x.split(' ')[0] == course_code]
             if index: unusual_results.pop(index[0])
-            unusual_results.append('{} {} {}'.format(course_code, score, grade))
+            if is_unusual: unusual_results.append('{} {} {}'.format(course_code, score, grade))
             while '' in unusual_results: unusual_results.remove('')
             result_record['unusual_results'] = ','.join(unusual_results)
-        elif course_code in result_record:
-            result_record[course_code] = '{},{}'.format(score, grade)
-        else:
-            carryovers = result_record['carryovers'].split(',') if result_record['carryovers'] else ['']
-            index = [ind for ind, x in enumerate(carryovers) if x.split(' ')[0] == course_code]
-            if index: carryovers.pop(index[0])
-            carryovers.append('{} {} {}'.format(course_code, score, grade))
-            while '' in carryovers: carryovers.remove('')
-            result_record['carryovers'] = ','.join(carryovers)
+        if not is_unusual:
+            if course_code in result_record:
+                result_record[course_code] = '{},{}'.format(score, grade)
+            else:
+                carryovers = result_record['carryovers'].split(',') if result_record['carryovers'] else ['']
+                index = [ind for ind, x in enumerate(carryovers) if x.split(' ')[0] == course_code]
+                if index: carryovers.pop(index[0])
+                carryovers.append('{} {} {}'.format(course_code, score, grade))
+                while '' in carryovers: carryovers.remove('')
+                result_record['carryovers'] = ','.join(carryovers)
 
         # get the session category
         if not courses_registered:
-            result_record['category'] = 'D'
+            previous_categories = [x['category'] for x in res if x and x['category'] and x['session'] < session_taken]
+            result_record['category'] = 'E' if 'C' in previous_categories else 'D' #todo test this for when it should be 'D'
         else:
             results_object = deepcopy(result_record)
             mat_no = results_object.pop('mat_no')
@@ -133,32 +138,41 @@ def post(list_of_results):
         db.session.commit()
 
         if not is_unusual:
+            # todo: credits passed does not make sense unless it's level credits passed
+            stmt = result_statement.get(mat_no, 0)
+            creds = [x[1] for x in stmt['credits']]
+            if len(creds) > 1:
+                test_res = res
+                index_to_remove = [ind for ind, x in enumerate(test_res) if x and x['category'] == 'C' and x['session'] < session_taken]
+                if index_to_remove:
+                    if stmt['mode_of_entry'] == 1 and index_to_remove[0] == 0:
+                        creds[0] += creds.pop(1)
+                    else:
+                        creds.pop(index_to_remove[0])
             try:
-                # todo: credits passed does not make sense unless it's level credits passed
-                stmt = result_statement.get(mat_no, 0)
-                creds = [x[1] for x in stmt['credits']]
-                if len(creds) > 1:
-                    test_res = utils.result_poll(mat_no)
-                    index_to_remove = [ind for ind, x in enumerate(test_res[:-1]) if x and x['category'] == 'C']
-                    if index_to_remove:
-                        if stmt['mode_of_entry'] == 1 and index_to_remove[0] == 0: creds[0] += creds.pop(1)
-                        else: creds.pop(index_to_remove[0])
                 gpa_credits = list(zip(utils.compute_gpa(mat_no, ret_json=False), creds))
             except ValueError as e:
                 print('===>>', e.with_traceback(e.__traceback__))
                 continue
-            [gpa_credits.insert(0, (-99,-99)) for _ in range(5 - len(gpa_credits))]
+
+            [gpa_credits.insert(0, (-99,-99)) for _ in range(stmt['mode_of_entry'] - 1)]
             gpa_credits = ['{:.5f},{}'.format(x[0], x[1]) for x in gpa_credits]
+
             for ind in range(len(gpa_credits)):
                 if gpa_credits[ind].split(',')[1] == '-99': gpa_credits[ind] = None
-            gpas = {'mat_no': mat_no, 'level100': gpa_credits[0], 'level200': gpa_credits[1],
-                    'level300': gpa_credits[2], 'level400': gpa_credits[3], 'level500': gpa_credits[4]}
+            gpas = {'mat_no': mat_no}
+            gpas['level100'] = gpa_credits[0] if len(gpa_credits) >= 1 else None
+            gpas['level200'] = gpa_credits[1] if len(gpa_credits) >= 2 else None
+            gpas['level300'] = gpa_credits[2] if len(gpa_credits) >= 3 else None
+            gpas['level400'] = gpa_credits[3] if len(gpa_credits) >= 4 else None
+            gpas['level500'] = gpa_credits[4] if len(gpa_credits) >= 5 else None
+
             gpa_record = session.GPACreditsSchema().load(gpas)
             db.session.add(gpa_record)
             db.session.commit()
             db.session.close()
 
-    print('\n', 'result input done with {} errors'.format(len(error_log)))
+    print('\n====>>  ', '{} result entries added with {} errors'.format(len(list_of_results), len(error_log)))
     return error_log
 
 
