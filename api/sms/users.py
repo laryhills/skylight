@@ -176,7 +176,13 @@ fn_props = {
     "course_reg.post": {"perms": ["write"],
                         "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, params.get("course_reg").get("mat_no"), dict_render(params))
                         },
+    "results.get": {"perms": ["read"],
+                    "logs": lambda user, params: "{} queried results for {}".format(user, params.get("mat_no"))
+                    },
+    "results.post": {"perms": ["write"],
+                     "logs": lambda user, params: "{} added {} result entries:-\n{}".format(user, len(params.get("list_of_results")), dict_render(params))
+                     },
     "logs.get": {"perms": ["read", "levels"],
                  "logs": lambda user, params: "{} requested logs".format(user)
-                },
+                 },
 }
