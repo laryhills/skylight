@@ -3,6 +3,7 @@ from flask import abort
 from sms.config import db
 from sms import personal_info
 from sms import utils
+from sms import results
 from sms.utils import get_carryovers
 from sms.users import access_decorator
 
@@ -46,31 +47,31 @@ def get(mat_no, acad_session=None):
     fees_status = None
     others = None
 
-    res = [x for x in utils.result_poll(mat_no) if x]
-    res = sorted(res, key=lambda x: x['session'])
-    category = res[-1]["category"] if res and res[-1]["category"] else ''
-    if category == 'C':
+    res_poll = utils.result_poll(mat_no)
+    previous_categories = [x['category'] for x in res_poll if x and x['category'] and x['session'] < acad_session]
+    previous_category = previous_categories[-1]
+    if previous_category == 'C':
         probation_status = 1
-    elif category in 'AB':
+    elif previous_category in 'AB':
         probation_status = 0
 
     table_to_populate = ''
-    if not course_reg[current_level]['courses']:
-        table_to_populate = course_reg[current_level]['table']
+    index = [ind for ind, x in enumerate(res_poll) if x and x['session'] == acad_session]
+    if index: table_to_populate = 'CourseReg' + str(100 * (index[0]+1))
+    elif not course_reg[current_level]['courses']: table_to_populate = course_reg[current_level]['table']
     else:
         for key in range(100, 900, 100):
             if not course_reg[key]['courses']:
                 table_to_populate = course_reg[key]['table']
                 break
-    print(table_to_populate)
 
     error_text = ''
     if graduation_status == 1 if graduation_status else False:
         error_text = 'Student cannot carry out course reg as he has graduated'
     elif int(table_to_populate[-3:]) + 100 > 800 or table_to_populate == '':
         error_text = 'Student cannot carry out course reg as he has exceeded the 8-year limit'
-    elif category not in 'ABC':
-        error_text = 'Student cannot carry out course reg as his category is {}'.format(category)
+    elif previous_category not in 'ABC':
+        error_text = 'Student cannot carry out course reg as his category is {}'.format(previous_category)
 
     course_registration = {}
     get_new_registration = False
@@ -280,10 +281,13 @@ def post(course_reg):
     db.session.add(course_registration)
     db.session.commit()
 
-    # TODO: at this point check rogue results in the results table for session_written == course_reg_session
-    #       * and move the results to the right columns
-    #       * recalculate GPA and category and any other stuff
+    session_results = [x for x in utils.result_poll(mat_no) if x and (x['session'] == course_reg_session)]
+    if session_results and session_results[0]['unusual_results']:
+        unusual_results = session_results[0]['unusual_results'].split(',')
+        unusual_results = [[x.split(' ')[0], course_reg_session, mat_no, x.split(' ')[1]] for x in unusual_results]
+        results.post(unusual_results)
 
+    print('course registration successful')
     return 'course registration successful'
 
 
