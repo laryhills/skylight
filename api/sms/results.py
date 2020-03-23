@@ -1,8 +1,13 @@
-from flask import abort
-from sms.config import db
 from sms import utils
+from sms import course_details
+from sms import result_statement
+from sms.config import db
+from sms.users import access_decorator
+from copy import deepcopy
+from flask import abort
 
 
+@access_decorator
 def post(list_of_results):
     """  ==== JSON FORMAT FOR THE RESULTS ====
        [['MEE551', '2019', 'ENG1503886', '98'],
@@ -10,88 +15,154 @@ def post(list_of_results):
         ['MEE571', '2019', 'ENG1503886', '98'],
         ['MEE521', '2019', 'ENG1503886', '98']]
 
-        er = [['EMA481', '2019', 'ENG1503886', '98'],['MEE561', '2019', 'ENG1503886', '98'],['MEE571', '2019', 'ENG1503886', '98'],['MEE521', '2019', 'ENG1503886', '98']]
+        er = [['MEE351', '2019', 'ENG1503886', '98'],['MEE451', '2019', 'ENG1503886', '98'],['EMA481', '2019', 'ENG1503886', '98'],['MEE561', '2019', 'ENG1503886', '98'],['MEE571', '2019', 'ENG1503886', '98'],['MEE521', '2019', 'ENG1503886', '98'],['MEE572', '2019', 'ENG1503886', '98']]
         """
 
-    # List of tuples ==> [(result, error), (result, error)]
-    results_with_errors = []
+    error_log = []
 
     for index, result_details in enumerate(list_of_results):
         course_code, session_taken, mat_no, score = result_details
         session_taken, score = map(int, [session_taken, score])
+        grade = utils.compute_grade(mat_no, score)
+        is_unusual = False
+        is_first = False
 
         course_reg = utils.get_registered_courses(mat_no, level=None, true_levels=False)
         course_registration = {}
         for key in course_reg:
             if course_reg[key]['course_reg_session'] == session_taken:
                 course_registration = course_reg[key]
+
         if course_registration == {}:
-            # todo: add these results to a new column in results table for such errors
-            # todo: perhaps this guy's results can only be entered with admin approval
-            results_with_errors.append((result_details, 'No course registration found for {0} at index {1} for the '
-                                                        '{2}/{3} session'.format(mat_no, index, session_taken,
-                                                                                 session_taken+1)))
-            print(results_with_errors[-1][1])
-            continue
+            course_registration = {'course_reg_level': utils.get_level(mat_no), 'courses': []}
+            is_unusual = True
+            error_log.append('No course registration found for {0} at index {1} for the '
+                             '{2}/{3} session'.format(mat_no, index, session_taken, session_taken+1))
+            print('\n', error_log[-1])
+
         courses_registered = course_registration['courses']
-        if course_code not in courses_registered:
-            # todo: add these results to a new column in results table for such errors
-            # todo: front end persists the error message encountered in results in memory for each session
-            results_with_errors.append((result_details, '{0} at index {1} did not register {2} in the {3}/{4} '
-                                                        'session'.format(mat_no, index, course_code, session_taken,
-                                                                         session_taken+1)))
-            print(results_with_errors[-1][1])
-            continue
-        else:
-            res = utils.result_poll(mat_no)
-            result_record = {}
-            table_to_populate = ''
-            for index, result in enumerate(res):
-                if result and result['session'] == session_taken:
-                    result_record = result
-                    table_to_populate = 'Result' + str((index + 1) * 100)
-                    break
+        if not is_unusual and course_code not in courses_registered:
+            is_unusual = True
+            error_log.append('{0} at index {1} did not register {2} in the {3}/{4} '
+                             'session'.format(mat_no, index, course_code, session_taken, session_taken+1))
+            print('\n', error_log[-1])
 
-            db_name = utils.get_DB(mat_no)[:-3]
-            session = utils.load_session(db_name)
+        db_name = utils.get_DB(mat_no)[:-3]
+        session = utils.load_session(db_name)
+        result_level = course_registration['course_reg_level']
+        res = utils.result_poll(mat_no)
+        result_record = {}
+        table_to_populate = ''
 
-            if not result_record:
-                table_to_populate = 'Result' + str(100 * ([ind for ind, result in enumerate(res) if not result][0] + 1))
-                result_level = course_registration['course_reg_level']
-                table_columns = utils.get_attribute_names(eval('session.{}'.format(table_to_populate)))
-                result_record = {'mat_no': mat_no, 'session': session_taken, 'level': result_level, 'category': None,
-                                 'carryovers': ''}
-                for col in table_columns:
-                    if col not in result_record:
-                        result_record[col] = None
-
-            if (course_code in result_record and result_record[course_code]) or course_code in result_record['carryovers']:
-                print('overwriting previous {} result of {} for the {}/{} session'.format(course_code, mat_no, session_taken, session_taken+1))
-                # todo add the old and new scores to the error log or sth ...': {old} ==> {new}'
-
-            grading_rules = utils.get_grading_rule(mat_no)
-            grade = 'A'
-
-            if course_code in result_record:
-                result_record[course_code] = '{},{}'.format(score, grade) # todo get grading rules
-            elif course_code in result_record['carryovers']:
-                # some pretty hard work here
-                pass
+        for index, result in enumerate(res):
+            if result and result['session'] == session_taken:
+                result_record = result
+                table_to_populate = 'Result' + str((index + 1) * 100)
+                break
+        if not result_record:
+            is_first = True
+            if courses_registered: table_to_populate = 'Result' + course_registration['table'][-3:]
+            elif res[result_level//100 - 1] == {}: table_to_populate = 'Result' + str(result_level)
             else:
-                container = ',{} {} {}' if result_record['carryovers'] else '{} {} {}'
-                result_record['carryovers'] += container.format(course_code, score, grade)
+                table_to_populate = 'Result' + str(100 * ([ind for ind, result in enumerate(res) if not result][0] + 1))
+            table_columns = utils.get_attribute_names(eval('session.{}'.format(table_to_populate)))
+            result_record = {'mat_no': mat_no, 'session': session_taken, 'level': result_level, 'category': None,
+                             'carryovers': '', 'unusual_results': ''}
+            for col in table_columns:
+                if col not in result_record:
+                    result_record[col] = None
 
-            # todo: handle category
-            #       * (re)calculate GPAs if results complete... check with course_reg
-            #       * recalculate other stuff when done... like category
+        if (course_code in result_record and result_record[course_code]) or (course_code in result_record['carryovers']) or course_code in result_record['unusual_results']:
+            old = ''
+            if course_code in result_record and result_record[course_code]:
+                old = result_record[course_code].split(',')[0]
+            elif course_code in result_record['carryovers']:
+                carryovers = result_record['carryovers'].split(',')
+                old = [x.split(' ')[1] for x in carryovers if x.split(' ')[0] == course_code][0]
+            elif course_code in result_record['unusual_results']:
+                unusual_results = result_record['unusual_results'].split(',')
+                old = [x.split(' ')[1] for x in unusual_results if x.split(' ')[0] == course_code][0]
+            print('\n', 'overwriting previous {} result of {} for the {}/{} session:'
+                  ' {} ==> {}'.format(course_code, mat_no, session_taken, session_taken+1, old, score))
 
-            res_record = eval('session.{}Schema().load(result_record)'.format(table_to_populate))
-            db.session.add(res_record)
+        if is_unusual:
+            unusual_results = result_record['unusual_results'].split(',')
+            index = [ind for ind, x in enumerate(unusual_results) if x.split(' ')[0] == course_code]
+            if index: unusual_results.pop(index[0])
+            unusual_results.append('{} {} {}'.format(course_code, score, grade))
+            while '' in unusual_results: unusual_results.remove('')
+            result_record['unusual_results'] = ','.join(unusual_results)
+        elif course_code in result_record:
+            result_record[course_code] = '{},{}'.format(score, grade)
+        else:
+            carryovers = result_record['carryovers'].split(',') if result_record['carryovers'] else ['']
+            index = [ind for ind, x in enumerate(carryovers) if x.split(' ')[0] == course_code]
+            if index: carryovers.pop(index[0])
+            carryovers.append('{} {} {}'.format(course_code, score, grade))
+            while '' in carryovers: carryovers.remove('')
+            result_record['carryovers'] = ','.join(carryovers)
+
+        # get the session category
+        if not courses_registered:
+            result_record['category'] = 'D'
+        else:
+            results_object = deepcopy(result_record)
+            mat_no = results_object.pop('mat_no')
+            session_taken = results_object.pop('session')
+            result_level = results_object.pop('level')
+            carryovers = results_object.pop('carryovers')
+            results_object.pop('category')
+            results_object.pop('unusual_results')
+
+            carryovers = carryovers.split(',') if carryovers else []
+            carryovers = [[x.split(' ')[0], x.split(' ')[2]] for x in carryovers if carryovers]
+            result_courses = [[x, results_object[x].split(',')[1]] for x in results_object if results_object[x]]
+            result_courses.extend(carryovers)
+
+            total_credits, credits_passed = 0, 0
+            for course in courses_registered:
+                credit = course_details.get(course, 0)['course_credit']
+                grade = [x[1] for x in result_courses if x[0] == course]
+                if grade and grade[0] not in ['F', 'ABS']:
+                    credits_passed += credit
+                total_credits += credit
+            result_record['category'] = utils.compute_category(mat_no, result_level, session_taken, total_credits, credits_passed)
+
+        res_record = eval('session.{}Schema().load(result_record)'.format(table_to_populate))
+        db.session.add(res_record)
+        db.session.commit()
+
+        if not is_unusual:
+            try:
+                # todo: credits passed does not make sense unless it's level credits passed
+                stmt = result_statement.get(mat_no, 0)
+                creds = [x[1] for x in stmt['credits']]
+                if len(creds) > 1:
+                    test_res = utils.result_poll(mat_no)
+                    index_to_remove = [ind for ind, x in enumerate(test_res[:-1]) if x and x['category'] == 'C']
+                    if index_to_remove:
+                        if stmt['mode_of_entry'] == 1 and index_to_remove[0] == 0: creds[0] += creds.pop(1)
+                        else: creds.pop(index_to_remove[0])
+                gpa_credits = list(zip(utils.compute_gpa(mat_no, ret_json=False), creds))
+            except ValueError as e:
+                print('===>>', e.with_traceback(e.__traceback__))
+                continue
+            [gpa_credits.insert(0, (-99,-99)) for _ in range(5 - len(gpa_credits))]
+            gpa_credits = ['{:.5f},{}'.format(x[0], x[1]) for x in gpa_credits]
+            for ind in range(len(gpa_credits)):
+                if gpa_credits[ind].split(',')[1] == '-99': gpa_credits[ind] = None
+            gpas = {'mat_no': mat_no, 'level100': gpa_credits[0], 'level200': gpa_credits[1],
+                    'level300': gpa_credits[2], 'level400': gpa_credits[3], 'level500': gpa_credits[4]}
+            gpa_record = session.GPACreditsSchema().load(gpas)
+            db.session.add(gpa_record)
             db.session.commit()
-    print('result input done with {} errors'.format(len(results_with_errors)))
-    return results_with_errors
+            db.session.close()
+
+    print('\n', 'result input done with {} errors'.format(len(error_log)))
+    return error_log
 
 
+@access_decorator
 def get(mat_no, acad_session):
     res = utils.result_poll(mat_no)
     results = {}
@@ -110,10 +181,12 @@ def get(mat_no, acad_session):
     results.pop('session')
     result_level = results.pop('level')
     carryovers = results.pop('carryovers')
-    if carryovers:
-        carryovers = carryovers.split(',')
-        carryovers = [x.split(' ')[:2] for x in carryovers if carryovers]
-    all_courses = [[x, results[x].split(',')[0]] for x in results if results[x]]
+    unusual_results = results.pop('unusual_results')
+    if carryovers or unusual_results:
+        carryovers = carryovers.split(',') if carryovers else []
+        carryovers.extend(unusual_results.split(',') if unusual_results else [])
+        carryovers = [x.split(' ') for x in carryovers if carryovers]
+    all_courses = [[x] + results[x].split(',') for x in results if results[x]]
     all_courses.extend(carryovers)
 
     # check if anything in course_reg is not in results... and vice versa
@@ -122,12 +195,12 @@ def get(mat_no, acad_session):
         if course_reg[reg]['courses'] and course_reg[reg]['course_reg_session'] == acad_session:
             course_reg = course_reg[reg]['courses']
             break
-    reg_extras = [[x, '', 0, 'Registered, no result'] for x in set(course_reg).difference(set(list(zip(*all_courses))[0]))]
-    res_extras = [[x, '', 0, 'Course not registered'] for x in set(list(zip(*all_courses))[0]).difference(set(course_reg))]
+    reg_extras = [[x, '', '', 0, 'Registered, no result'] for x in set(course_reg).difference(set(list(zip(*all_courses))[0]))]
+    res_extras = [[x, '', '', 0, 'Course not registered'] for x in set(list(zip(*all_courses))[0]).difference(set(course_reg))]
     for index in range(len(res_extras)):
         for x in range(len(all_courses)):
             if all_courses[x][0] == res_extras[index][0]:
-                res_extras[index][1] = all_courses[x][1]
+                res_extras[index][1:3] = all_courses[x][1:3]
                 del all_courses[x]
                 break
 
@@ -135,8 +208,8 @@ def get(mat_no, acad_session):
     all_courses.extend(res_extras)
     for index in range(len(all_courses)):
         course_dets = utils.course_details.get(all_courses[index][0], 0)
-        if len(all_courses[index]) == 4:
-            all_courses[index][2] = course_dets['course_semester']
+        if len(all_courses[index]) == 5:
+            all_courses[index][3] = course_dets['course_semester']
         else:
             all_courses[index].extend([course_dets['course_semester'], ''])
     frame['level_written'] = result_level
@@ -149,7 +222,6 @@ def get(mat_no, acad_session):
 def multisort(iters):
     iters = sorted(iters, key=lambda x: x[0])
     iters = sorted(iters, key=lambda x: x[0][3])
-    return sorted(iters, key=lambda x: x[2])
+    return sorted(iters, key=lambda x: x[3])
 
-# todo revert the changes in test's records: "ENG1508633"
-# w = result_input.get('ENG1508633',2018)
+
