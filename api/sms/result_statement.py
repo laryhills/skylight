@@ -22,20 +22,20 @@ def get(mat_no, retJSON=True):
             level = result.pop('level')
             category = result.pop('category')
             result.pop('unusual_results')
-            if lvl:
-                carryovers = result.pop('carryovers')
-                if carryovers != '':
-                    carryovers = carryovers.split(',')
-                    for co in carryovers:
-                        # coSplit = co.split()
-                        # # Special cases, del on fix DB
-                        # if len(coSplit)==4:
-                        #     coSplit.remove('nan')
-                        #     co = " ".join(coSplit)
-                        # if len(coSplit) == 2:
-                        #     co = " ".join(coSplit+["F"])
-                        (course, score, grade) = co.split()
-                        result[course] = ",".join([score, grade])
+            # if lvl:
+            carryovers = result.pop('carryovers')
+            if carryovers:
+                carryovers = carryovers.split(',')
+                for co in carryovers:
+                    # coSplit = co.split()
+                    # # Special cases, del on fix DB
+                    # if len(coSplit)==4:
+                    #     coSplit.remove('nan')
+                    #     co = " ".join(coSplit)
+                    # if len(coSplit) == 2:
+                    #     co = " ".join(coSplit+["F"])
+                    (course, score, grade) = co.split()
+                    result[course] = ",".join([score, grade])
             credits_passed = credits_failed = credits_total = 0
             lvlResult = {"first_sem": [], "second_sem": [], 'level': level, 'session': session}
             for course in result:
