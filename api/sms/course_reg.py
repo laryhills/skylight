@@ -47,6 +47,7 @@ def get(mat_no, acad_session=None):
     others = None
 
     res = [x for x in utils.result_poll(mat_no) if x]
+    res = sorted(res, key=lambda x: x['session'])
     category = res[-1]["category"] if res and res[-1]["category"] else ''
     if category == 'C':
         probation_status = 1
@@ -54,49 +55,50 @@ def get(mat_no, acad_session=None):
         probation_status = 0
 
     table_to_populate = ''
-    for key in range(100, 900, 100):
-        if not course_reg[key]['courses']:
-            table_to_populate = course_reg[key]['table']
-            break
+    if not course_reg[current_level]['courses']:
+        table_to_populate = course_reg[current_level]['table']
+    else:
+        for key in range(100, 900, 100):
+            if not course_reg[key]['courses']:
+                table_to_populate = course_reg[key]['table']
+                break
+    print(table_to_populate)
 
     error_text = ''
     if graduation_status == 1 if graduation_status else False:
         error_text = 'Student cannot carry out course reg as he has graduated'
-    elif int(table_to_populate[-3:]) + 100 > 800:
+    elif int(table_to_populate[-3:]) + 100 > 800 or table_to_populate == '':
         error_text = 'Student cannot carry out course reg as he has exceeded the 8-year limit'
     elif category not in 'ABC':
         error_text = 'Student cannot carry out course reg as his category is {}'.format(category)
 
-    table_to_get = ''
     course_registration = {}
     get_new_registration = False
     for reg in course_reg:
         if course_reg[reg]['courses'] and course_reg[reg]['course_reg_session'] == acad_session:
-            table_to_get = course_reg[reg]['table']
             course_registration = course_reg[reg]
             break
 
-    if table_to_get == '':
+    if course_registration == {}:
         if acad_session != current_session:
             error_text = 'No course registration for entered session'
         elif acad_session == current_session:
-            table_to_get = table_to_populate
             get_new_registration = True
 
     if error_text != '':
-        course_reg_frame = {'personal_info': some_personal_info,
-                            'table_to_populate': None,
-                            'course_reg_session': current_session,
-                            'course_reg_level': None,
-                            'level_max_credits': None,
-                            'courses': {'first_sem': [],
-                                        'second_sem': []},
-                            'choices': {'first_sem': [],
-                                        'second_sem': []},
-                            'probation_status': None,
-                            'fees_status': fees_status,
-                            'others': others,
-                            'error': error_text}
+        # course_reg_frame = {'personal_info': some_personal_info,
+        #                     'table_to_populate': None,
+        #                     'course_reg_session': current_session,
+        #                     'course_reg_level': None,
+        #                     'level_max_credits': None,
+        #                     'courses': {'first_sem': [],
+        #                                 'second_sem': []},
+        #                     'choices': {'first_sem': [],
+        #                                 'second_sem': []},
+        #                     'probation_status': None,
+        #                     'fees_status': fees_status,
+        #                     'others': others,
+        #                     'error': error_text}
         return error_text, 403
 
     elif get_new_registration:
@@ -263,7 +265,7 @@ def post(course_reg):
         if col in courses:
             registration[col] = '1'
             courses.remove(col)
-        elif col not in ['mat_no', 'carryovers', 'probation', 'others','fees_status', 'level', 'session']:
+        elif col not in ['mat_no', 'carryovers', 'probation', 'others', 'fees_status', 'level', 'session']:
             registration[col] = '0'
     registration['carryovers'] = ','.join(courses)
     registration['mat_no'] = mat_no
@@ -277,6 +279,11 @@ def post(course_reg):
     course_registration = course_reg_xxx_schema.load(registration)
     db.session.add(course_registration)
     db.session.commit()
+
+    # TODO: at this point check rogue results in the results table for session_written == course_reg_session
+    #       * and move the results to the right columns
+    #       * recalculate GPA and category and any other stuff
+
     return 'course registration successful'
 
 
