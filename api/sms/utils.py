@@ -268,5 +268,21 @@ def compute_grade(mat_no, score):
     return ''
 
 
-def compute_category(mat_no):
-    return 'B'
+def compute_category(mat_no, result_level, session_taken, total_credits, credits_passed):
+    entry_session = result_statement.get(mat_no, 0)['entry_session']
+    previous_categories = [x['category'] for x in result_poll(mat_no, 0) if x and x['session'] < session_taken]
+
+    if total_credits == credits_passed: return 'A'
+    if result_level == 100 and entry_session >= 2014:
+        if credits_passed >= 36: return 'B'
+        elif 23 <= credits_passed < 36: return 'C'
+        else:
+            if 'C' in previous_categories: return 'E' # Handle condition for transfer
+            else: return 'D'
+    else:
+        percent_passed = credits_passed / total_credits * 100
+        if percent_passed >= 50: return 'B'
+        elif 25 <= percent_passed < 50: return 'C'
+        else:
+            if 'C' not in previous_categories: return 'D'
+            else: return 'E'
