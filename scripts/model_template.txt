@@ -50,6 +50,7 @@ class Result100(db.Model):
     PHY124 = db.Column(db.Text)
     level = db.Column('LEVEL', db.Integer)
     session = db.Column('SESSION', db.Integer)
+    carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
     unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
 
@@ -275,6 +276,7 @@ class CourseReg100(db.Model):
     PHY124 = db.Column(db.Text)
     level = db.Column('LEVEL', db.Integer)
     session = db.Column('SESSION', db.Integer)
+    carryovers = db.Column('CARRYOVERS', db.Text)
     fees_status = db.Column('FEES_STATUS', db.Integer)
     probation = db.Column('PROBATION',db.Integer)
     others = db.Column('OTHERS', db.Text)
