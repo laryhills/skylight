@@ -21,8 +21,6 @@ def get(mat_no, ret_JSON=True):
 def post(student_data):
     global PersonalInfo, PersonalInfoSchema
 
-    # todo: Get "session_admitted" from "current_session" in master.db for 100l
-    # todo: On opening the personal info tab, the backend should supply this data
     session = int(student_data['session_admitted'])
     db_name = '{}_{}.db'.format(session, session + 1)
 

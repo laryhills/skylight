@@ -16,7 +16,7 @@ def post(list_of_results):
         ['MEE521', '2019', 'ENG1503886', '98']]
 
         er = [['MEE351', '2019', 'ENG1503886', '98'],['MEE451', '2019', 'ENG1503886', '98'],['EMA481', '2019', 'ENG1503886', '98'],['MEE561', '2019', 'ENG1503886', '98'],['MEE571', '2019', 'ENG1503886', '98'],['MEE521', '2019', 'ENG1503886', '98'],['MEE572', '2019', 'ENG1503886', '98']]
-        """
+    """
 
     error_log = []
 
@@ -237,5 +237,3 @@ def multisort(iters):
     iters = sorted(iters, key=lambda x: x[0])
     iters = sorted(iters, key=lambda x: x[0][3])
     return sorted(iters, key=lambda x: x[3])
-
-
