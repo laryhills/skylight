@@ -265,13 +265,14 @@ def post(course_reg):
     db.session.add(course_registration)
     db.session.commit()
 
+    # Here we check if there were any stray results waiting in unusual results for this session
     session_results = [x for x in utils.result_poll(mat_no) if x and (x['session'] == course_reg_session)]
     if session_results and session_results[0]['unusual_results']:
         unusual_results = session_results[0]['unusual_results'].split(',')
         unusual_results = [[x.split(' ')[0], course_reg_session, mat_no, x.split(' ')[1]] for x in unusual_results]
         results.post(unusual_results)
 
-    print('course registration successful')
+    print('\n====>>  ', 'course registration successful')
     return 'course registration successful'
 
 
