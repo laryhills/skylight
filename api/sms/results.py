@@ -209,12 +209,13 @@ def get(mat_no, acad_session):
     result_level = results.pop('level')
     carryovers = results.pop('carryovers')
     unusual_results = results.pop('unusual_results')
+    all_courses = [[x] + results[x].split(',') for x in results if results[x]]
+
     if carryovers or unusual_results:
         carryovers = carryovers.split(',') if carryovers else []
         carryovers.extend(unusual_results.split(',') if unusual_results else [])
         carryovers = [x.split(' ') for x in carryovers if carryovers]
-    all_courses = [[x] + results[x].split(',') for x in results if results[x]]
-    all_courses.extend(carryovers)
+        all_courses.extend(carryovers)
 
     # check if anything in course_reg is not in results... and vice versa
     course_reg = utils.get_registered_courses(mat_no)
