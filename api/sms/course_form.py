@@ -5,7 +5,7 @@ from weasyprint import HTML
 from sms import course_reg
 from sms.config import app, cache_base_dir
 from sms.users import access_decorator
-
+from sms.pdf_image_converter import pdftoimage
 
 base_dir = os.path.dirname(__file__)
 uniben_logo_path = 'file:///' + os.path.join(base_dir, 'templates', 'static', 'Uniben_logo.png')
@@ -42,13 +42,14 @@ def get(mat_no, session=None, to_print=False):
                                first_sem_carryover_credits=first_sem_carryover_credits,
                                second_sem_carryover_courses=second_sem_carryover_courses,
                                second_sem_carryover_credits=second_sem_carryover_credits)
-        if to_print:
-            file_name = secrets.token_hex(8) + '.pdf'
-            HTML(string=html).write_pdf(os.path.join(cache_base_dir, file_name))
-            resp = send_from_directory(cache_base_dir, file_name, as_attachment=True)
-        else:
-            file_name = secrets.token_hex(8) + '.png'
-            HTML(string=html).write_png(os.path.join(cache_base_dir, file_name))
-            resp = send_from_directory(cache_base_dir, file_name, as_attachment=True)
 
+        file_name = secrets.token_hex(8)
+        HTML(string=html).write_pdf(os.path.join(cache_base_dir, file_name + '.pdf'))
+
+        if to_print:
+            resp = send_from_directory(cache_base_dir, file_name + '.pdf', as_attachment=True)
+        else:
+            img_fmt = 'png'
+            pdftoimage(os.path.join(cache_base_dir, file_name + '.pdf'), fmt=img_fmt)
+            resp = send_from_directory(cache_base_dir, file_name + '.' + img_fmt, as_attachment=True)
         return resp
