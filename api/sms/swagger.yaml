@@ -54,7 +54,7 @@ paths:
   /personal_info:
     get:
       tags: [Personal Information]
-      operationId: sms.personal_info.get
+      operationId: sms.personal_dets.get
       summary: Personal_info query
       description: Gets a student or a group of students bio data
       parameters:
@@ -76,7 +76,7 @@ paths:
 
     post:
       tags: [Personal Information]
-      operationId: sms.personal_info.post
+      operationId: sms.personal_dets.post
       parameters:
         - name: student_data
           in: body

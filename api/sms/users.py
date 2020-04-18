@@ -155,10 +155,10 @@ def log_post(log_data):
 
 ## Function mapping to perms and logs
 fn_props = {
-    "personal_info.get": {"perms": ["read"],
+    "personal_dets.get": {"perms": ["read"],
                           "logs": lambda user, params: "{} requested personal details of {}".format(user, params.get("mat_no"))
                         },
-    "personal_info.post": {"perms": ["write"],
+    "personal_dets.post": {"perms": ["write"],
                            "logs": lambda user, params: "{} set personal details for {}:-\n{}".format(user, params.get("student_data").get("mat_no"), dict_render(params))
                         },
     "course_details.post": {"perms": ["superuser"],
