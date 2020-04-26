@@ -23,7 +23,11 @@ def post(list_of_results):
     for index, result_details in enumerate(list_of_results):
         course_code, session_taken, mat_no, score = result_details
         session_taken, score = map(int, [session_taken, score])
-        grade = utils.compute_grade(mat_no, score)
+        grade = utils.compute_grade(mat_no, score, ignore_404=True)
+        if not grade:
+            error_log.append('{0} at index {1} was not found in the database'.format(mat_no, index))
+            print('\n====>>  ', error_log[-1])
+            continue
         is_unusual = False
         is_first = False
 
