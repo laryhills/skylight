@@ -145,8 +145,10 @@ def result_poll(mat_no, level=None):
     return ans
 
 
-def get_grading_rule(mat_no):
-    db_name = get_DB(mat_no)[:-3]
+def get_grading_rule(mat_no, ignore_404=False):
+    db_name = get_DB(mat_no, ignore_404=ignore_404)
+    if not db_name: return []
+    db_name = db_name[:-3]
     session = load_session(db_name)
     grading_rule = session.GradingRule.query.all()[0].rule
     grading_rule = grading_rule.split(',')
@@ -257,10 +259,11 @@ def get_level_weightings(mod):
     else: return [0, 0, .25, .35, .4]
 
 
-def compute_grade(mat_no, score):
+def compute_grade(mat_no, score, ignore_404=False):
     if score > 100 or score < 0:
         return ''
-    grading_rules = [rule.split(' ') for rule in get_grading_rule(mat_no)]
+    grading_rules = [rule.split(' ') for rule in get_grading_rule(mat_no, ignore_404=ignore_404)]
+    if not grading_rules: return ''
     grading_rules = sorted(grading_rules, key=lambda x: int(x[2]), reverse=True)
     for index in range(len(grading_rules)):
         if score >= int(grading_rules[index][2]):
