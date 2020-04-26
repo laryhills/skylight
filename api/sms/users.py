@@ -101,9 +101,14 @@ def load_session(session):
     return eval('_{}'.format(session))
 
 
-def get_DB(mat_no):
+def get_DB(mat_no, ignore_404=False):
     # Lookup the student's details in the master db
-    student = Master.query.filter_by(mat_no=mat_no).first_or_404()
+    if ignore_404:
+        student = Master.query.filter_by(mat_no=mat_no).first()
+        if not student:
+            return None
+    else:
+        student = Master.query.filter_by(mat_no=mat_no).first_or_404()
     master_schema = MasterSchema()
     db_name = master_schema.dump(student)['database']
     return db_name.replace('-', '_')
