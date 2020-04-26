@@ -1,3 +1,4 @@
+import os.path
 from sms import utils
 from sms import course_details
 from sms import result_statement
@@ -16,8 +17,10 @@ def post(list_of_results):
         ['MEE521', '2019', 'ENG1503886', '98']]
 
         er = [['MEE351', '2019', 'ENG1503886', '98'],['MEE451', '2019', 'ENG1503886', '98'],['EMA481', '2019', 'ENG1503886', '98'],['MEE561', '2019', 'ENG1503886', '98'],['MEE571', '2019', 'ENG1503886', '98'],['MEE521', '2019', 'ENG1503886', '98'],['MEE572', '2019', 'ENG1503886', '98']]
-        """
+    """
 
+    base_dir = os.path.dirname(__file__)
+    result_errors = open(os.path.join(base_dir, 'result_errors.txt'), 'a')
     error_log = []
 
     for index, result_details in enumerate(list_of_results):
@@ -28,6 +31,16 @@ def post(list_of_results):
             error_log.append('{0} at index {1} was not found in the database'.format(mat_no, index))
             print('\n====>>  ', error_log[-1])
             continue
+        if not (0 <= score <= 100):
+            error_text = "Unexpected value for score, '{}', for {} at index {}; " \
+                         "result not added".format(score, mat_no, index)
+            # todo: extend this to include user, datetime, etc.
+            result_errors.writelines(str(result_details) + '  error: ' + error_text + '\n')
+            error_log.append(error_text)
+            print('\n====>>  ', error_log[-1])
+            continue
+
+        grade = utils.compute_grade(mat_no, score)
         is_unusual = False
         is_first = False
 
@@ -176,6 +189,7 @@ def post(list_of_results):
             db.session.commit()
             db.session.close()
 
+    result_errors.close()
     print('\n====>>  ', '{} result entries added with {} errors'.format(len(list_of_results), len(error_log)))
     return error_log
 
@@ -200,12 +214,13 @@ def get(mat_no, acad_session):
     result_level = results.pop('level')
     carryovers = results.pop('carryovers')
     unusual_results = results.pop('unusual_results')
+    all_courses = [[x] + results[x].split(',') for x in results if results[x]]
+
     if carryovers or unusual_results:
         carryovers = carryovers.split(',') if carryovers else []
         carryovers.extend(unusual_results.split(',') if unusual_results else [])
         carryovers = [x.split(' ') for x in carryovers if carryovers]
-    all_courses = [[x] + results[x].split(',') for x in results if results[x]]
-    all_courses.extend(carryovers)
+        all_courses.extend(carryovers)
 
     # check if anything in course_reg is not in results... and vice versa
     course_reg = utils.get_registered_courses(mat_no)

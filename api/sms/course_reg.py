@@ -43,17 +43,15 @@ def get(mat_no, acad_session=None):
     # use last course_reg table to account for temp withdrawals
     # these guys break any computation that relies on sessions
     course_reg = utils.get_registered_courses(mat_no, level=None, true_levels=False)
-    probation_status = None
+    probation_status = 0
     fees_status = None
     others = None
 
     res_poll = utils.result_poll(mat_no)
     previous_categories = [x['category'] for x in res_poll if x and x['category'] and x['session'] < acad_session]
-    previous_category = previous_categories[-1]
+    previous_category = previous_categories[-1] if len(previous_categories) > 0 else ''
     if previous_category == 'C':
         probation_status = 1
-    elif previous_category in 'AB':
-        probation_status = 0
 
     table_to_populate = ''
     index = [ind for ind, x in enumerate(res_poll) if x and x['session'] == acad_session]
@@ -87,19 +85,6 @@ def get(mat_no, acad_session=None):
             get_new_registration = True
 
     if error_text != '':
-        # course_reg_frame = {'personal_info': some_personal_info,
-        #                     'table_to_populate': None,
-        #                     'course_reg_session': current_session,
-        #                     'course_reg_level': None,
-        #                     'level_max_credits': None,
-        #                     'courses': {'first_sem': [],
-        #                                 'second_sem': []},
-        #                     'choices': {'first_sem': [],
-        #                                 'second_sem': []},
-        #                     'probation_status': None,
-        #                     'fees_status': fees_status,
-        #                     'others': others,
-        #                     'error': error_text}
         return error_text, 403
 
     elif get_new_registration:
@@ -215,7 +200,6 @@ def get(mat_no, acad_session=None):
 
 @access_decorator
 def post(course_reg):
-    # The 'session_acad' variable is to enable edits
 
     """ ======= FORMAT =======
         mat_no: 'ENGxxxxxxx'
@@ -281,13 +265,14 @@ def post(course_reg):
     db.session.add(course_registration)
     db.session.commit()
 
+    # Here we check if there were any stray results waiting in unusual results for this session
     session_results = [x for x in utils.result_poll(mat_no) if x and (x['session'] == course_reg_session)]
     if session_results and session_results[0]['unusual_results']:
         unusual_results = session_results[0]['unusual_results'].split(',')
         unusual_results = [[x.split(' ')[0], course_reg_session, mat_no, x.split(' ')[1]] for x in unusual_results]
         results.post(unusual_results)
 
-    print('course registration successful')
+    print('\n====>>  ', 'course registration successful')
     return 'course registration successful'
 
 
