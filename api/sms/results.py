@@ -1,11 +1,9 @@
 import os.path
 from sms import utils
 from sms import course_details
-from sms import result_statement
 from sms.config import db
 from sms.users import access_decorator
 from copy import deepcopy
-from flask import abort
 
 
 @access_decorator
@@ -27,6 +25,8 @@ def post(list_of_results):
         course_code, session_taken, mat_no, score = result_details
         session_taken, score = map(int, [session_taken, score])
         grade = utils.compute_grade(mat_no, score, ignore_404=True)
+
+        # Error check on grade and score
         if not grade:
             error_log.append('{0} at index {1} was not found in the database'.format(mat_no, index))
             print('\n====>>  ', error_log[-1])
@@ -40,8 +40,8 @@ def post(list_of_results):
             print('\n====>>  ', error_log[-1])
             continue
 
-        grade = utils.compute_grade(mat_no, score)
         is_unusual = False
+        previous_entry_grade = ''  # for updating GPA value
         is_first = False
 
         course_reg = utils.get_registered_courses(mat_no, level=None, true_levels=False)
@@ -78,11 +78,14 @@ def post(list_of_results):
                 table_to_populate = 'Result' + str((index + 1) * 100)
                 break
         if not result_record:
+            # selecting Result table for a fresh input (first result entered for the student for the session)
             is_first = True
             if courses_registered: table_to_populate = 'Result' + course_registration['table'][-3:]
             elif res[result_level//100 - 1] == {}: table_to_populate = 'Result' + str(result_level)
             else:
                 table_to_populate = 'Result' + str(100 * ([ind for ind, result in enumerate(res) if not result][0] + 1))
+
+            # preparing the new table
             table_columns = utils.get_attribute_names(eval('session.{}'.format(table_to_populate)))
             result_record = {'mat_no': mat_no, 'session': session_taken, 'level': result_level, 'category': None,
                              'carryovers': '', 'unusual_results': ''}
@@ -90,15 +93,16 @@ def post(list_of_results):
                 if col not in result_record:
                     result_record[col] = None
 
+        # Check if a previous entry for the course exists for session
         if not is_unusual and result_record['unusual_results'] and course_code in result_record['unusual_results']:
-            print('\n====>>  ', 'moving result record from store to result table')
-        elif (course_code in result_record and result_record[course_code]) or (course_code in result_record['carryovers']) or course_code in result_record['unusual_results']:
+            print('\n====>>  ', 'moving result record {} for {} from store to result table'.format(course_code, mat_no))
+        elif (course_code in result_record and result_record[course_code]) or (course_code in result_record['carryovers']) or (course_code in result_record['unusual_results']):
             old = ''
             if course_code in result_record and result_record[course_code]:
-                old = result_record[course_code].split(',')[0]
+                old, previous_entry_grade = result_record[course_code].split(',')
             elif course_code in result_record['carryovers']:
                 carryovers = result_record['carryovers'].split(',')
-                old = [x.split(' ')[1] for x in carryovers if x.split(' ')[0] == course_code][0]
+                old, previous_entry_grade = [x.split(' ')[1:] for x in carryovers if x.split(' ')[0] == course_code][0]
             elif course_code in result_record['unusual_results']:
                 unusual_results = result_record['unusual_results'].split(',')
                 old = [x.split(' ')[1] for x in unusual_results if x.split(' ')[0] == course_code][0]
@@ -143,9 +147,13 @@ def post(list_of_results):
 
             total_credits, credits_passed = 0, 0
             for course in courses_registered:
+                # todo: optimise this by initialising a dictionary outside the main loop... course_code : course_credit
+                #       add every unique course query here
+                #       search this dict first for the course credit
+                #       ...Next release of course
                 credit = course_details.get(course, 0)['course_credit']
-                grade = [x[1] for x in result_courses if x[0] == course]
-                if grade and grade[0] not in ['F', 'ABS']:
+                crs_grade = [x[1] for x in result_courses if x[0] == course]
+                if crs_grade and crs_grade[0] not in ['F', 'ABS']:
                     credits_passed += credit
                 total_credits += credit
             result_record['category'] = utils.compute_category(mat_no, result_level, session_taken, total_credits, credits_passed)
@@ -155,36 +163,33 @@ def post(list_of_results):
         db.session.commit()
 
         if not is_unusual:
-            # todo: credits passed does not make sense unless it's level credits passed
-            stmt = result_statement.get(mat_no, 0)
-            creds = [x[1] for x in stmt['credits']]
-            if len(creds) > 1:
-                test_res = res
-                index_to_remove = [ind for ind, x in enumerate(test_res) if x and x['category'] == 'C' and x['session'] < session_taken]
-                if index_to_remove:
-                    if stmt['mode_of_entry'] == 1 and index_to_remove[0] == 0:
-                        creds[0] += creds.pop(1)
-                    else:
-                        creds.pop(index_to_remove[0])
-            try:
-                gpa_credits = list(zip(utils.compute_gpa(mat_no, ret_json=False), creds))
-            except ValueError as e:
-                print('===>>', e.with_traceback(e.__traceback__))
-                continue
+            gpa_credits = list(zip(*utils.get_gpa_credits(mat_no)))
+            index = result_level // 100 - 1
+            level_gpa = gpa_credits[index][0] if gpa_credits[index][0] else 0
+            level_credits_passed = gpa_credits[index][1] if gpa_credits[index][1] else 0
 
-            [gpa_credits.insert(0, (-99,-99)) for _ in range(stmt['mode_of_entry'] - 1)]
-            gpa_credits = ['{:.5f},{}'.format(x[0], x[1]) for x in gpa_credits]
+            if grade != previous_entry_grade:
+                course_credit = course_details.get(course_code, 0)['course_credit']
+                level_credits = utils.get_credits(mat_no)[index]
+                grading_point_rule = utils.get_grading_point(mat_no)
+                grading_point = int(grading_point_rule[grade])
+                grading_point_old = int(grading_point_rule[previous_entry_grade]) if previous_entry_grade else 0
 
+                level_gpa = level_gpa + ((course_credit * (grading_point - grading_point_old)) / level_credits)
+                level_credits_passed += course_credit
+
+            gpa_credits[index] = (round(level_gpa, 4), level_credits_passed)
             for ind in range(len(gpa_credits)):
-                if gpa_credits[ind].split(',')[1] == '-99': gpa_credits[ind] = None
-            gpas = {'mat_no': mat_no}
-            gpas['level100'] = gpa_credits[0] if len(gpa_credits) >= 1 else None
-            gpas['level200'] = gpa_credits[1] if len(gpa_credits) >= 2 else None
-            gpas['level300'] = gpa_credits[2] if len(gpa_credits) >= 3 else None
-            gpas['level400'] = gpa_credits[3] if len(gpa_credits) >= 4 else None
-            gpas['level500'] = gpa_credits[4] if len(gpa_credits) >= 5 else None
+                if gpa_credits[ind][0]: gpa_credits[ind] = str(gpa_credits[ind][0]), str(gpa_credits[ind][1])
+                else:  gpa_credits[ind] = None, None
+            gpa_credits = {'mat_no': mat_no,
+                           'level100': ','.join(gpa_credits[0]) if gpa_credits[0][0] else None,
+                           'level200': ','.join(gpa_credits[1]) if gpa_credits[1][0] else None,
+                           'level300': ','.join(gpa_credits[2]) if gpa_credits[2][0] else None,
+                           'level400': ','.join(gpa_credits[3]) if gpa_credits[3][0] else None,
+                           'level500': ','.join(gpa_credits[4]) if gpa_credits[4][0] else None}
 
-            gpa_record = session.GPACreditsSchema().load(gpas)
+            gpa_record = session.GPACreditsSchema().load(gpa_credits)
             db.session.add(gpa_record)
             db.session.commit()
             db.session.close()
