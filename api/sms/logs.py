@@ -3,7 +3,8 @@ from sms.models.logs import Logs
 from json import loads
 
 
-@access_decorator
+# todo: implement access controls w/o logging
+# @access_decorator
 def get(limit = 5, offset = 0):
     log_size = Logs.query.count()
     offset = log_size - limit - offset
