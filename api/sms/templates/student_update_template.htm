@@ -400,7 +400,7 @@ style='page-break-before:always'>
 
 
 {% for num in range(1, no_of_pages - 1) %}
-  <div class=WordSection{{ num }}>
+  <div class=WordSection{{ num }} style="page-break-before:always">
     <p class=MsoNormal style='line-height:normal;text-align: right;margin-bottom:0pt;'><i><span
     style='font-size:9.0pt;'>{{ name }}</span></i></p>
 
@@ -613,7 +613,7 @@ style='page-break-before:always'>
 {% endfor %}
 
 
-<div class=WordSection{{ no_of_pages }}>
+<div class=WordSection{{ no_of_pages }} style="page-break-before:always">
 
 <p class=MsoNormal style='line-height:normal;text-align: right;margin-bottom:3pt;'><i><span
 style='font-size:9.0pt;'>{{ name }}</span></i></p>
@@ -839,7 +839,7 @@ style='font-size:9.0pt;'>{{ name }}</span></i></p>
   border-bottom:solid 1.0pt;border-right:solid 1.0pt;
   padding:0in 5.4pt 0in 5.4pt'>
   <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ weighted_gpas|sum|round(0) }}</span></p>
+  text-align:center;line-height:normal'><span style='font-size:9.0pt'>{{ weighted_gpas|sum|round(4) }}</span></p>
   </td>
  </tr>
  <tr>
