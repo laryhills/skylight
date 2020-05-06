@@ -1,16 +1,19 @@
-import os
+import os.path
 import secrets
 from string import capwords
 from flask import render_template, send_from_directory
-from weasyprint import HTML
+import imgkit
+import pdfkit
+
 from sms import result_statement
 from sms.config import app, cache_base_dir
-from sms.utils import get_gpa_credits, get_level_weightings
 from sms.users import access_decorator
+from sms.utils import get_gpa_credits, get_level_weightings
 
 
 base_dir = os.path.dirname(__file__)
 uniben_logo_path = 'file:///' + os.path.join(base_dir, 'templates', 'static', 'Uniben_logo.png')
+
 
 @access_decorator
 def get(mat_no, raw_score=True, to_print=False):
@@ -38,14 +41,25 @@ def get(mat_no, raw_score=True, to_print=False):
                                results=results, credits=credits, gpas=gpas, level_weightings=level_weightings,
                                weighted_gpas=weighted_gpas, enumerate=enumerate, raw_score=raw_score,
                                level_credits=level_credits)
-
     if to_print:
         file_name = secrets.token_hex(8) + '.pdf'
-        HTML(string=html).write_pdf(os.path.join(cache_base_dir, file_name))
+        options = {
+            'page-size': 'A4',
+            #'disable-smart-shrinking': None,
+            'print-media-type': None,
+            'margin-top': '0.6in',
+            'margin-right': '0.5in',
+            'margin-bottom': '0.6in',
+            'margin-left': '0.5in',
+            'minimum-font-size': 15,
+            'encoding': "UTF-8",
+            'no-outline': None}
+        pdfkit.from_string(html, os.path.join(cache_base_dir, file_name), options=options)
         resp = send_from_directory(cache_base_dir, file_name, as_attachment=True)
     else:
         file_name = secrets.token_hex(8) + '.png'
-        HTML(string=html).write_png(os.path.join(cache_base_dir, file_name))
+        options = {'format': 'png', }
+        imgkit.from_string(html, os.path.join(cache_base_dir, file_name), options=options)
         resp = send_from_directory(cache_base_dir, file_name, as_attachment=True)
 
     return resp
