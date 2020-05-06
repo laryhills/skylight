@@ -26,7 +26,7 @@ def get(mat_no, raw_score=True, to_print=False):
     mod = ['PUTME', 'DE(200)', 'DE(300)'][result_stmt['mode_of_entry'] - 1]
     entry_session = result_stmt['entry_session']
     grad_session = result_stmt['grad_session']
-    results = result_stmt['results']
+    results = multisort(result_stmt['results'])
     credits = result_stmt['credits']
     gpas, level_credits = get_gpa_credits(mat_no)
     gpas = list(map(lambda x: x if x else 0, gpas))
@@ -63,3 +63,23 @@ def get(mat_no, raw_score=True, to_print=False):
         resp = send_from_directory(cache_base_dir, file_name, as_attachment=True)
 
     return resp
+
+
+def multisort(results):
+    for session in range(len(results)):
+        semesters = ['first_sem', 'second_sem'] if 'second_sem' in results[session] else ['first_sem']
+        for semester in semesters:
+            fail_indices = [ind for ind, crs in enumerate(results[session][semester]) if crs[5] in ['F', 'ABS']]
+            fails = []
+            if fail_indices:
+                fail_indices = sorted(fail_indices, reverse=True)
+                fails = [results[session][semester].pop(ind) for ind in fail_indices]
+
+            results[session][semester] = sorted(results[session][semester], key=lambda x: x[1])
+            results[session][semester] = sorted(results[session][semester], key=lambda x: x[1][3])
+
+            if fails:
+                fails = sorted(fails, key=lambda x: x[1])
+                fails = sorted(fails, key=lambda x: x[1][3])
+                results[session][semester].extend(fails)
+    return results
