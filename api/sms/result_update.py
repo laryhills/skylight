@@ -10,13 +10,13 @@ from zipfile import ZipFile, ZIP_DEFLATED
 from flask import render_template, send_from_directory
 from sms import result_statement
 from sms.config import app, cache_base_dir
-from sms.utils import get_gpa_credits, get_level_weightings
 from sms.users import access_decorator
 from sms.html_parser import split_html
 
 
 base_dir = os.path.dirname(__file__)
 uniben_logo_path = 'file:///' + os.path.join(base_dir, 'templates', 'static', 'Uniben_logo.png')
+
 
 @access_decorator
 def get(mat_no, raw_score=True, to_print=False):
@@ -29,7 +29,7 @@ def get(mat_no, raw_score=True, to_print=False):
     mod = ['PUTME', 'DE(200)', 'DE(300)'][result_stmt['mode_of_entry'] - 1]
     entry_session = result_stmt['entry_session']
     grad_session = result_stmt['grad_session']
-    results = result_stmt['results']
+    results = multisort(result_stmt['results'])
     credits = result_stmt['credits']
     gpas, level_credits = get_gpa_credits(mat_no)
     gpas = list(map(lambda x: x if x else 0, gpas))
@@ -45,19 +45,9 @@ def get(mat_no, raw_score=True, to_print=False):
                                weighted_gpas=weighted_gpas, enumerate=enumerate, raw_score=raw_score,
                                level_credits=level_credits)
 
-    options = {
-        'page-size': 'A4',
-        'print-media-type': None,
-        'margin-top': '0.5in',
-        'margin-right': '0.5in',
-        'margin-bottom': '0.5in',
-        'margin-left': '0.5in',
-        'minimum-font-size': 15
-    }
-
     def generate_img(args):
         i, page = args
-        img = imgkit.from_string(page, None)
+        img = imgkit.from_string(page, None, options=options)
         arcname = file_name + '_{}.png'.format(i)
         with lock:
             zf.writestr(arcname, data=img)
@@ -67,12 +57,25 @@ def get(mat_no, raw_score=True, to_print=False):
             executor.map(generate_img, enumerate(htmls))
 
     if to_print:
+    	options = {
+            'page-size': 'A4',
+            #'disable-smart-shrinking': None,
+            'print-media-type': None,
+            'margin-top': '0.6in',
+            'margin-right': '0.5in',
+            'margin-bottom': '0.6in',
+            'margin-left': '0.5in',
+            'minimum-font-size': 15,
+            'encoding': "UTF-8",
+            'no-outline': None
+        }
         file_name = secrets.token_hex(8) + '.pdf'
         start_time = time.time()
         pdfkit.from_string(html, os.path.join(cache_base_dir, file_name), options=options)
         print(f'pdf generated in {time.time() - start_time} seconds')
         resp = send_from_directory(cache_base_dir, file_name, as_attachment=True)
     else:
+    	options = {'format': 'png', }
         file_name = secrets.token_hex(8)
         file_path = os.path.join(cache_base_dir, file_name + '.zip')
         start_time = time.time()
@@ -84,3 +87,23 @@ def get(mat_no, raw_score=True, to_print=False):
         resp = send_from_directory(cache_base_dir, file_name + '.zip', as_attachment=True)
 
     return resp
+
+
+def multisort(results):
+    for session in range(len(results)):
+        semesters = ['first_sem', 'second_sem'] if 'second_sem' in results[session] else ['first_sem']
+        for semester in semesters:
+            fail_indices = [ind for ind, crs in enumerate(results[session][semester]) if crs[5] in ['F', 'ABS']]
+            fails = []
+            if fail_indices:
+                fail_indices = sorted(fail_indices, reverse=True)
+                fails = [results[session][semester].pop(ind) for ind in fail_indices]
+
+            results[session][semester] = sorted(results[session][semester], key=lambda x: x[1])
+            results[session][semester] = sorted(results[session][semester], key=lambda x: x[1][3])
+
+            if fails:
+                fails = sorted(fails, key=lambda x: x[1])
+                fails = sorted(fails, key=lambda x: x[1][3])
+                results[session][semester].extend(fails)
+    return results
