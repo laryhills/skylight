@@ -92,14 +92,85 @@ paths:
           description: Session expired, login again
 
   /course_details:
+    get:
+      tags: [Course Details]
+      summary: Course details query
+      description: Gets the details a course by it's code or of all courses by their level
+      operationId: sms.course_details.get_course_details
+      parameters:
+        - in: query
+          name: course_code
+          type: string
+          required: false
+        - in: query
+          name: level
+          type: integer
+          required: false
+        - in: query
+          name: use_curr_session
+          type: boolean
+          required: false
+      responses:
+        200:
+          description: success
+          schema:
+            type: array
+            items: {}
+        404:
+          description: Course not found
     post:
       tags: [Course Details]
+      description: Adds a new course
       operationId: sms.course_details.post
       parameters:
         - in: body
           name: course
+          required: true
           schema:
             $ref: '#/definitions/CourseDetails'
+      responses:
+        200:
+          description: Success
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+    put:
+      tags: [Course Details]
+      summary: Course details update
+      description: Modifies existing courses
+      operationId: sms.course_details.put
+      parameters:
+        - in: body
+          name: data
+          schema:
+            type: array
+            items: {}
+      responses:
+        200:
+          description: Success
+          schema:
+            type: array
+            items:
+              type: string
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+    delete:
+      tags: [Course Details]
+      summary: Course details deletion
+      description: Deletes a course
+      operationId: sms.course_details.delete
+      parameters:
+        - in: query
+          name: course_code
+          type: string
+          required: true
+        - in: query
+          name: course_level
+          type: integer
+          required: true
       responses:
         200:
           description: Success
@@ -143,7 +214,7 @@ paths:
       tags: [Sheets]
       operationId: sms.result_update.get
       produces:
-        - image/png
+        - application/x-zip-compressed
         - application/pdf
       parameters:
         - in: query
@@ -260,6 +331,63 @@ paths:
         440:
           description: Session expired, login again
 
+  /accounts:
+    get:
+      tags: [Accounts]
+      operationId: sms.accounts.get
+      responses:
+        200:
+          description: Success
+          schema:
+            type: array
+            items: {}
+        401:
+          description: Unauthorised
+    post:
+      tags: [Accounts]
+      operationId: sms.accounts.post
+      parameters:
+        - in: body
+          name: data
+          schema:
+            $ref: '#/definitions/Accounts_post'
+      responses:
+        200:
+          description: Account successfully created
+        401:
+          description: Unauthorised
+    put:
+      tags: [Accounts]
+      operationId: sms.accounts.put
+      parameters:
+        - in: body
+          name: data
+          schema:
+            type: object
+            properties:
+              user_id:
+                type: integer
+              password:
+                type: string
+      responses:
+        200:
+          description: Account successfully updated
+        401:
+          description: Unauthorised
+    delete:
+      tags: [Accounts]
+      operationId: sms.accounts.delete
+      parameters:
+        - in: query
+          name: uid
+          type: integer
+          required: true
+      responses:
+        200:
+          description: Account successfully deleted
+        401:
+          description: Unauthorised
+
   /logs:
     get:
       tags: [Logs]
@@ -334,6 +462,12 @@ definitions:
         type: integer
       teaching_dept:
         type: string
+      start_date:
+        type: integer
+      end_date:
+        type: integer
+      options:
+        type: integer
 
   CourseRegistration_get:
     type: object
@@ -457,3 +591,19 @@ definitions:
     items:
       type: array
       items: {}
+
+  Accounts_post:
+    type: object
+    properties:
+      firstname:
+        type: string
+      lastname:
+        type: string
+      email:
+        type: string
+      username:
+        type: string
+      password:
+        type: string
+      title:
+        type: string
