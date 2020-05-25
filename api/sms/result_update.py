@@ -1,12 +1,18 @@
 import os
 import secrets
+import pdfkit
+import imgkit
+import time
+import threading
+import concurrent.futures
 from string import capwords
+from zipfile import ZipFile, ZIP_DEFLATED
 from flask import render_template, send_from_directory
-from weasyprint import HTML
 from sms import result_statement
 from sms.config import app, cache_base_dir
 from sms.utils import get_gpa_credits, get_level_weightings
 from sms.users import access_decorator
+from sms.html_parser import split_html
 
 
 base_dir = os.path.dirname(__file__)
@@ -39,13 +45,42 @@ def get(mat_no, raw_score=True, to_print=False):
                                weighted_gpas=weighted_gpas, enumerate=enumerate, raw_score=raw_score,
                                level_credits=level_credits)
 
+    options = {
+        'page-size': 'A4',
+        'print-media-type': None,
+        'margin-top': '0.5in',
+        'margin-right': '0.5in',
+        'margin-bottom': '0.5in',
+        'margin-left': '0.5in',
+        'minimum-font-size': 15
+    }
+
+    def generate_img(args):
+        i, page = args
+        img = imgkit.from_string(page, None)
+        arcname = file_name + '_{}.png'.format(i)
+        with lock:
+            zf.writestr(arcname, data=img)
+
+    def generate_archive():
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            executor.map(generate_img, enumerate(htmls))
+
     if to_print:
         file_name = secrets.token_hex(8) + '.pdf'
-        HTML(string=html).write_pdf(os.path.join(cache_base_dir, file_name))
+        start_time = time.time()
+        pdfkit.from_string(html, os.path.join(cache_base_dir, file_name), options=options)
+        print(f'pdf generated in {time.time() - start_time} seconds')
         resp = send_from_directory(cache_base_dir, file_name, as_attachment=True)
     else:
-        file_name = secrets.token_hex(8) + '.png'
-        HTML(string=html).write_png(os.path.join(cache_base_dir, file_name))
-        resp = send_from_directory(cache_base_dir, file_name, as_attachment=True)
+        file_name = secrets.token_hex(8)
+        file_path = os.path.join(cache_base_dir, file_name + '.zip')
+        start_time = time.time()
+        htmls = split_html(html)
+        lock = threading.Lock()
+        with ZipFile(file_path, 'w', ZIP_DEFLATED) as zf:
+            generate_archive()
+        print(f'{len(htmls)} images generated and archived in {time.time() - start_time} seconds')
+        resp = send_from_directory(cache_base_dir, file_name + '.zip', as_attachment=True)
 
     return resp
