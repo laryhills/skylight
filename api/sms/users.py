@@ -166,8 +166,20 @@ fn_props = {
     "personal_dets.post": {"perms": ["write"],
                            "logs": lambda user, params: "{} set personal details for {}:-\n{}".format(user, params.get("student_data").get("mat_no"), dict_render(params))
                         },
-    "course_details.post": {"perms": ["superuser"],
+    "course_details.get_by_course_code": {"perms": ["read"],
+                                          "logs": lambda user, params: "{} requested details for {}".format(user, params.get("course_code"))
+                        },
+    "course_details.get_all": {"perms": ["superuser", "read"],
+                               "logs": lambda user, params: "{} requested all {} level courses".format(user, params.get("level"))
+                        },
+    "course_details.post": {"perms": ["superuser", "write"],
                             "logs": lambda user, params: "{} added course {}:-\n{}".format(user, params.get("course_code"), dict_render(params))
+                        },
+    "course_details.put": {"perms": ["superuser", "write"],
+                           "logs": lambda user, params: "{} updated courses:-\n{}".format(user, dict_render(params))
+                        },
+    "course_details.delete": {"perms": ["superuser", "write"],
+                              "logs": lambda user, params: "{} deleted course {}:-\n{}".format(user, params.get("course_code"), dict_render(params))
                         },
     "result_update.get": {"perms": ["read"],
                           "logs": lambda user, params: "{} requested result update for {}".format(user, params.get("mat_no"))
@@ -190,4 +202,16 @@ fn_props = {
     "logs.get": {"perms": ["read", "levels"],
                  "logs": lambda user, params: "{} requested logs".format(user)
                  },
+    "accounts.get": {"perms": ["superuser", "read"],
+                     "logs": lambda user, params: "{} requested all account details".format(user)
+                 },
+    "accounts.post": {"perms": ["superuser", "write"],
+                      "logs": lambda user, params: "{} added a new account {}".format(user, params.get('username'))
+                     },
+    "accounts.put": {"perms": ["superuser", "write"],
+                     "logs": lambda user, params: "{} reset account with id {}".format(user, params.get('user_id'))
+                     },
+    "accounts.delete": {"perms": ["superuser", "write"],
+                        "logs": lambda user, params: "{} deleted an account with id {}".format(user, params.get('uid'))
+                     },
 }
