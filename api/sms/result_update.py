@@ -8,10 +8,12 @@ import concurrent.futures
 from string import capwords
 from zipfile import ZipFile, ZIP_DEFLATED
 from flask import render_template, send_from_directory
+
 from sms import result_statement
 from sms.config import app, cache_base_dir
 from sms.users import access_decorator
 from sms.html_parser import split_html
+from sms.utils import get_gpa_credits, get_level_weightings
 
 
 base_dir = os.path.dirname(__file__)
@@ -57,7 +59,7 @@ def get(mat_no, raw_score=True, to_print=False):
             executor.map(generate_img, enumerate(htmls))
 
     if to_print:
-    	options = {
+        options = {
             'page-size': 'A4',
             #'disable-smart-shrinking': None,
             'print-media-type': None,
@@ -75,7 +77,7 @@ def get(mat_no, raw_score=True, to_print=False):
         print(f'pdf generated in {time.time() - start_time} seconds')
         resp = send_from_directory(cache_base_dir, file_name, as_attachment=True)
     else:
-    	options = {'format': 'png', }
+        options = {'format': 'png', }
         file_name = secrets.token_hex(8)
         file_path = os.path.join(cache_base_dir, file_name + '.zip')
         start_time = time.time()
