@@ -32,7 +32,7 @@ def get_by_course_code(course_code):
 def get_all(level, use_curr_session=True):
     if use_curr_session:
         # curr_session = get_current_session()
-        curr_session = 2018     # Change this when 2019 session data is available
+        curr_session = 2018     #todo: Change this when 2019 session data is available
         model = load_session('{}_{}'.format(curr_session, curr_session + 1))
         course_codes = model.Courses.query.filter_by(mode_of_entry=1).first()
         level_courses = model.CoursesSchema().dump(course_codes)['level' + str(level)]
@@ -64,7 +64,7 @@ def put(data):
         exec('from sms.models.courses import Courses{} as Courses'.format(course_level))
         course_obj = eval('Courses').query.filter_by(course_code=course['course_code']).first()
         if not course_obj:
-            msg = course['course_code'] + 'not found'
+            msg = course['course_code'] + ' not found'
             error_log.append(msg)
             continue
         for k, v in course.items():
