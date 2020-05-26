@@ -14,3 +14,4 @@
 13) Log user login
 14) Search student by name (say surname) and perhaps streamlined to an entry session or some other filter ==> special cases
         --- perhaps by adding surname to master db
+15) Solve the security issue with log.py printing account.post()'s data parameter (this includes new users' password)
