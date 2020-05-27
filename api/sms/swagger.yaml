@@ -214,7 +214,7 @@ paths:
       tags: [Sheets]
       operationId: sms.result_update.get
       produces:
-        - application/x-zip-compressed
+        - application/octet-stream
         - application/pdf
       parameters:
         - in: query
