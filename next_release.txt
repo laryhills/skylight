@@ -15,3 +15,8 @@
 14) Search student by name (say surname) and perhaps streamlined to an entry session or some other filter ==> special cases
         --- perhaps by adding surname to master db
 15) Solve the security issue with log.py printing account.post()'s data parameter (this includes new users' password)
+16) show account title and possibly username in logs, id is too unspecific and changes overtime
+17) Create logout endpoint
+18) End user session after a period of inactivity (or heck activity)
+    --[remember to take into account that logs.get() keeps getting called when the frontend is in main menu]
+19) Periodically clear cache dir
