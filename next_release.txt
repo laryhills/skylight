@@ -20,3 +20,4 @@
 18) End user session after a period of inactivity (or heck activity)
     --[remember to take into account that logs.get() keeps getting called when the frontend is in main menu]
 19) Periodically clear cache dir
+20) Unify the data formats for input and output for /course_reg and /results
