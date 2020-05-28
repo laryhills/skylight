@@ -72,10 +72,10 @@ def post(list_of_results):
         result_record = {}
         table_to_populate = ''
 
-        for index, result in enumerate(res):
+        for idx, result in enumerate(res):
             if result and result['session'] == session_taken:
                 result_record = result
-                table_to_populate = 'Result' + str((index + 1) * 100)
+                table_to_populate = 'Result' + str((idx + 1) * 100)
                 break
         if not result_record:
             # selecting Result table for a fresh input (first result entered for the student for the session)
@@ -245,7 +245,7 @@ def get(mat_no, acad_session):
     all_courses.extend(reg_extras)
     all_courses.extend(res_extras)
     for index in range(len(all_courses)):
-        course_dets = utils.course_details.get(all_courses[index][0], 0)
+        course_dets = course_details.get(all_courses[index][0], 0)
         if len(all_courses[index]) == 5:
             all_courses[index][3] = course_dets['course_semester']
         else:
