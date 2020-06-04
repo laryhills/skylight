@@ -21,3 +21,5 @@
     --[remember to take into account that logs.get() keeps getting called when the frontend is in main menu]
 19) Periodically clear cache dir
 20) Unify the data formats for input and output for /course_reg and /results
+21) Make results.py and course_reg.py logs available to logs.py
+22) Make open_result_edit possible to activate for a single user
