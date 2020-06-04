@@ -23,3 +23,5 @@
 20) Unify the data formats for input and output for /course_reg and /results
 21) Make results.py and course_reg.py logs available to logs.py
 22) Make open_result_edit possible to activate for a single user
+23) Make logs.py able to get log data with filter already applied (filter in backend?)
+        ---Logs only filters already fetched data, this causes some problems,
