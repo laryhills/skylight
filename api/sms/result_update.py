@@ -69,7 +69,8 @@ def get(mat_no, raw_score=True, to_print=False):
             'margin-left': '0.5in',
             'minimum-font-size': 15,
             'encoding': "UTF-8",
-            'no-outline': None
+            'no-outline': None,
+            'dpi': 100,
         }
         file_name = secrets.token_hex(8) + '.pdf'
         start_time = time.time()
