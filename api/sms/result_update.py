@@ -61,13 +61,13 @@ def get(mat_no, raw_score=True, to_print=False):
     if to_print:
         options = {
             'page-size': 'A4',
-            #'disable-smart-shrinking': None,
+            'disable-smart-shrinking': None,
             'print-media-type': None,
             'margin-top': '0.6in',
             'margin-right': '0.5in',
             'margin-bottom': '0.6in',
             'margin-left': '0.5in',
-            'minimum-font-size': 15,
+            #'minimum-font-size': 12,
             'encoding': "UTF-8",
             'no-outline': None,
             'dpi': 100,
