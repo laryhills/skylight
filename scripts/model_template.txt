@@ -26,6 +26,14 @@ class PersonalInfo(db.Model):
     database = db.Column('DATABASE', db.String(12), nullable=False)
 
 
+class SymLink(db.Model):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'SymLink'
+    __table_args__ = {'extend_existing' : True}
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True, unique=True)
+    database = db.Column('DATABASE', db.String(12), nullable=False)
+
+
 class Result100(db.Model):
     __bind_key__ = '##NAME##'
     __tablename__ = 'Result100'
@@ -243,6 +251,7 @@ class GPA_Credits(db.Model):
     level300 = db.Column('LEVEL300', db.Text)
     level400 = db.Column('LEVEL400', db.Text)
     level500 = db.Column('LEVEL500', db.Text)
+    cgpa = db.Column('CGPA', db.Float(precision=4, asdecimal=True))
 
 
 class GradingRule(db.Model):
