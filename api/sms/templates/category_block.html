@@ -1,0 +1,64 @@
+<p class=MsoListParagraphCxSpMiddle style='margin-left:.25in;text-align:justify;
+text-indent:-.25in;line-height:115%;background:white;text-autospace:none'><b><span
+style='font-size:11.0pt;line-height:115%;font-family:"Calibri",sans-serif'>({{ cat.category|lower }})<span
+style='font:7.0pt "Times New Roman"'>&nbsp;&nbsp; </span></span></b><b><span
+style='font-size:11.0pt;line-height:115%;font-family:"Calibri",sans-serif'>{{ cat.description }}</span></b></p>
+
+{% if students|length %}
+<p class=MsoListParagraphCxSpLast style='margin-left:.25in;text-align:justify;
+line-height:115%;background:white'><span style='font-size:11.0pt;line-height:
+115%;font-family:"Calibri",sans-serif'>{{ cat.text }}</span></p>
+
+<p class=MsoNormal style='text-align:justify;line-height:115%;background:white'><span
+style='font-size:11.0pt;line-height:115%;font-family:"Calibri",sans-serif'>&nbsp;</span></p>
+
+<div align=center>
+
+<table class=MsoNormalTable border=1 cellspacing=0 cellpadding=0 width="{{ sizes|sum }}%"
+ style='border-collapse:collapse'>
+ <thead>
+  <tr style='height:.3in'>
+    {% for num in range(sizes|length) %}
+      <td width="{{ sizes[num] }}%" style='border:solid black 1.0pt;padding:0in 5.4pt 0in 5.4pt;
+     height:.3in'>
+        <p class=MsoListParagraphCxSpFirst align=center style='margin-left:0in;
+     text-align:center;line-height:115%'><b><span style='font-size:10.0pt;
+     line-height:115%;font-family:"Calibri",sans-serif'>{{ headers[num] }}</span></b></p>
+      </td>
+    {% endfor %}
+  </tr>
+ </thead>
+ {% for stud_id in range(students|length) %}
+  <tr style='height:20.15pt'>
+    <td width="{{ sizes[0] }}%" style='border:solid black 1.0pt;border-top:none;
+    padding:0in 5.4pt 0in 5.4pt;height:20.15pt'>
+        <p class=MsoNormal align=center style='text-align:center;line-height:115%'><span
+      style='font-size:10.0pt;line-height:115%;font-family:"Calibri",sans-serif;
+      color:black'>{{ stud_id + 1 }}</span></p>
+      </td>
+
+    {% for num in range(1, sizes|length) %}
+      <td width="{{ sizes[num] }}%" style='border:solid black 1.0pt;border-top:none;
+    padding:0in 5.4pt 0in 5.4pt;height:20.15pt'>
+        <p class=MsoNormal align=center style='text-align:center;line-height:115%'><span
+      style='font-size:10.0pt;line-height:115%;font-family:"Calibri",sans-serif;
+      color:black'>{{ students[stud_id][keys[num - 1]] }}</span></p>
+      </td>
+    {% endfor %}
+  </tr>
+ {% endfor %}
+</table>
+
+</div>
+
+<p class=MsoNormal style='text-align:justify;line-height:115%;background:white;
+text-autospace:none'><b><span style='font-size:11.0pt;line-height:115%;
+font-family:"Calibri",sans-serif'>&nbsp;</span></b></p>
+{% else %}
+<p class=MsoNormal style='text-align:justify;line-height:115%;background:white'><span
+style='font-size:11.0pt;line-height:115%;font-family:"Calibri",sans-serif'>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;NIL</span></p>
+{% endif %}
+
+<p class=MsoListParagraphCxSpFirst style='margin-left:.25in;text-align:justify;
+line-height:115%;background:white;text-autospace:none'><b><span
+style='font-size:11.0pt;line-height:115%;font-family:"Calibri",sans-serif'>&nbsp;</span></b></p>
