@@ -21,12 +21,25 @@ get_current_session = config.get_current_session
 
 
 def get_depat(form='long'):
+    """
+    Returns the name of the department as a string either in it's short or long form
+
+    :param form: 'short' or 'long'
+    :return: name of the department
+    """
     if form == 'short':
         return 'MEE'
     return 'MECHANICAL ENGINEERING'
 
 
 def get_credits(mat_no, mode_of_entry=None):
+    """
+    For a given `mat_no` and `mode_of_entry`, it returns a list of all the total credits for each level
+
+    :param mat_no: mat number of student
+    :param mode_of_entry: (Optional) mode of entry of student
+    :return: list of total credits for each level
+    """
     db_name = get_DB(mat_no)[:-3]
     session = load_session(db_name)
     Credits, CreditsSchema = session.Credits, session.CreditsSchema
@@ -46,6 +59,16 @@ def get_maximum_credits_for_course_reg():
 
 
 def get_courses(mat_no, mode_of_entry=None):
+    """
+    Returns a list of all the courses that a student with given `mat_no` is eligible to write/register.
+
+    Each item of the list is a list of all the level courses. Semester courses are separated in lists within
+    a level course list.
+
+    :param mat_no: mat number of student
+    :param mode_of_entry: (Optional) mode of entry of student
+    :return: list of courses
+    """
     db_name = get_DB(mat_no)[:-3]
     session = load_session(db_name)
     Courses, CoursesSchema = session.Courses, session.CoursesSchema
@@ -72,8 +95,17 @@ def get_courses(mat_no, mode_of_entry=None):
     return level_courses
 
 
-def get_carryovers(mat_no, retJSON=True):
-    level = get_level(mat_no)
+def get_carryovers(mat_no, level=None, retJSON=True):
+    """
+    Returns a dictionary or JSON array of the carryovers for a student. Returns a JSON object if retJSON
+    is true else a dictionary
+
+    :param mat_no: mat number of student
+    :param level: (Optional) level of the student
+    :param retJSON: (Optional) if True returns a JSON array
+    :return: Dictionary or JSON array of carryover courses
+    """
+    level = get_level(mat_no) if not level else level
     first_sem, second_sem = set(), set()
     results = loads(result_statement.get(mat_no))["results"]
     for course in get_courses(mat_no)[:int(level/100-1)]:
@@ -133,7 +165,15 @@ def get_carryovers(mat_no, retJSON=True):
 
 
 def result_poll(mat_no, level=None):
-    # Get result for all levels if level=None else for level
+    """
+    Get the results of a student
+
+    Returns the result for all levels if `level` is None else for `level`
+
+    :param mat_no: mat number of student
+    :param level: level of the result
+    :return: List of results
+    """
     db_name = get_DB(mat_no)[:-3]
     session = load_session(db_name)
     ans=[]
