@@ -237,6 +237,31 @@ paths:
         440:
           description: Session expired, login again
 
+  /senate_version:
+    get:
+      tags: [Sheets]
+      operationId: sms.senate_version.get
+      produces:
+        - application/pdf
+      parameters:
+        - in: query
+          name: acad_session
+          type: integer
+          required: true
+        - in: query
+          name: level
+          type: integer
+          required: false
+      responses:
+        200:
+          description: Success
+          schema:
+            type: file
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+
   /course_reg:
     get:
       tags: [Course Registration]
