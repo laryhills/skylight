@@ -22,12 +22,12 @@ def format_options(data):
 
 def create_table_schema():
     p_info_stmt = 'CREATE TABLE PersonalInfo(MATNO TEXT PRIMARY KEY, SURNAME TEXT, OTHERNAMES TEXT, MODE_OF_ENTRY INTEGER, SESSION_ADMIT INTEGER, SESSION_GRADUATED REAL, CURRENT_LEVEL INTEGER, OPTION REAL, SEX TEXT, DATE_OF_BIRTH REAL, STATE_OF_ORIGIN TEXT, LGA_OF_ORIGIN TEXT, PHONE_NO TEXT, EMAIL_ADDRESS TEXT, SPONSOR_PHONE_NO TEXT, SPONSOR_EMAIL_ADDRESS TEXT, GRAD_STATUS INTEGER, PROBATED_TRANSFERRED INTEGER, IS_SYMLINK INTEGER, DATABASE TEXT);'
-    #sym_link_stmt = '''CREATE TABLE SymLink(MATNO TEXT PRIMARY KEY, DATABASE TEXT); '''
+    sym_link_stmt = '''CREATE TABLE SymLink(MATNO TEXT PRIMARY KEY, DATABASE TEXT); '''
     for session in range(start_session, curr_session + 1):
         curr_db = '{}-{}.db'.format(session, session + 1)
         conn = sqlite3.connect(os.path.join(db_base_dir, curr_db))
         conn.execute(p_info_stmt)
-        #conn.execute(sym_link_stmt)
+        conn.execute(sym_link_stmt)
         conn.close()
     print('PersonalInfo and SymLink table created')
 
@@ -48,6 +48,7 @@ def populate_db(conn, session):
     # Symbolic link
         # Regular students
     sym_links_frame = curr_frame[curr_frame.IS_SYMLINK == 1]
+    sym_links_frame = sym_links_frame[sym_links_frame.MODE_OF_ENTRY == 1]
     sym_links_group = sym_links_frame.groupby(by='DATABASE')
     groups = [sym_links_group.get_group(x) for x in sym_links_group.groups]
     for group in groups:
