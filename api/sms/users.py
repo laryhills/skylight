@@ -214,4 +214,7 @@ fn_props = {
     "accounts.delete": {"perms": ["superuser", "write"],
                         "logs": lambda user, params: "{} deleted an account with id {}".format(user, params.get('uid'))
                      },
+    "senate_version.get": {"perms": ["superuser", "write"],
+                           "logs": lambda user, params: "{} requested for the senate version for the {} session".format(user, params.get('acad_session'))
+                     },
 }
