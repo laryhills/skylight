@@ -61,15 +61,16 @@ def get(mat_no, raw_score=True, to_print=False):
     if to_print:
         options = {
             'page-size': 'A4',
-            #'disable-smart-shrinking': None,
+            'disable-smart-shrinking': None,
             'print-media-type': None,
             'margin-top': '0.6in',
             'margin-right': '0.5in',
             'margin-bottom': '0.6in',
             'margin-left': '0.5in',
-            'minimum-font-size': 15,
+            #'minimum-font-size': 12,
             'encoding': "UTF-8",
-            'no-outline': None
+            'no-outline': None,
+            'dpi': 100,
         }
         file_name = secrets.token_hex(8) + '.pdf'
         start_time = time.time()
@@ -77,7 +78,9 @@ def get(mat_no, raw_score=True, to_print=False):
         print(f'pdf generated in {time.time() - start_time} seconds')
         resp = send_from_directory(cache_base_dir, file_name, as_attachment=True)
     else:
-        options = {'format': 'png', }
+        options = {'format': 'png',
+                   # 'quality': 100,
+                   }
         file_name = secrets.token_hex(8)
         file_path = os.path.join(cache_base_dir, file_name + '.zip')
         start_time = time.time()
