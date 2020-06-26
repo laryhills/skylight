@@ -32,16 +32,18 @@ def get_depat(form='long'):
     return 'MECHANICAL ENGINEERING'
 
 
-def get_credits(mat_no, mode_of_entry=None):
+def get_credits(mat_no, mode_of_entry=None, session=None):
     """
     For a given `mat_no` and `mode_of_entry`, it returns a list of all the total credits for each level
 
     :param mat_no: mat number of student
     :param mode_of_entry: (Optional) mode of entry of student
+    :param session:
     :return: list of total credits for each level
     """
-    db_name = get_DB(mat_no)[:-3]
-    session = load_session(db_name)
+    if not session:
+        db_name = get_DB(mat_no)[:-3]
+        session = load_session(db_name)
     Credits, CreditsSchema = session.Credits, session.CreditsSchema
 
     if not mode_of_entry:
@@ -277,9 +279,10 @@ def compute_gpa(mat_no, ret_json=True):
         return gpas
 
 
-def get_gpa_credits(mat_no):
-    db_name = get_DB(mat_no)[:-3]
-    session = load_session(db_name)
+def get_gpa_credits(mat_no, session=None):
+    if not session:
+        db_name = get_DB(mat_no)[:-3]
+        session = load_session(db_name)
     stud = session.GPA_Credits.query.filter_by(mat_no=mat_no).first()
     gpa_credits = stud.level100, stud.level200, stud.level300, stud.level400, stud.level500
     gpas, credits = [], []
