@@ -60,6 +60,7 @@ class Result100(db.Model):
     session = db.Column('SESSION', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
+    tcp = db.Column('TCP', db.Integer)
     unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
@@ -88,6 +89,7 @@ class Result200(db.Model):
     session = db.Column('SESSION', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
+    tcp = db.Column('TCP', db.Integer)
     unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
@@ -119,6 +121,7 @@ class Result300(db.Model):
     session = db.Column('SESSION', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
+    tcp = db.Column('TCP', db.Integer)
     unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
@@ -142,6 +145,7 @@ class Result400(db.Model):
     session = db.Column('SESSION', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
+    tcp = db.Column('TCP', db.Integer)
     unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
@@ -178,6 +182,7 @@ class Result500(db.Model):
     session = db.Column('SESSION', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
+    tcp = db.Column('TCP', db.Integer)
     unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
@@ -190,6 +195,7 @@ class Result600(db.Model):
     session = db.Column('SESSION', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
+    tcp = db.Column('TCP', db.Integer)
     unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
@@ -202,6 +208,7 @@ class Result700(db.Model):
     session = db.Column('SESSION', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
+    tcp = db.Column('TCP', db.Integer)
     unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
@@ -214,6 +221,7 @@ class Result800(db.Model):
     session = db.Column('SESSION', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
+    tcp = db.Column('TCP', db.Integer)
     unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
@@ -261,6 +269,14 @@ class GradingRule(db.Model):
     rule = db.Column('Rule', db.Text, primary_key=True)
 
 
+class DegreeClass(db.Model):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'DegreeClass'
+    __table_args__ = {'extend_existing': True}
+    cls = db.Column('Class', db.Text, primary_key=True)
+    limits = db.Column('Limits', db.Text)
+
+
 class CourseReg100(db.Model):
     __bind_key__ = '##NAME##'
     __tablename__ = 'CourseReg100'
@@ -286,6 +302,7 @@ class CourseReg100(db.Model):
     level = db.Column('LEVEL', db.Integer)
     session = db.Column('SESSION', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
+    tcr = db.Column('TCR', db.Integer)
     fees_status = db.Column('FEES_STATUS', db.Integer)
     probation = db.Column('PROBATION',db.Integer)
     others = db.Column('OTHERS', db.Text)
@@ -316,6 +333,7 @@ class CourseReg200(db.Model):
     session = db.Column('SESSION', db.Integer)
     fees_status = db.Column('FEES_STATUS', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
+    tcr = db.Column('TCR', db.Integer)
     probation = db.Column('PROBATION',db.Integer)
     others = db.Column('OTHERS', db.Text)
 
@@ -348,6 +366,7 @@ class CourseReg300(db.Model):
     session = db.Column('SESSION', db.Integer)
     fees_status = db.Column('FEES_STATUS', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
+    tcr = db.Column('TCR', db.Integer)
     probation = db.Column('PROBATION',db.Integer)
     others = db.Column('OTHERS', db.Text)
 
@@ -372,6 +391,7 @@ class CourseReg400(db.Model):
     session = db.Column('SESSION', db.Integer)
     fees_status = db.Column('FEES_STATUS', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
+    tcr = db.Column('TCR', db.Integer)
     probation = db.Column('PROBATION',db.Integer)
     others = db.Column('OTHERS', db.Text)
 
@@ -409,6 +429,7 @@ class CourseReg500(db.Model):
     session = db.Column('SESSION', db.Integer)
     fees_status = db.Column('FEES_STATUS', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
+    tcr = db.Column('TCR', db.Integer)
     probation = db.Column('PROBATION',db.Integer)
     others = db.Column('OTHERS', db.Text)
 
@@ -422,6 +443,7 @@ class CourseReg600(db.Model):
     session = db.Column('SESSION', db.Integer)
     fees_status = db.Column('FEES_STATUS', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
+    tcr = db.Column('TCR', db.Integer)
     probation = db.Column('PROBATION',db.Integer)
     others = db.Column('OTHERS', db.Text)
 
@@ -435,6 +457,7 @@ class CourseReg700(db.Model):
     session = db.Column('SESSION', db.Integer)
     fees_status = db.Column('FEES_STATUS', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
+    tcr = db.Column('TCR', db.Integer)
     probation = db.Column('PROBATION',db.Integer)
     others = db.Column('OTHERS', db.Text)
 
@@ -448,6 +471,7 @@ class CourseReg800(db.Model):
     session = db.Column('SESSION', db.Integer)
     fees_status = db.Column('FEES_STATUS', db.Integer)
     carryovers = db.Column('CARRYOVERS', db.Text)
+    tcr = db.Column('TCR', db.Integer)
     probation = db.Column('PROBATION',db.Integer)
     others = db.Column('OTHERS', db.Text)
 
