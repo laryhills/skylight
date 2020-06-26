@@ -206,6 +206,7 @@ def get_category(entry_session, level, on_probation, total_credits, total_credit
             if on_probation: return 'E' # Handle condition for transfer
             else: return 'D'
     else:
+        if level == 8: return 'G'
         percent_passed = total_credits_passed / total_credits * 100
         if percent_passed >= 50: return 'B'
         elif percent_passed >= 25 and percent_passed < 50: return 'C'
