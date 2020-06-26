@@ -12,6 +12,18 @@ class Category(db.Model):
     __bind_key__ = 'master'
     __tablename__ = 'Category'
     category = db.Column(db.String(1), primary_key=True)
+    group = db.Column(db.String(40), nullable=False)
+    description = db.Column(db.String(100), nullable=False)
+    text = db.Column(db.String(500))
+    headers = db.Column(db.String(100))
+    sizes = db.Column(db.String(100))
+
+
+class Category500(db.Model):
+    __bind_key__ = 'master'
+    __tablename__ = 'Category500'
+    category = db.Column(db.String(1), primary_key=True)
+    group = db.Column(db.String(40), nullable=False)
     description = db.Column(db.String(100), nullable=False)
     text = db.Column(db.String(500))
     headers = db.Column(db.String(100))
