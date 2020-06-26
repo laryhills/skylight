@@ -13,6 +13,7 @@ Engineering, University of Benin.
     - `scripts/generate_course_reg_&_result.py`
     - `scripts/generate_grading_rule`
     - `scripts/generate_categories`
+    - `scripts/generate_degree_class`
 
 ###### Note:
 1. Current data in the `accounts.db`
