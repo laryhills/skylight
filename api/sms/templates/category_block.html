@@ -42,7 +42,7 @@ style='font-size:11.0pt;line-height:115%;font-family:"Calibri",sans-serif'>&nbsp
     padding:0in 5.4pt 0in 5.4pt;height:20.15pt'>
         <p class=MsoNormal align=center style='text-align:center;line-height:115%'><span
       style='font-size:10.0pt;line-height:115%;font-family:"Calibri",sans-serif;
-      color:black'>{{ students[stud_id][keys[num - 1]] }}</span></p>
+      color:black'>{{ students[stud_id][keys[num - 1]]|safe }}</span></p>
       </td>
     {% endfor %}
   </tr>
