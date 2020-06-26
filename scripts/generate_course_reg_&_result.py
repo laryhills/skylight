@@ -35,8 +35,8 @@ def create_table_schema():
     sessions = range(start_session, curr_session)
     for session in sessions:
         curr_db = '{}-{}.db'.format(session, session + 1)
-        result_stmt = 'CREATE TABLE Result{}(MATNO TEXT PRIMARY KEY, {}, LEVEL INTEGER, SESSION INTEGER, CATEGORY TEXT, UNUSUAL_RESULTS TEXT)'
-        course_reg_stmt = 'CREATE TABLE CourseReg{}(MATNO TEXT PRIMARY KEY, {}, LEVEL INTEGER, SESSION INTEGER, FEES_STATUS INTEGER, PROBATION INTEGER, OTHERS TEXT)'
+        result_stmt = 'CREATE TABLE Result{}(MATNO TEXT PRIMARY KEY, {}, LEVEL INTEGER, SESSION INTEGER, CATEGORY TEXT, TCP INTEGER, UNUSUAL_RESULTS TEXT)'
+        course_reg_stmt = 'CREATE TABLE CourseReg{}(MATNO TEXT PRIMARY KEY, {}, LEVEL INTEGER, SESSION INTEGER, TCR INTEGER, FEES_STATUS INTEGER, PROBATION INTEGER, OTHERS TEXT)'
         conn = sqlite3.connect(os.path.join(db_base_dir, curr_db))
         for result_session in range(session, session + 8):
             if result_session - session > 4:
@@ -191,25 +191,26 @@ def failed_credits(entry_session, level, result_df):
     return total_credits_failed
 
 
-def get_category(conn, entry_session, level, mod, result_df, course_reg_df):
+#def get_category(conn, entry_session, level, mod, result_df, course_reg_df):
+def get_category(entry_session, level, on_probation, total_credits, total_credits_passed):
     #total_credits_failed = failed_credits(entry_session, level, result_df)
-    total_credits = get_total_credits(conn, level, mod, course_reg_df)
-    total_credits_passed = get_passed_credits(entry_session, level, result_df)
+    #total_credits = get_total_credits(conn, level, mod, course_reg_df)
+    #total_credits_passed = get_passed_credits(entry_session, level, result_df)
     if total_credits == total_credits_passed: return 'A'
     if level == 1 and entry_session >= 2014:
         if total_credits_passed >= 36: return 'B'
         elif total_credits_passed >= 23 and total_credits_passed < 36: return 'C'
         else:
-            bool_df = course_reg_df['PROBATION'] == 1
-            if bool_df.all(): return 'E' # Handle condition for transfer
+            # bool_df = on_probation == 1
+            # if bool_df.all(): return 'E'
+            if on_probation: return 'E' # Handle condition for transfer
             else: return 'D'
     else:
         percent_passed = total_credits_passed / total_credits * 100
         if percent_passed >= 50: return 'B'
         elif percent_passed >= 25 and percent_passed < 50: return 'C'
         else:
-            bool_df = course_reg_df['PROBATION'] == 0
-            if bool_df.all(): return 'D'
+            if not on_probation: return 'D'
             else: return 'E'
 
 
@@ -369,7 +370,10 @@ def populate_db(conn, mat_no, entry_session, mod):
         
         course_reg_df['PROBATION'] = on_probation
         num_probation += on_probation
-        student_result['CATEGORY'] = get_category(conn, entry_session, count, mod, student_result, course_reg_df)
+        total_credits_registered = total_registered_credits(count, course_reg_df)
+        total_credits_passed = get_passed_credits(entry_session, count, student_result)
+        # student_result['CATEGORY'] = get_category(conn, entry_session, count, mod, student_result, course_reg_df)
+        student_result['CATEGORY'] = get_category(entry_session, count, on_probation, total_credits_registered, total_credits_passed)
         bool_df = student_result['CATEGORY'] == 'C'
         if bool_df.all() : on_probation = 1
         else: on_probation = 0
@@ -415,6 +419,11 @@ def populate_db(conn, mat_no, entry_session, mod):
         course_reg_dtype['FEES_STATUS'] = 'INTEGER'
         student_result['UNUSUAL_RESULTS'] = ''
         result_dtype['UNUSUAL_RESULTS'] = 'TEXT'
+        
+        course_reg_df['TCR'] = total_credits_registered
+        course_reg_dtype['TCR'] = 'INTEGER'
+        student_result['TCP'] = total_credits_passed
+        result_dtype['TCP'] = 'INTEGER'
         
         if count == len(groups):
             if count - num_probation >= 5 and student_result['CATEGORY'].iloc[0] == 'A':
