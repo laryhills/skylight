@@ -7,14 +7,36 @@ from jinja2 import Template
 from flask import render_template, send_from_directory
 
 from sms.users import access_decorator
-from sms.script import get_students_by_category
-from sms.models.master import Category
+from sms.script import get_students_details_by_category, get_final_year_students_by_category
+from sms.models.master import Category, Category500
 from sms.config import app, cache_base_dir, get_current_session
 from sms.utils import get_depat
 
 base_dir = os.path.dirname(__file__)
 categories = Category.query.all()
-keys = ['mat_no', 'name', 'credits_passed', 'credits_failed', 'outstanding_courses', 'gpa']
+categories_500 = Category500.query.all()
+
+class_mapping = {
+    '1': 'First Class Honours',
+    '2.1': 'Second Class Honours (Upper Division)',
+    '2.2': 'Second Class Honours (Lower Division)',
+    '3': 'Third Class Honours',
+    'pass': 'Pass',
+}
+
+
+def get_groups_dict():
+    groups_dict = dict()
+    for cat_obj in categories_500:
+        if cat_obj.group in ['successful students', 'carryover students', 'prize winners']:
+            if cat_obj.group == 'carryover students':
+                groups_dict['referred students'] = [cat_obj.category, cat_obj.description, cat_obj.text]
+            else:
+                groups_dict[cat_obj.group] = [cat_obj.category, cat_obj.description, cat_obj.text]
+        else:
+            groups_dict[cat_obj.group] = [cat_obj.category, cat_obj.description]
+
+    return groups_dict
 
 
 def load_cat_section(cat, students, session):
@@ -25,6 +47,24 @@ def load_cat_section(cat, students, session):
     headers = cat_obj.headers.split(',')
     no_s = len(students)
     no_sw = num2words(no_s)
+    keys = ['mat_no', 'name', 'credits_passed', 'credits_failed', 'outstanding_courses', 'gpa']
+    with app.app_context():
+        section = render_template('category_block.html', cat=cat_obj, students=students, keys=keys,
+                                  sizes=sizes, headers=headers)
+    section = Template(section).render(no_s=no_s, no_sw=no_sw, session='{}/{}'.format(session, session + 1))
+
+    return section
+
+
+def load_cat_section_500(cat, students, session):
+    for cat_obj in categories_500:
+        if cat_obj.category == cat:
+            break
+    sizes = [int(x) for x in cat_obj.sizes.split(',')]
+    headers = cat_obj.headers.split(',')
+    no_s = len(students)
+    no_sw = num2words(no_s)
+    keys = ['mat_no', 'name', 'remark']
     with app.app_context():
         section = render_template('category_block.html', cat=cat_obj, students=students, keys=keys,
                                   sizes=sizes, headers=headers)
@@ -35,7 +75,7 @@ def load_cat_section(cat, students, session):
 
 def get_100_to_400(acad_session, level=None):
     start_time = time.time()
-    stud_categories = get_students_by_category(level, acad_session, get_all=True)
+    stud_categories = get_students_details_by_category(level, acad_session, get_all=True)
     data = ''
     for cat in stud_categories:
         data += load_cat_section(cat, stud_categories[cat], acad_session)
@@ -53,11 +93,19 @@ def get_100_to_400(acad_session, level=None):
         summary_data.append([cat, cat_obj.description, cat_total])
         cat_totals.append(cat_total)
     cat_total_sum = sum(cat_totals)
-    percent = list(map(lambda x: round(x / cat_total_sum * 100, 1), cat_totals))
+    try:
+        percent = list(map(lambda x: round(x / cat_total_sum * 100, 1), cat_totals))
+    except ZeroDivisionError:
+        percent = [0] * len(cat_totals)
     for idx in range(len(summary_data)):
         summary_data[idx].append(percent[idx])
 
-    best_student = stud_categories['A'][0]
+    for cat in stud_categories.keys():
+        if stud_categories[cat]:
+            best_student = stud_categories[cat][0]
+            break
+    else:
+        best_student = dict()
 
     params = {
         'session': '{}/{}'.format(acad_session, acad_session + 1),
@@ -74,18 +122,85 @@ def get_100_to_400(acad_session, level=None):
     pdfkit.from_string(html, os.path.join(cache_base_dir, file_name))
     print(f'Senate version generated in {time.time() - start_time} seconds')
 
-    return send_from_directory(cache_base_dir, file_name, as_attachment=True)
+    # return send_from_directory(cache_base_dir, file_name, as_attachment=True)
 
 
 def get_500(acad_session):
-    level = 500
-    pass
+    start_time = time.time()
+    all_students = get_final_year_students_by_category(acad_session, get_all=True)
+    groups_dict = get_groups_dict()
+    students_sum, total_students = dict(), 0
+    percent_distribution = dict()
+
+    # Sum of students
+    for group in all_students:
+        if group == 'successful students':
+            students_sum[group] = []
+            for grad_class in all_students['successful students']:
+                studs_sum = len(all_students['successful students'][grad_class])
+                students_sum[group].append(studs_sum)
+                total_students += studs_sum
+        else:
+            students_sum[group] = len(all_students[group])
+            total_students += students_sum[group]
+
+    # Distribution of students by percent
+    if total_students != 0:
+        for group in students_sum:
+            if group == 'successful students':
+                percent_distribution['successful students'] = []
+                for idx in range(len(students_sum['successful students'])):
+                    percent_distribution['successful students'].append(round(students_sum['successful students'][idx] / total_students * 100, 1))
+            else:
+                percent_distribution[group] = round(students_sum[group] / total_students * 100, 1)
+    else:
+        percent_distribution = dict.fromkeys(all_students, 0)
+
+    successful_students = all_students.pop('successful students')
+
+    referred_students = all_students.pop('referred students')
+    prize_winners = all_students.pop('prize winners')
+    data = ''
+    for group in all_students:
+        category = groups_dict[group][0]
+        data += load_cat_section_500(category, all_students[group], acad_session)
+
+    template_dir = os.path.join(base_dir, 'templates', '500_senate_version.htm')
+    with open(template_dir) as fd:
+        template = fd.read()
+
+    total_num_of_successful_students = sum(students_sum['successful students'])
+    total_num_of_referred_students = students_sum['referred students']
+
+    params = {
+        'session': acad_session,
+        'session_2': '{}/{}'.format(acad_session, str(acad_session + 1)[-2:]),
+        'dept': get_depat(),
+        'successful_students': successful_students,
+        'referred_students': referred_students,
+        'prize_winners': prize_winners,
+        'class_mapping': class_mapping,
+        'groups_dict': groups_dict,
+        'total_students': total_students,
+        'students_sum': students_sum,
+        'percent_distribution': percent_distribution
+    }
+
+    template = Template(template.replace('{data}', data))
+    html = template.render(**params).replace('{{ no_s }}', str(total_num_of_successful_students)).replace(
+        '{{ no_sw }}', num2words(total_num_of_successful_students))
+    html = html.replace('{{ no_s }}', str(total_num_of_referred_students)).replace('{{ no_sw }}', num2words(
+        total_num_of_referred_students))
+    file_name = secrets.token_hex(8) + '.pdf'
+    pdfkit.from_string(html, os.path.join(cache_base_dir, file_name))
+    print(f'Senate version generated in {time.time() - start_time} seconds')
 
 
-@access_decorator
+#@access_decorator
 def get(acad_session, level=None):
     if not level:
         level = (get_current_session() - acad_session) * 100
+        level = 500 if level > 500 else level
 
     if level == 500:
         return get_500(acad_session)
