@@ -6,6 +6,7 @@ from sms import course_details
 from sms import users
 from sms import config
 from sms.models.courses import Options, OptionsSchema
+from sms.models.master import Category, Category500
 from sqlalchemy.orm import class_mapper
 import sqlalchemy.orm
 
@@ -333,3 +334,75 @@ def compute_category(mat_no, result_level, session_taken, total_credits, credits
         else:
             if 'C' not in previous_categories: return 'D'
             else: return 'E'
+
+
+def get_category_for_unregistered_students(level):
+    """
+    Retrieves the category for unregistered students
+
+    :param level: level of students
+    :return: category of unregistered students
+    """
+    group = 'unregistered students'
+    if level >= 500:
+        cat_obj = Category500.query.filter_by(group=group).first()
+    else:
+        cat_obj = Category.query.filter_by(group=group).first()
+
+    return cat_obj.category
+
+
+def get_category_for_absent_students(level):
+    """
+    Retrieves the category for students with absent cases
+
+    :param level: level of students
+    :return: category of students with absent cases
+    """
+    if level >= 500:
+        group = 'carryover students'
+        cat_obj = Category500.query.filter_by(group=group).first()
+    else:
+        group = 'absent from examination'
+        cat_obj = Category.query.filter_by(group=group).first()
+
+    return cat_obj.category
+
+
+def get_category(mat_no, level, session=None):
+    """
+    Retrieves the category of a students with mat_no `mat_no` from the database
+
+    :param mat_no: mat_no of student
+    :param level: level of student
+    :param session: (Optional) session module object of student
+    :return: category of student
+    """
+    if not session:
+        db_name = get_DB(mat_no)[:-3]
+        session = load_session(db_name)
+    res_obj = eval('session.Result{}'.format(level))
+    student = res_obj.query.filter_by(mat_no=mat_no).first()
+    if student:
+        category = student.category
+    else:
+        course_reg_obj = eval('session.CourseReg{}'.format(level))
+        registered_courses = bool(course_reg_obj.query.filter_by(mat_no=mat_no).first())
+        # Should probably apply this to the db
+        if registered_courses:
+            category = get_category_for_unregistered_students(level)
+        else:
+            category = get_category_for_absent_students(level)
+
+    return category
+
+
+def get_num_of_prize_winners():
+    """
+    Retrieves the number of prize winners
+
+    :return: number of prize winners
+    """
+    # TODO: Query this from the master db
+    return 1
+
