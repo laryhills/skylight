@@ -36,34 +36,34 @@ def populate_db(conn, session):
     curr_frame.drop_duplicates(subset='MATNO', inplace=True)
     del curr_frame['PASSPORT']
     curr_frame['IS_SYMLINK'], curr_frame['DATABASE'] = 0, ''
-    other = curr_session - (curr_frame.CURRENT_LEVEL / 100)
-    other = other.map(lambda x: '%d-%d.db'%(x, x + 1))
-    curr_frame.IS_SYMLINK.where(curr_frame.CURRENT_LEVEL == ((curr_session - session) * 100), 1, inplace=True)
-    curr_frame.DATABASE.where(curr_frame.IS_SYMLINK == 0, other, inplace=True)
+    # other = curr_session - (curr_frame.CURRENT_LEVEL / 100)
+    # other = other.map(lambda x: '%d-%d.db'%(x, x + 1))
+    # curr_frame.IS_SYMLINK.where(curr_frame.CURRENT_LEVEL == ((curr_session - session) * 100), 1, inplace=True)
+    # curr_frame.DATABASE.where(curr_frame.IS_SYMLINK == 0, other, inplace=True)
     curr_frame.OPTION = curr_frame.OPTION.apply(format_options)
     curr_frame['LGA_OF_ORIGIN'] = ''
     curr_frame.to_sql('PersonalInfo', conn, index=False, if_exists='append')
     conn.commit()
     
-    # Symbolic link
-        # Regular students
-    sym_links_frame = curr_frame[curr_frame.IS_SYMLINK == 1]
-    sym_links_frame = sym_links_frame[sym_links_frame.MODE_OF_ENTRY == 1]
-    sym_links_group = sym_links_frame.groupby(by='DATABASE')
-    groups = [sym_links_group.get_group(x) for x in sym_links_group.groups]
-    for group in groups:
-        new_db = group['DATABASE'].iloc[0]
-        new_conn = sqlite3.connect(os.path.join(db_base_dir, new_db))
-        group['DATABASE'] = curr_db
-        df = group[['MATNO', 'DATABASE']].drop_duplicates(subset='MATNO')
-        df.to_sql('SymLink', new_conn, index=False, if_exists='append')
-    
-        # Direct entry students
-    de_frame = frame[(frame.SESSION_ADMIT == session + 1) & (frame.MODE_OF_ENTRY == 2)]
-    de_frame['DATABASE'] = '{0}-{1}.db'.format(session + 1, session + 2)
-    #de_frame.DATABASE.where(de_frame.CURRENT_LEVEL == ((curr_session + 1 - session) * 100), '{0}-{1}.db'.format(curr_session - (de_frame.CURRENT_LEVEL / 100), curr_session - (int(curr_frame.CURRENT_LEVEL) / 100) + 1), inplace=True)
-    sym_de_frame = de_frame[['MATNO', 'DATABASE']].drop_duplicates(subset='MATNO')
-    sym_de_frame.to_sql('SymLink', conn, index=False, if_exists='append')
+    # # Symbolic link
+    #     # Regular students
+    # sym_links_frame = curr_frame[curr_frame.IS_SYMLINK == 1]
+    # sym_links_frame = sym_links_frame[sym_links_frame.MODE_OF_ENTRY == 1]
+    # sym_links_group = sym_links_frame.groupby(by='DATABASE')
+    # groups = [sym_links_group.get_group(x) for x in sym_links_group.groups]
+    # for group in groups:
+    #     new_db = group['DATABASE'].iloc[0]
+    #     new_conn = sqlite3.connect(os.path.join(db_base_dir, new_db))
+    #     group['DATABASE'] = curr_db
+    #     df = group[['MATNO', 'DATABASE']].drop_duplicates(subset='MATNO')
+    #     df.to_sql('SymLink', new_conn, index=False, if_exists='append')
+    # 
+    #     # Direct entry students
+    # de_frame = frame[(frame.SESSION_ADMIT == session + 1) & (frame.MODE_OF_ENTRY == 2)]
+    # de_frame['DATABASE'] = '{0}-{1}.db'.format(session + 1, session + 2)
+    # #de_frame.DATABASE.where(de_frame.CURRENT_LEVEL == ((curr_session + 1 - session) * 100), '{0}-{1}.db'.format(curr_session - (de_frame.CURRENT_LEVEL / 100), curr_session - (int(curr_frame.CURRENT_LEVEL) / 100) + 1), inplace=True)
+    # sym_de_frame = de_frame[['MATNO', 'DATABASE']].drop_duplicates(subset='MATNO')
+    # sym_de_frame.to_sql('SymLink', conn, index=False, if_exists='append')
     
     master_frame = curr_frame.MATNO.to_frame()
     master_frame['DATABASE'] = curr_db
