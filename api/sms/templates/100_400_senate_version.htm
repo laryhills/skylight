@@ -199,48 +199,57 @@ DEGREE EXAMINATIONS IN {{ session_2 }} SESSION</span></b></p>
 
 <p class=MsoNormal>&nbsp;</p>
 
-<p class=MsoNormal><b><span style='font-family:"Calibri",sans-serif'>BEST
-STUDENT</span></b></p>
+{% if best_students|length <= 1 %}
+  <p class=MsoNormal><b><span style='font-family:"Calibri",sans-serif'>BEST
+  STUDENT</span></b></p>
+{% else %}
+  <p class=MsoNormal><b><span style='font-family:"Calibri",sans-serif'>BEST
+  STUDENTS</span></b></p>
+{% endif %}
 
-<table class=MsoTableGrid border=1 cellspacing=0 cellpadding=0 width="100%"
- style='width:100.0%;border-collapse:collapse;border:none'>
- <tr style='height:.35in'>
-  <td width="17%" style='width:17.22%;border:solid black 1.0pt;padding:0in 5.4pt 0in 5.4pt;
-  height:.35in'>
-  <p class=MsoNormal align=center style='text-align:center'><b><span
-  style='font-family:"Calibri",sans-serif'>MAT. NO</span></b></p>
-  </td>
-  <td width="72%" style='width:72.84%;border:solid black 1.0pt;border-left:
-  none;padding:0in 5.4pt 0in 5.4pt;height:.35in'>
-  <p class=MsoNormal align=center style='text-align:center'><b><span
-  style='font-family:"Calibri",sans-serif'>FULL NAME (Surname last and in block
-  letters)</span></b></p>
-  </td>
-  <td width="9%" style='width:9.94%;border:solid black 1.0pt;border-left:none;
-  padding:0in 5.4pt 0in 5.4pt;height:.35in'>
-  <p class=MsoNormal align=center style='text-align:center'><b><span
-  style='font-family:"Calibri",sans-serif'>GPA</span></b></p>
-  </td>
- </tr>
- <tr style='height:20.15pt'>
-  <td width="17%" style='width:17.22%;border:solid black 1.0pt;border-top:none;
-  padding:0in 5.4pt 0in 5.4pt;height:20.15pt'>
-  <p class=MsoNormal align=center style='margin-left:2.5pt;text-align:center'><span
-  style='font-size:10.0pt;font-family:"Calibri",sans-serif'>{{ best_student['mat_no'] }}</span></p>
-  </td>
-  <td width="72%" style='width:72.84%;border-top:none;border-left:none;
-  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:0in 5.4pt 0in 5.4pt;
-  height:20.15pt'>
-  <p class=MsoNormal><span style='font-size:10.0pt;font-family:"Calibri",sans-serif'>{{ best_student['name'] }}</span></p>
-  </td>
-  <td width="9%" style='width:9.94%;border-top:none;border-left:none;
-  border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:0in 5.4pt 0in 5.4pt;
-  height:20.15pt'>
-  <p class=MsoNormal align=center style='text-align:center'><span
-  style='font-family:"Calibri",sans-serif'>{{ best_student['gpa'] }}</span></p>
-  </td>
- </tr>
-</table>
+{% if best_students %}
+  <table class=MsoTableGrid border=1 cellspacing=0 cellpadding=0 width="100%"
+   style='width:100.0%;border-collapse:collapse;border:none'>
+   <tr style='height:.35in'>
+    <td width="17%" style='width:17.22%;border:solid black 1.0pt;padding:0in 5.4pt 0in 5.4pt;
+    height:.35in'>
+    <p class=MsoNormal align=center style='text-align:center'><b><span
+    style='font-family:"Calibri",sans-serif'>MAT. NO</span></b></p>
+    </td>
+    <td width="72%" style='width:72.84%;border:solid black 1.0pt;border-left:
+    none;padding:0in 5.4pt 0in 5.4pt;height:.35in'>
+    <p class=MsoNormal align=center style='text-align:center'><b><span
+    style='font-family:"Calibri",sans-serif'>FULL NAME (Surname last and in block
+    letters)</span></b></p>
+    </td>
+    <td width="9%" style='width:9.94%;border:solid black 1.0pt;border-left:none;
+    padding:0in 5.4pt 0in 5.4pt;height:.35in'>
+    <p class=MsoNormal align=center style='text-align:center'><b><span
+    style='font-family:"Calibri",sans-serif'>GPA</span></b></p>
+    </td>
+   </tr>
+   {% for best_student in best_students %}
+     <tr style='height:20.15pt'>
+      <td width="17%" style='width:17.22%;border:solid black 1.0pt;border-top:none;
+      padding:0in 5.4pt 0in 5.4pt;height:20.15pt'>
+      <p class=MsoNormal align=center style='margin-left:2.5pt;text-align:center'><span
+      style='font-size:10.0pt;font-family:"Calibri",sans-serif'>{{ best_student['mat_no'] }}</span></p>
+      </td>
+      <td width="72%" style='width:72.84%;border-top:none;border-left:none;
+      border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:0in 5.4pt 0in 5.4pt;
+      height:20.15pt'>
+      <p class=MsoNormal><span style='font-size:10.0pt;font-family:"Calibri",sans-serif'>{{ best_student['name'] }}</span></p>
+      </td>
+      <td width="9%" style='width:9.94%;border-top:none;border-left:none;
+      border-bottom:solid black 1.0pt;border-right:solid black 1.0pt;padding:0in 5.4pt 0in 5.4pt;
+      height:20.15pt'>
+      <p class=MsoNormal align=center style='text-align:center'><span
+      style='font-family:"Calibri",sans-serif'>{{ best_student['gpa'] }}</span></p>
+      </td>
+     </tr>
+   {% endfor %}
+  </table>
+{% endif %}
 
 <p class=MsoNormal><b><span style='font-size:9.0pt;font-family:"Calibri",sans-serif'>&nbsp;</span></b></p>
 
