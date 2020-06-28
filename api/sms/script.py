@@ -2,9 +2,9 @@
     Utility script much like utils.py for handling frequently called or single use simple utility functions
 """
 
-from pprint import pprint
-from sms.utils import load_session, get_carryovers, get_depat, get_credits, get_gpa_credits
+from sms.utils import load_session, get_carryovers, get_depat, get_credits, get_gpa_credits, get_category
 from sms.models.master import Category, Category500
+from sms.models import courses
 
 class_mapping = {
     '1': 'First class honours',
@@ -15,16 +15,35 @@ class_mapping = {
     'fail': 'Fail'
 }
 
-
-def get_total_credits_registered(mat_no, level, session):
-    course_reg_obj = eval('session.CourseReg{}'.format(level))
+course_list = []
 
 
-def total_credits_failed(mat_no, level, session):
-    pass
+def populate_course_list(level):
+    """
+    Populates the global course_list variable with the courses offered by students in `level` level
+
+    :param level: level in which the courses are offered
+    :return: None
+    """
+    global course_list
+    course_list = []
+
+    level = 500 if level > 500 else level
+    course_objs = eval('courses.Courses{}'.format(level)).query.all()
+    for obj in course_objs:
+        course_list.append(obj.course_code)
 
 
 def get_categories(final_year=False):
+    """
+    Retrieves the students categories from the database
+
+    Returns the categories for final year students if `final_year` is
+    True else the categories for non-graduating students
+
+    :param final_year: if true returns the category for final year students
+    :return: list of categories
+    """
     cat_objs = Category500.query.all() if final_year else Category.query.all()
     categories = []
     for obj in cat_objs:
@@ -34,6 +53,11 @@ def get_categories(final_year=False):
 
 
 def get_groups_cats():
+    """
+    Gets the group and category designation of all categories for final year students
+
+    :return: list of tuples of the group and category designation of all categories for final year students
+    """
     groups_cats = []
     for obj in Category500.query.all():
         groups_cats.append((obj.group, obj.category))
@@ -42,6 +66,14 @@ def get_groups_cats():
 
 
 def get_cls_limits(cls, db_name=None, session=None):
+    """
+    Retrieves the lower and upper limit for `cls` graduating class designation
+
+    :param cls: graduating class designation
+    :param db_name: name of the database file of the graduating students
+    :param session: session module of the graduating students
+    :return: list of the lower and upper limits for the `cls` class designation
+    """
     if not session:
         session = load_session(db_name)
     cls_obj = eval('session.DegreeClass')
@@ -49,17 +81,36 @@ def get_cls_limits(cls, db_name=None, session=None):
     return list(map(float, limits.split(',')))
 
 
-def get_session_carryover_courses(mat_no, level, session):
-    carryovers_credits = eval('session.Result{}'.format(level)).query.filter_by(mat_no=mat_no).first().carryovers
+def get_session_failed_courses(mat_no, level, session):
+    """
+    Retrieves the failed courses that a student with mat_no `mat_no` offered
+    in `level` level
+
+    :param mat_no: mat_no of student
+    :param level: level of student
+    :param session: session module object of student
+    :return: list of failed courses
+    """
+    failed_courses = []
+    res_obj = eval('session.Result{}'.format(level)).query.filter_by(mat_no=mat_no).first()
+    if level <= 500:
+        for course_code in course_list:
+            score_grade = getattr(res_obj, course_code)
+            if not score_grade:
+                continue
+            grade = score_grade.split(',')[1]
+            if grade == 'F':
+                failed_courses.append(course_code)
+
+    carryovers_credits = res_obj.carryovers
     carryovers_credits = carryovers_credits.split(',') if carryovers_credits else ['']
-    carryovers = []
     if carryovers_credits[0]:
         for course_credits_grade in carryovers_credits:
             course, credit, grade = course_credits_grade.split()
             if grade == "F":
-                carryovers.append(course)
+                failed_courses.append(course)
 
-    return carryovers
+    return failed_courses
 
 
 def get_student_details_for_cat(mat_no, level, session):
@@ -68,56 +119,97 @@ def get_student_details_for_cat(mat_no, level, session):
 
     :param mat_no: mat number of student
     :param level:  level of student
-    :param session: session model for student
+    :param session: session module object for student
     :return: dict containing the student details
     """
     student = session.PersonalInfo.query.filter_by(mat_no=mat_no).first()
-    mod = student.mode_of_entry
-    total_credits = getattr(session.Credits.query.filter_by(mode_of_entry=mod).first(), 'level{}'.format(level))
-    gpa_credits = session.GPA_Credits.query.filter_by(mat_no=mat_no).first()
-    if gpa_credits:
-        gpa, credits_passed = getattr(gpa_credits, 'level{}'.format(level)).strip().split(',')
-        gpa, credits_passed = float(gpa), int(credits_passed)
-    else:
-        gpa, credits_passed = None, 0
-    credits_failed = total_credits - credits_passed
+
     name = student.othernames + ' ' + '<b>{}</b>'.format(student.surname)
     name += ' (Miss)' if student.sex == 'F' else ''
-    # carryovers_dict = get_carryovers(mat_no, level=level, retJSON=False)
-    # carryovers_credits = carryovers_dict['first_sem'] + carryovers_dict['second_sem']
-    # carryovers = list(map(lambda x: x[0], carryovers_credits))
-    carryovers = get_session_carryover_courses(mat_no, level, session)
+
+    course_reg_model = eval('session.CourseReg{}'.format(level))
+    res_model = eval('session.Result{}'.format(level))
+    course_reg_obj = course_reg_model.query.filter_by(mat_no=mat_no).first()
+    res_obj = res_model.query.filter_by(mat_no=mat_no).first()
+    if res_obj:
+        total_credits = getattr(course_reg_obj, 'tcr', 0)
+        credits_passed = getattr(res_obj, 'tcp', 0)
+
+        gpa_credits = session.GPA_Credits.query.filter_by(mat_no=mat_no).first()
+        if gpa_credits:
+            gpa = getattr(gpa_credits, 'level{}'.format(level)).split(',')[0]
+            gpa = float(gpa)
+        else:
+            gpa = 0
+
+        credits_failed = total_credits - credits_passed
+        # carryovers_dict = get_carryovers(mat_no, level=level, retJSON=False)
+        # carryovers_credits = carryovers_dict['first_sem'] + carryovers_dict['second_sem']
+        # carryovers = list(map(lambda x: x[0], carryovers_credits))
+        outstanding_courses = get_session_failed_courses(mat_no, level, session)
+
+        details = {
+            'mat_no': student.mat_no,
+            'name': name,
+            'credits_passed': credits_passed,
+            'credits_failed': credits_failed,
+            'outstanding_courses': '  '.join(outstanding_courses),
+            'gpa': gpa
+        }
+    else:
+        # Unregistered and absent students
+        details = {
+            'mat_no': student.mat_no,
+            'name': name,
+            'credits_passed': ''
+        }
+
+    return details
+
+
+def get_student_details_for_cls(mat_no, session):
+    """
+    Gets the details of a student with mat_no `mat_no` as required by the successful students
+    section of the 500 level senate version
+
+    :param mat_no: mat number of student
+    :param session: session module object for student
+    :return: dict containing the student details
+    """
+    student = session.PersonalInfo.query.filter_by(mat_no=mat_no).first()
+    name = student.othernames + ' ' + '<b>{}</b>'.format(student.surname)
+    name += ' (Miss)' if student.sex == 'F' else ''
+
+    gpa_credits = session.GPA_Credits.query.filter_by(mat_no=mat_no).first()
+    if gpa_credits:
+        gpa = gpa_credits.level500.split(',')[0]
+        gpa = float(gpa)
+    else:
+        gpa = 0
+
     details = {
-        'mat_no': student.mat_no,
+        'mat_no': mat_no,
         'name': name,
-        'credits_passed': credits_passed,
-        'credits_failed': credits_failed,
-        'outstanding_courses': '  '.join(carryovers),
+        'subject_area': get_depat().capitalize(),
         'gpa': gpa
     }
 
     return details
 
 
-def get_student_details_for_cls(mat_no, session):
-    student = session.PersonalInfo.query.filter_by(mat_no=mat_no).first()
-    name = student.othernames + ' ' + '<b>{}</b>'.format(student.surname)
-    name += ' (Miss)' if student.sex == 'F' else ''
-
-    details = {
-        'mat_no': mat_no,
-        'name': name,
-        'subject_area': get_depat().capitalize()
-    }
-
-    return details
-
-
 def get_details_for_ref_students(mat_no, session):
+    """
+    Gets the details of a student with mat_no `mat_no` as required by the referred students
+    section of the 500 level senate version
+
+    :param mat_no: mat number of student
+    :param session: session module object for student
+    :return: dict containing the student details
+    """
     student = session.PersonalInfo.query.filter_by(mat_no=mat_no).first()
     name = student.othernames + ' ' + '<b>{}</b>'.format(student.surname)
     name += ' (Miss)' if student.sex == 'F' else ''
-    session_carryover_courses = get_session_carryover_courses(mat_no, 500, session)
+    session_failed_courses = get_session_failed_courses(mat_no, 500, session)
     credits_passed_list = get_gpa_credits(mat_no, session)[1]
     total_credits_passed = sum(filter(lambda x: x, credits_passed_list))
     total_credits = sum(get_credits(mat_no, session=session))
@@ -132,13 +224,13 @@ def get_details_for_ref_students(mat_no, session):
     # overall_carryover_courses = list(map(lambda x: x[0], carryovers_credits))
     # outstanding_courses = []
     # for course_code in overall_carryover_courses:
-    #     if course_code not in session_carryover_courses:
+    #     if course_code not in session_failed_courses:
     #         outstanding_courses.append(course_code)
 
     details = {
         'mat_no': mat_no,
         'name': name,
-        'session_carryover_courses': '  '.join(session_carryover_courses),
+        'session_carryover_courses': '  '.join(session_failed_courses),
         'cum_credits_to_date': total_credits_passed,
         'outstanding_credits': total_credits - total_credits_passed,
         'outstanding_courses': '' # ' '.join(outstanding_courses)
@@ -148,6 +240,14 @@ def get_details_for_ref_students(mat_no, session):
 
 
 def get_other_students_details(mat_no, session, group):
+    """
+    Gets the details of a student with mat_no `mat_no` as required by sections other
+    than the successful and referred students section of the 500 level senate version
+
+    :param mat_no: mat number of student
+    :param session: session module object for student
+    :return: dict containing the student details
+    """
     student = session.PersonalInfo.query.filter_by(mat_no=mat_no).first()
     name = student.othernames + ' ' + '<b>{}</b>'.format(student.surname)
     name += ' (Miss)' if student.sex == 'F' else ''
@@ -199,16 +299,23 @@ def get_students_by_level(acad_session, retDB=False):
 
 
 def filter_students_by_category(level, category, db_name, students):
+    """
+    Strips and returns students with category `category` from a list of students
+
+    :param level: level of the students
+    :param category: category to match students against
+    :param db_name: name of the database file of the students
+    :param students: list of students
+    :return: list of students with ctagory `category`
+    """
     session = load_session(db_name)
-    resObj = eval('session.Result{}'.format(level))
-    studs, unreg_studs = [], []
+    res_obj = eval('session.Result{}'.format(level))
+    studs = []
     for mat_no in students:
-        stud = resObj.query.filter_by(mat_no=mat_no).first()
+        stud = res_obj.query.filter_by(mat_no=mat_no).first()
         if stud:
             if stud.category == category:
                 studs.append(mat_no)
-        else:
-            unreg_studs.append(mat_no)
 
     return studs
 
@@ -227,18 +334,22 @@ def get_students_by_category(level, acad_session, category=None, get_all=False):
     """
     mat_no_dict = get_students_by_level(acad_session, retDB=True)
     if get_all:
-        students = dict.fromkeys(mat_no_dict, {})
+        students = dict.fromkeys(mat_no_dict)
         categories = get_categories(final_year=(level == 500))
-        for category in categories:
-            for db_name in mat_no_dict.keys():
-                filtered_studs = filter_students_by_category(level, category, db_name, mat_no_dict[db_name])
-                if students[db_name]:
-                    students[db_name][category] = filtered_studs
+
+        cat_dict = dict(zip(categories, [[]] * len(categories)))
+        for db_name in mat_no_dict:
+            students[db_name] = cat_dict.copy()
+            session = load_session(db_name)
+            for mat_no in mat_no_dict[db_name]:
+                cat = get_category(mat_no, level, session=session)
+                if students[db_name].get(cat):
+                    students[db_name][cat].append(mat_no)
                 else:
-                    students[db_name] = {category: filtered_studs}
+                    students[db_name][cat] = [mat_no]
     else:
         students = dict.fromkeys(mat_no_dict)
-        for db_name in mat_no_dict.keys():
+        for db_name in mat_no_dict:
             filtered_studs = filter_students_by_category(level, category, db_name, mat_no_dict[db_name])
             students[db_name] = filtered_studs
 
@@ -246,6 +357,21 @@ def get_students_by_category(level, acad_session, category=None, get_all=False):
 
 
 def get_students_details_by_category(level, acad_session, category=None, get_all=False):
+    """
+    Gets the details for students in `level` level as required by the senate version for
+    non-graduating students
+
+    If `get_all` is supplied, `category` is ignored
+
+    :param level: level of students
+    :param acad_session: entry session of students
+    :param category: (Optional) category to fetch
+    :param get_all: (Optional) if true return the details of all categories of students
+    :return: list of dicts of the details students with all categories if `get_all` is true else
+             list of dicts of the details students with `category` category
+    """
+    populate_course_list(level)
+
     students = get_students_by_category(level, acad_session, category=category, get_all=get_all)
     categories = get_categories()
     if get_all:
@@ -268,16 +394,20 @@ def get_students_details_by_category(level, acad_session, category=None, get_all
     return students_details
 
 
-def split_students_by_category(category_students):
-    # TODO Create class for the categories
+def group_students_by_category(students):
+    """
+    Groups the dict of students by their categories
 
+    :param students: dictionary of students as returned by the `get_students_by_category` function
+    :return: dict of students grouped by their category grouping
+    """
     category_mapping = dict(get_groups_cats())
     groups = category_mapping.keys()
     all_students = dict.fromkeys(groups, {})
 
-    for db_name in category_students:
+    for db_name in students:
         for group in groups:
-            studs = category_students[db_name][category_mapping[group]]
+            studs = students[db_name][category_mapping[group]]
             if all_students.get(group):
                 all_students[group][db_name] = studs
             else:
@@ -286,7 +416,16 @@ def split_students_by_category(category_students):
     return all_students
 
 
-def filter_students_by_degree_class(level, degree_class, db_name, students):
+def filter_students_by_degree_class(degree_class, db_name, students):
+    """
+    Strips and returns the details of students with `degree_class` graduating class
+    designation from the list of students
+
+    :param degree_class: graduating class designation
+    :param db_name: name of the database file of the graduating students
+    :param students: list of graduating students
+    :return: list of dicts of graduating students
+    """
     session = load_session(db_name)
     limits = get_cls_limits(degree_class, session=session)
     cgpa_obj = eval('session.GPA_Credits')
@@ -297,13 +436,28 @@ def filter_students_by_degree_class(level, degree_class, db_name, students):
             details = get_student_details_for_cls(stud, session)
             details['cgpa'] = cgpa
             studs.append(details)
+            students.remove(stud)
 
     return studs
 
 
 def get_final_year_students_by_category(acad_session, category=None, get_all=False):
+    """
+    Gets the details for students in `level` level as required by the senate version for
+    graduating students
+
+    If `get_all` is supplied, `category` is ignored
+
+    :param acad_session: entry session of students
+    :param category: (Optional) category to fetch
+    :param get_all: (Optional) if true return the details of all categories of students
+    :return: list of dicts of the details students with all categories if `get_all` is true else
+             list of dicts of the details students with `category` category
+    """
+    populate_course_list(500)
+
     students_categories = get_students_by_category(500, acad_session, category=category, get_all=get_all)
-    all_students_by_category = split_students_by_category(students_categories)
+    all_students_by_category = group_students_by_category(students_categories)
     if get_all:
         all_students = {}
 
@@ -314,7 +468,7 @@ def get_final_year_students_by_category(acad_session, category=None, get_all=Fal
         for degree_class in classes:
             studs = []
             for db_name in successful_students:
-                studs.extend(filter_students_by_degree_class(500, degree_class, db_name, successful_students[db_name]))
+                studs.extend(filter_students_by_degree_class(degree_class, db_name, successful_students[db_name]))
             students[degree_class] = studs
         all_students['successful students'] = students
 
@@ -344,7 +498,7 @@ def get_final_year_students_by_category(acad_session, category=None, get_all=Fal
     #     classes = class_mapping.keys()
     #     if group == 'successful students':
     #         for db_name in students_with_category.keys():
-    #             studs = filter_students_by_degree_class(500, degree_class, db_name, students_with_category[db_name])
+    #             studs = filter_students_by_degree_class(degree_class, db_name, students_with_category[db_name])
     #             students.extend(studs)
     #     else:
     #         pass
