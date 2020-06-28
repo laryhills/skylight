@@ -10,7 +10,7 @@ from sms.users import access_decorator
 from sms.script import get_students_details_by_category, get_final_year_students_by_category
 from sms.models.master import Category, Category500
 from sms.config import app, cache_base_dir, get_current_session
-from sms.utils import get_depat
+from sms.utils import get_depat, get_num_of_prize_winners
 
 base_dir = os.path.dirname(__file__)
 categories = Category.query.all()
@@ -100,12 +100,23 @@ def get_100_to_400(acad_session, level=None):
     for idx in range(len(summary_data)):
         summary_data[idx].append(percent[idx])
 
-    for cat in stud_categories.keys():
+    lookup_order = ['successful students', 'carryover students', 'probating students']
+    for group in lookup_order:
+        for cat_obj in categories:
+            if cat_obj.group == group: break
+        cat = cat_obj.category
         if stud_categories[cat]:
-            best_student = stud_categories[cat][0]
+            best_students, gpa = [], 0
+            for stud_dets in stud_categories[cat]:
+                stud_gpa = stud_dets['gpa']
+                if stud_gpa > gpa:
+                    gpa = stud_gpa
+                    best_students = [stud_dets]
+                elif stud_gpa == gpa:
+                    best_students.append(stud_dets)
             break
     else:
-        best_student = dict()
+        best_students = []
 
     params = {
         'session': '{}/{}'.format(acad_session, acad_session + 1),
@@ -114,7 +125,7 @@ def get_100_to_400(acad_session, level=None):
         'level': level,
         'summary_data': summary_data,
         'cat_total_sum': cat_total_sum,
-        'best_student': best_student
+        'best_students': best_students
     }
     template = Template(template.replace('{data}', data))
     html = template.render(**params)
@@ -122,7 +133,7 @@ def get_100_to_400(acad_session, level=None):
     pdfkit.from_string(html, os.path.join(cache_base_dir, file_name))
     print(f'Senate version generated in {time.time() - start_time} seconds')
 
-    # return send_from_directory(cache_base_dir, file_name, as_attachment=True)
+    return send_from_directory(cache_base_dir, file_name, as_attachment=True)
 
 
 def get_500(acad_session):
@@ -172,6 +183,45 @@ def get_500(acad_session):
     total_num_of_successful_students = sum(students_sum['successful students'])
     total_num_of_referred_students = students_sum['referred students']
 
+    # Best student & prize winners
+    best_students = []
+    num_of_prize_winners = get_num_of_prize_winners()
+    prize_winners = [''] * num_of_prize_winners
+    for key in class_mapping:
+        if successful_students[key]:
+            gpa = 0
+            cgpas = [0] * num_of_prize_winners
+            for student in successful_students[key]:
+                if student['gpa'] > gpa:
+                    best_students = [student]
+                    gpa = student['gpa']
+                elif student['gpa'] == gpa:
+                    best_students.append(student)
+
+                min_cgpa = min(cgpas)
+                idx = cgpas.index(idx)
+                if student['cgpa'] > min_cgpa:
+                    cgpas[idx] = student['cgpa']
+                    prize_winners[idx] = student
+                elif student['cgpa'] == min_cgpa:
+                    # find a way to resolve ties
+                    pass
+            break
+    keys = list(class_mapping.keys())
+    if not all(prize_winners) and keys[-1] != key:
+        # Continue looping through successful_students
+        idx = keys.index(key)
+        for i in range(idx + 1, len(keys)):
+            for student in successful_students[keys[i]]:
+                min_cgpa = min(cgpas)
+                idx = cgpas.index(idx)
+                if student['cgpa'] > min_cgpa:
+                    cgpas[idx] = student['cgpa']
+                    prize_winners[idx] = student
+                elif student['cgpa'] == min_cgpa:
+                    # find a way to resolve ties
+                    pass
+
     params = {
         'session': acad_session,
         'session_2': '{}/{}'.format(acad_session, str(acad_session + 1)[-2:]),
@@ -183,7 +233,8 @@ def get_500(acad_session):
         'groups_dict': groups_dict,
         'total_students': total_students,
         'students_sum': students_sum,
-        'percent_distribution': percent_distribution
+        'percent_distribution': percent_distribution,
+        'best_students': best_students
     }
 
     template = Template(template.replace('{data}', data))
@@ -194,6 +245,8 @@ def get_500(acad_session):
     file_name = secrets.token_hex(8) + '.pdf'
     pdfkit.from_string(html, os.path.join(cache_base_dir, file_name))
     print(f'Senate version generated in {time.time() - start_time} seconds')
+
+    return send_from_directory(cache_base_dir, file_name, as_attachment=True)
 
 
 #@access_decorator
