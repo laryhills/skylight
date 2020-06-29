@@ -2,6 +2,7 @@
     Utility script much like utils.py for handling frequently called or single use simple utility functions
 """
 
+from sms.users import get_level
 from sms.utils import load_session, get_carryovers, get_depat, get_credits, get_gpa_credits, get_category
 from sms.models.master import Category, Category500
 from sms.models import courses
@@ -209,7 +210,8 @@ def get_details_for_ref_students(mat_no, session):
     student = session.PersonalInfo.query.filter_by(mat_no=mat_no).first()
     name = student.othernames + ' ' + '<b>{}</b>'.format(student.surname)
     name += ' (Miss)' if student.sex == 'F' else ''
-    session_failed_courses = get_session_failed_courses(mat_no, 500, session)
+    level = get_level(mat_no, session=session)
+    session_failed_courses = get_session_failed_courses(mat_no, level, session)
     credits_passed_list = get_gpa_credits(mat_no, session)[1]
     total_credits_passed = sum(filter(lambda x: x, credits_passed_list))
     total_credits = sum(get_credits(mat_no, session=session))
@@ -342,6 +344,7 @@ def get_students_by_category(level, acad_session, category=None, get_all=False):
             students[db_name] = cat_dict.copy()
             session = load_session(db_name)
             for mat_no in mat_no_dict[db_name]:
+                level = level if level != 500 else get_level(mat_no, session=session)  # Accounts for spillover students
                 cat = get_category(mat_no, level, session=session)
                 if students[db_name].get(cat):
                     students[db_name][cat].append(mat_no)
