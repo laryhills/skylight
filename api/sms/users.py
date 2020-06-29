@@ -114,14 +114,28 @@ def get_DB(mat_no, ignore_404=False):
     return db_name.replace('-', '_')
 
 
-def get_level(mat_no):
+def get_level(mat_no, session=None):
     # 600-800 - is spill, 100-500 spill not inc, grad_status - graduated
     # if next = True, return next level else current level
-    db_name = get_DB(mat_no)[:-3]
-    session = load_session(db_name)
+    if not session:
+        db_name = get_DB(mat_no)[:-3]
+        session = load_session(db_name)
     PersonalInfo = session.PersonalInfo
     student_data = PersonalInfo.query.filter_by(mat_no=mat_no).first_or_404()
-    return student_data.current_level
+    current_level = student_data.current_level
+    if current_level == 500:
+        if student_data.is_symlink and student_data.grad_stats == 0:
+            # Spillover students
+            for level in [800, 700, 600]:
+                course_reg_obj = eval('session.CourseReg{}'.format(level)).query.filter_by(mat_no=mat_no).first()
+                if course_reg_obj:
+                    current_level = course_reg_obj.level
+                    break
+            else:
+                # Just a backup
+                affiliated_session = int(student_data.database.split('-')[0])
+                current_level += (affiliated_session - student_data.session_admitted) * 100
+    return current_level
 
 ## USER-specific functions
 
