@@ -487,6 +487,12 @@ def populate_db(conn, mat_no, entry_session, mod):
                 else:
                     is_symlink = 0
                     database = ''
+            if mod > 1:
+                is_symlink = 1
+                if not database:
+                    new_session = entry_session - (mod - 1)
+                    database = '{}-{}.db'.format(new_session, new_session + 1)
+
             stat = (session_grad, current_level, grad_stat, is_symlink, database)
             set_student_stat(conn, mat_no, entry_session, stat)
         
