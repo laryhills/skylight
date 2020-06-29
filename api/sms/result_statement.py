@@ -13,6 +13,7 @@ def get(mat_no, retJSON=True):
     
     results = utils.result_poll(mat_no)
     finalResults = []
+    tcps = []   # This may be useful
     
     for lvl in range(8):
         result = results[lvl]
@@ -22,6 +23,7 @@ def get(mat_no, retJSON=True):
             level = result.pop('level')
             category = result.pop('category')
             result.pop('unusual_results')
+            tcps.append(result.pop('tcp'))
             # if lvl:
             carryovers = result.pop('carryovers')
             if carryovers:
