@@ -118,9 +118,10 @@ def get_100_to_400(acad_session, level=None):
     else:
         best_students = []
 
+    session = acad_session + int(level / 100)
     params = {
-        'session': '{}/{}'.format(acad_session, acad_session + 1),
-        'session_2': '{}/{}'.format(acad_session, str(acad_session + 1)[-2:]),
+        'session': '{}/{}'.format(session, session + 1),
+        'session_2': '{}/{}'.format(session, str(session + 1)[-2:]),
         'dept': get_depat(),
         'level': level,
         'summary_data': summary_data,
