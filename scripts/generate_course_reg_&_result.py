@@ -482,7 +482,7 @@ def populate_db(conn, mat_no, entry_session, mod):
                         # entry_session = exam_session - int(exam_level / 100) + 1
                         new_session = exam_session - int(exam_level / 100) + 2
                     else:
-                        new_session = entry_session + num_probation
+                        new_session = entry_session + num_probation + 1
                     database = '{}-{}.db'.format(new_session, new_session + 1)
                 else:
                     is_symlink = 0
