@@ -476,13 +476,15 @@ def populate_db(conn, mat_no, entry_session, mod):
                 # 100 to 400 students
                 current_level = exam_level + 100 if category in ['A', 'B'] else exam_level
                 grad_stat = 0
-                if on_probation:
+                if on_probation or num_probation:
                     is_symlink = 1
                     if gap_in_sessions:
                         # entry_session = exam_session - int(exam_level / 100) + 1
                         new_session = exam_session - int(exam_level / 100) + 2
                     else:
                         new_session = entry_session + num_probation + 1
+                    if num_probation:
+                        new_session -= num_probation
                     database = '{}-{}.db'.format(new_session, new_session + 1)
                 else:
                     is_symlink = 0
