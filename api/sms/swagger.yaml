@@ -620,15 +620,15 @@ definitions:
   Accounts_post:
     type: object
     properties:
-      firstname:
-        type: string
-      lastname:
-        type: string
-      email:
-        type: string
       username:
         type: string
       password:
         type: string
+      permissions:
+        type: string
       title:
+        type: string
+      fullname:
+        type: string
+      email:
         type: string

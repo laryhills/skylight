@@ -22,6 +22,7 @@ def post(data):
     new_user.password = bcrypt.generate_password_hash(password)
     db.session.add(new_user)
     db.session.commit()
+    return None, 200
 
 
 @access_decorator
@@ -32,6 +33,7 @@ def put(data):
     data['password'] = bcrypt.generate_password_hash(password)
     User.query.filter_by(username=username).update(data)
     db.session.commit()
+    return None, 200
 
 
 @access_decorator
@@ -39,3 +41,4 @@ def delete(username):
     user = User.query.filter_by(username=username).first()
     db.session.delete(user)
     db.session.commit()
+    return None, 200
