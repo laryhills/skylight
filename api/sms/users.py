@@ -206,13 +206,13 @@ fn_props = {
                      "logs": lambda user, params: "{} requested all account details".format(user)
                  },
     "accounts.post": {"perms": ["superuser", "write"],
-                      "logs": lambda user, params: "{} added a new account {}".format(user, params.get('username'))
+                      "logs": lambda user, params: "{} added a new account with username {}".format(user, params.get('username'))
                      },
     "accounts.put": {"perms": ["superuser", "write"],
-                     "logs": lambda user, params: "{} reset account with id {}".format(user, params.get('user_id'))
+                     "logs": lambda user, params: "{} modified {}'s account".format(user, params.get('username'))
                      },
     "accounts.delete": {"perms": ["superuser", "write"],
-                        "logs": lambda user, params: "{} deleted an account with id {}".format(user, params.get('uid'))
+                        "logs": lambda user, params: "{} deleted an account with username {}".format(user, params.get('username'))
                      },
     "senate_version.get": {"perms": ["superuser", "read"],
                            "logs": lambda user, params: "{} requested for the senate version for the {} session".format(user, params.get('acad_session'))
