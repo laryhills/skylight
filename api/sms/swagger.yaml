@@ -404,8 +404,8 @@ paths:
       operationId: sms.accounts.delete
       parameters:
         - in: query
-          name: uid
-          type: integer
+          name: username
+          type: string
           required: true
       responses:
         200:
