@@ -2,6 +2,7 @@ from sms.config import db, bcrypt
 from sms.users import access_decorator
 from sms.models.user import User, UserSchema
 
+'''
 perm_title = {
     '{"read": true, "write": true, "superuser": true, "levels": [100, 200, 300, 400, 500, 600]}': 'Head of department',
     '{"read": true, "write": true, "superuser": false, "levels": [100, 200, 300, 400, 500, 600]}': 'Exam officer',
@@ -13,6 +14,7 @@ perm_title = {
     '{"read": true, "write": true, "superuser": false, "levels": [600]}': '500 level course adviser(2)',
     '{"read": true, "write": false, "superuser": false, "levels": [100, 200, 300, 400, 500, 600]}': 'Secretary',
 }
+'''
 
 
 @access_decorator
@@ -21,10 +23,7 @@ def get():
     user_schema = UserSchema(many=True)
     accounts = []
     for user in user_schema.dump(all_users):
-        title = perm_title[user.pop('permissions')]
-        user['title'] = title
         accounts.append(user)
-
     return accounts, 200
 
 
