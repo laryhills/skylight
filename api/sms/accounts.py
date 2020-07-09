@@ -2,20 +2,6 @@ from sms.config import db, bcrypt
 from sms.users import access_decorator
 from sms.models.user import User, UserSchema
 
-'''
-perm_title = {
-    '{"read": true, "write": true, "superuser": true, "levels": [100, 200, 300, 400, 500, 600]}': 'Head of department',
-    '{"read": true, "write": true, "superuser": false, "levels": [100, 200, 300, 400, 500, 600]}': 'Exam officer',
-    '{"read": true, "write": true, "superuser": false, "levels": [100]}': '100 level course adviser',
-    '{"read": true, "write": true, "superuser": false, "levels": [200]}': '200 level course adviser',
-    '{"read": true, "write": true, "superuser": false, "levels": [300]}': '300 level course adviser',
-    '{"read": true, "write": true, "superuser": false, "levels": [400]}': '400 level course adviser',
-    '{"read": true, "write": true, "superuser": false, "levels": [500]}': '500 level course adviser',
-    '{"read": true, "write": true, "superuser": false, "levels": [600]}': '500 level course adviser(2)',
-    '{"read": true, "write": false, "superuser": false, "levels": [100, 200, 300, 400, 500, 600]}': 'Secretary',
-}
-'''
-
 
 @access_decorator
 def get():
@@ -29,10 +15,8 @@ def get():
 
 @access_decorator
 def post(data):
-    title = data.pop('title')
+    # TODO not recv this in plain-text
     password = data.pop('password')
-    data['permissions'] = [key for key, val in perm_title.items() if val == title][0]
-    data['user_id'] = User.query.count() + 1
     user_schema = UserSchema()
     new_user = user_schema.load(data)
     new_user.password = bcrypt.generate_password_hash(password)
@@ -42,16 +26,16 @@ def post(data):
 
 @access_decorator
 def put(data):
-    uid = data['user_id']
+    username = data['username']
     password = data['password']
-    user = User.query.filter_by(user_id=uid).first()
-    user.password = bcrypt.generate_password_hash(password)
-    db.session.add(user)
+    # TODO not recv password in plain text, do decode here
+    data['password'] = bcrypt.generate_password_hash(password)
+    User.query.filter_by(username=username).update(data)
     db.session.commit()
 
 
 @access_decorator
-def delete(uid):
-    user = User.query.filter_by(user_id=uid).first()
+def delete(username):
+    user = User.query.filter_by(username=username).first()
     db.session.delete(user)
     db.session.commit()
