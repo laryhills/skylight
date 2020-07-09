@@ -14,5 +14,4 @@ class User(db.Model):
 class UserSchema(ma.ModelSchema):
     class Meta:
         model = User
-        exclude = ('password',)
         sqla_session = db.session
