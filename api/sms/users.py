@@ -65,12 +65,48 @@ def access_decorator(func):
             abort(440)
         has_access = True
         if mat_no:
+            has_access = False
+            superuser = user_perms.get("superuser")
             extras, levels = user_perms.get("extras"), user_perms.get("levels")
             if levels:
                 level = get_level(mat_no)
                 has_access |= level in levels
             if extras:
                 has_access |= (mat_no in extras)
+            has_access |= superuser
+        for perm in req_perms:
+            has_access &= bool(user_perms.get(perm))
+        if has_access:
+            log(token_dict["user"], qual_name, func, args, kwargs)
+            return func(*args, **kwargs)
+        else:
+            abort(401)
+    return inner1
+
+
+def accounts_decorator(func):
+    qual_name = func.__module__.split('.')[-1] + "." + func.__name__
+    def inner1(*args, **kwargs):
+        try:
+            # IN PROD replace with `.get("token") and rm try and exc block`
+            token = request.headers["token"]
+        except Exception:
+            print ("Running from command line or swagger UI, token not supplied!")
+            token = tokenize("ucheigbeka:testing")
+            # abort(401)
+        req_perms, token_dict = fn_props[qual_name]["perms"], get_token(token)
+        user_perms, username = token_dict["perms"], args.get("username") or kwargs.get("username")
+        if not token_dict:
+            # Not logged in (using old session token)
+            abort(440)
+        has_access = True
+        if "usernames" in req_perms:
+            has_access = False
+            usernames = user_perms.get("usernames")
+            superuser = user_perms.get("superuser")
+            if usernames:
+                has_access |= username in usernames
+            has_access |= superuser
         for perm in req_perms:
             has_access &= bool(user_perms.get(perm))
         if has_access:
@@ -210,6 +246,9 @@ fn_props = {
                      },
     "accounts.put": {"perms": ["superuser", "write"],
                      "logs": lambda user, params: "{} modified {}'s account".format(user, params.get('username'))
+                     },
+    "accounts.manage": {"perms": ["usernames", "write"],
+                     "logs": lambda user, params: "{} managed {}'s account".format(user, params.get('username'))
                      },
     "accounts.delete": {"perms": ["superuser", "write"],
                         "logs": lambda user, params: "{} deleted an account with username {}".format(user, params.get('username'))
