@@ -381,6 +381,30 @@ paths:
           description: Account successfully created
         401:
           description: Unauthorised
+    patch:
+      tags: [Accounts]
+      operationId: sms.accounts.manage
+      parameters:
+        - in: body
+          name: data
+          schema:
+            type: object
+            properties:
+              username:
+                type: string
+              password:
+                type: string
+              title:
+                type: string
+              fullname:
+                type: string
+              email:
+                type: string
+      responses:
+        200:
+          description: Account successfully updated
+        401:
+          description: Unauthorised
     put:
       tags: [Accounts]
       operationId: sms.accounts.put
@@ -388,12 +412,7 @@ paths:
         - in: body
           name: data
           schema:
-            type: object
-            properties:
-              user_id:
-                type: integer
-              password:
-                type: string
+            $ref: '#/definitions/Accounts_post'
       responses:
         200:
           description: Account successfully updated
