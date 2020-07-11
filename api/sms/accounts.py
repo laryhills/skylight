@@ -22,7 +22,7 @@ def post(data):
     # TODO not recv this in plain-text
     hashed_password = bcrypt.generate_password_hash(data["password"]).decode("utf-8")
     data["password"] = hashed_password
-    if User.query.filter_by(username=data["username"]).all():
+    if User.query.filter_by(username=data["username"]).first():
         # username already taken
         return None, 400
     new_user = UserSchema().load(data)
@@ -37,14 +37,14 @@ def post(data):
 
 @accounts_decorator
 def put(data):
-    username, password = data["username"], data["password"]
+    username, password = data.get("username"), data.get("password")
     # TODO not recv password in plain text, do decode here
-    data['password'] = bcrypt.generate_password_hash(password)
+    if not User.query.filter_by(username=username).first():
+        return None, 404
+    if password:
+        data['password'] = bcrypt.generate_password_hash(password)
     User.query.filter_by(username=username).update(data)
-    try:
-        db.session.commit()
-    except:
-        return None, 500
+    db.session.commit()
     return None, 200
 
 
