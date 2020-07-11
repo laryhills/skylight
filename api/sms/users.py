@@ -96,12 +96,11 @@ def accounts_decorator(func):
             # abort(401)
         req_perms, token_dict = fn_props[qual_name]["perms"], get_token(token)
         user_perms = token_dict["perms"]
-        if args:
-            username = args[0].get("username") if isinstance(args[0], dict) else args[0]
-        elif kwargs:
-            username = kwargs.get("username")
+        params = get_kwargs(func, args, kwargs)
+        if isinstance(params.get("username"), dict):
+            username = params.get("username").get("username")
         else:
-            username = None
+            username = params.get("username")
         if not token_dict:
             # Not logged in (using old session token)
             abort(440)
