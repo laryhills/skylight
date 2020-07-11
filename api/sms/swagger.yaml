@@ -360,6 +360,10 @@ paths:
     get:
       tags: [Accounts]
       operationId: sms.accounts.get
+      parameters:
+        - in: query
+          name: username
+          type: string
       responses:
         200:
           description: Success
