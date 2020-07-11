@@ -372,6 +372,8 @@ paths:
             items: {}
         401:
           description: Unauthorised
+        404:
+          description: Account not found
     post:
       tags: [Accounts]
       operationId: sms.accounts.post
@@ -383,6 +385,8 @@ paths:
       responses:
         200:
           description: Account successfully created
+        400:
+          description: Account creation failed, duplicate username or title
         401:
           description: Unauthorised
     patch:
@@ -435,6 +439,8 @@ paths:
           description: Account successfully deleted
         401:
           description: Unauthorised
+        404:
+          description: Account not found
 
   /logs:
     get:
