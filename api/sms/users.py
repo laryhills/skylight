@@ -95,7 +95,13 @@ def accounts_decorator(func):
             token = tokenize("ucheigbeka:testing")
             # abort(401)
         req_perms, token_dict = fn_props[qual_name]["perms"], get_token(token)
-        user_perms, username = token_dict["perms"], args.get("username") or kwargs.get("username")
+        user_perms = token_dict["perms"]
+        if args:
+            username = args[0].get("username") if isinstance(args[0], dict) else args[0]
+        elif kwargs:
+            username = kwargs.get("username")
+        else:
+            username = None
         if not token_dict:
             # Not logged in (using old session token)
             abort(440)
@@ -238,11 +244,11 @@ fn_props = {
     "logs.get": {"perms": ["read", "levels"],
                  "logs": lambda user, params: "{} requested logs".format(user)
                  },
-    "accounts.get": {"perms": ["superuser", "read"],
-                     "logs": lambda user, params: "{} requested all account details".format(user)
+    "accounts.get": {"perms": ["usernames", "read"],
+                     "logs": lambda user, params: "{} requested {} account details".format(user, params.get("username") if params else "all")
                  },
     "accounts.post": {"perms": ["superuser", "write"],
-                      "logs": lambda user, params: "{} added a new account with username {}".format(user, params.get('username'))
+                      "logs": lambda user, params: "{} added a new account with username {}".format(user, params.get('data').get('username') if params.get('data') else params[0]['username'])
                      },
     "accounts.put": {"perms": ["superuser", "write"],
                      "logs": lambda user, params: "{} modified {}'s account".format(user, params.get('username'))
