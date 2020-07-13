@@ -28,7 +28,9 @@ def post(data):
     # TODO not recv this in plain-text
     hashed_password = bcrypt.generate_password_hash(data["password"]).decode("utf-8")
     data["password"] = hashed_password
-    if User.query.filter( (User.username == data["username"]) | (User.title == data["title"]) ).first():
+    if User.query.filter(
+        (User.username == data["username"]) | (User.title == data["title"])
+    ).first():
         # username or title already taken
         return None, 400
     new_user = UserSchema().load(data)
@@ -47,7 +49,7 @@ def put(data):
     if not User.query.filter_by(username=username).first():
         return None, 404
     if password:
-        data['password'] = bcrypt.generate_password_hash(password).decode("utf-8")
+        data["password"] = bcrypt.generate_password_hash(password).decode("utf-8")
     User.query.filter_by(username=username).update(data)
     db.session.commit()
     return None, 200
@@ -65,7 +67,7 @@ def manage(data):
     if not User.query.filter_by(username=username).first():
         return None, 404
     if password:
-        data['password'] = bcrypt.generate_password_hash(password).decode("utf-8")
+        data["password"] = bcrypt.generate_password_hash(password).decode("utf-8")
     User.query.filter_by(username=username).update(data)
     db.session.commit()
     return None, 200
