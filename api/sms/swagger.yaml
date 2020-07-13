@@ -386,7 +386,7 @@ paths:
         200:
           description: Account successfully created
         400:
-          description: Account creation failed, duplicate username or title
+          description: Account creation failed. Invalid, missing, empty or duplicate field present
         401:
           description: Unauthorised
     patch:
@@ -411,8 +411,12 @@ paths:
       responses:
         200:
           description: Account successfully updated
+        400:
+          description: Account modification failed. Empty or invalid field supplied
         401:
           description: Unauthorised
+        404:
+          description: Account not found
     put:
       tags: [Accounts]
       operationId: sms.accounts.put
@@ -424,6 +428,8 @@ paths:
       responses:
         200:
           description: Account successfully updated
+        400:
+          description: Account modification failed. Empty or invalid field supplied
         401:
           description: Unauthorised
         404:
