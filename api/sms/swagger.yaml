@@ -380,6 +380,7 @@ paths:
       parameters:
         - in: body
           name: data
+          required: true
           schema:
             $ref: '#/definitions/Accounts_post'
       responses:
@@ -395,6 +396,7 @@ paths:
       parameters:
         - in: body
           name: data
+          required: true
           schema:
             type: object
             properties:
@@ -412,7 +414,7 @@ paths:
         200:
           description: Account successfully updated
         400:
-          description: Account modification failed. Empty or invalid field supplied
+          description: Account modification failed. Empty, invalid or duplicate field supplied
         401:
           description: Unauthorised
         404:
@@ -423,13 +425,14 @@ paths:
       parameters:
         - in: body
           name: data
+          required: true
           schema:
             $ref: '#/definitions/Accounts_post'
       responses:
         200:
           description: Account successfully updated
         400:
-          description: Account modification failed. Empty or invalid field supplied
+          description: Account modification failed. Empty, invalid or duplicate field supplied
         401:
           description: Unauthorised
         404:
