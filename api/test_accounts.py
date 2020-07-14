@@ -35,7 +35,7 @@ def test_post_new_account():
             'fullname': 'Skylight Testing',
             'title': 'Tester',
             'password': 'testing',
-            'username': 'tester',
+            'username': 'post_test',
     }
     output, ret_code = accounts.post(data=dummy_acct)
     assert ret_code == 200
