@@ -247,16 +247,16 @@ fn_props = {
                      "logs": lambda user, params: "{} requested {} account details".format(user, params.get("username") if params else "all")
                  },
     "accounts.post": {"perms": ["superuser", "write"],
-                      "logs": lambda user, params: "{} added a new account with username {}".format(user, params.get('data').get('username') if params.get('data') else params[0]['username'])
+                      "logs": lambda user, params: "{} added a new account with username {}".format(user, params.get("data").get("username"))
                      },
     "accounts.put": {"perms": ["superuser", "write"],
-                     "logs": lambda user, params: "{} modified {}'s account".format(user, params.get('username'))
+                     "logs": lambda user, params: "{} modified {}'s account".format(user, params.get("data").get("username"))
                      },
     "accounts.manage": {"perms": ["usernames", "write"],
-                     "logs": lambda user, params: "{} managed {}'s account".format(user, params.get('username'))
+                     "logs": lambda user, params: "{} managed {}'s account".format(user, params.get("data").get("username"))
                      },
     "accounts.delete": {"perms": ["superuser", "write"],
-                        "logs": lambda user, params: "{} deleted an account with username {}".format(user, params.get('username'))
+                        "logs": lambda user, params: "{} deleted an account with username {}".format(user, params.get("username"))
                      },
     "senate_version.get": {"perms": ["superuser", "read"],
                            "logs": lambda user, params: "{} requested for the senate version for the {} session".format(user, params.get('acad_session'))
