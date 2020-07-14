@@ -26,14 +26,20 @@ jsonschema==3.2.0
 markupsafe==1.1.1; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
 marshmallow-sqlalchemy==0.21.0
 marshmallow==3.3.0
+more-itertools==8.4.0; python_version >= '3.5'
 num2words==0.5.10
 openapi-spec-validator==0.2.8
+packaging==20.4; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
 pdf2image==1.13.1
 pdfkit==0.6.1
 pillow==7.2.0; python_version >= '3.5'
+pluggy==0.13.1; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
+py==1.9.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
 pycparser==2.20; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
+pyparsing==2.4.7; python_version >= '2.6' and python_version not in '3.0, 3.1, 3.2, 3.3'
 pyphen==0.9.5
 pyrsistent==0.16.0
+pytest==5.4.3
 pyyaml==5.3.1
 requests==2.24.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'
 six==1.15.0; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3'
@@ -41,6 +47,7 @@ sqlalchemy==1.3.18; python_version >= '2.7' and python_version not in '3.0, 3.1,
 swagger-ui-bundle==0.0.6
 tinycss2==1.0.2; python_version >= '3.5'
 urllib3==1.25.9; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4' and python_version < '4'
+wcwidth==0.2.5
 weasyprint==51
 webencodings==0.5.1
 werkzeug==1.0.1; python_version >= '2.7' and python_version not in '3.0, 3.1, 3.2, 3.3, 3.4'
