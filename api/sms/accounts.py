@@ -52,7 +52,11 @@ def put(data):
     if password:
         data["password"] = bcrypt.generate_password_hash(password).decode("utf-8")
     User.query.filter_by(username=username).update(data)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except:
+        # Duplicate title
+        return None, 400
     return None, 200
 
 
@@ -70,7 +74,11 @@ def manage(data):
     if password:
         data["password"] = bcrypt.generate_password_hash(password).decode("utf-8")
     User.query.filter_by(username=username).update(data)
-    db.session.commit()
+    try:
+        db.session.commit()
+    except:
+        # Duplicate title
+        return None, 400
     return None, 200
 
 
