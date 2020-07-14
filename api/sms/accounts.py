@@ -3,7 +3,8 @@ from sms.users import access_decorator, accounts_decorator
 from sms.models.user import User, UserSchema
 
 
-fields = {"username", "password", "permissions", "title", "fullname", "email"}
+all_fields = {"username", "password", "permissions", "title", "fullname", "email"}
+required = {"username", "password", "permissions", "title", "fullname", "email"}
 
 
 @accounts_decorator
@@ -22,7 +23,7 @@ def get(username=None):
 
 @accounts_decorator
 def post(data):
-    if not all(data.values()) or (data.keys() != fields):
+    if not all([data.get(prop) for prop in required]) or (data.keys() - all_fields):
         # Empty value supplied or Invalid field supplied or Missing field present
         return None, 400
     # TODO not recv this in plain-text
@@ -41,7 +42,7 @@ def post(data):
 
 @accounts_decorator
 def put(data):
-    if not all(data.values()) or (data.keys() - fields):
+    if not all([data.get(prop) for prop in (required & data.keys())]) or (data.keys() - all_fields):
         # Empty value supplied or Invalid field supplied
         return None, 400
     username, password = data.get("username"), data.get("password")
@@ -59,7 +60,7 @@ def put(data):
 def manage(data):
     if "permissions" in data:
         data.pop("permissions")
-    if not all(data.values()) or (data.keys() - fields):
+    if not all([data.get(prop) for prop in (required & data.keys())]) or (data.keys() - all_fields):
         # Empty value supplied or Invalid field supplied
         return None, 400
     username, password = data.get("username"), data.get("password")
