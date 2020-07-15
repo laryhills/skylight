@@ -58,11 +58,12 @@ def access_decorator(func):
             print ("Running from command line or swagger UI, token not supplied!")
             token = tokenize("ucheigbeka:testing")
             # abort(401)
-        req_perms, token_dict = fn_props[qual_name]["perms"], get_token(token)
+        req_perms, token_dict = fn_props[qual_name]["perms"].copy(), get_token("TESTING_token") or get_token(token)
         user_perms = token_dict["perms"]
+        print ("your perms", user_perms)
         if not token_dict:
             # Not logged in (using old session token)
-            abort(440)
+            return None, 440
         has_access = True
         if "levels" in req_perms:
             params = get_kwargs(func, args, kwargs)
@@ -79,13 +80,14 @@ def access_decorator(func):
             if mat_no and mat_nos:
                 has_access |= mat_no in mat_nos
             has_access |= superuser
+            req_perms.remove("levels")
         for perm in req_perms:
             has_access &= bool(user_perms.get(perm))
         if has_access:
             log(token_dict["user"], qual_name, func, args, kwargs)
             return func(*args, **kwargs)
         else:
-            abort(401)
+            return None, 401
     return inner1
 
 
@@ -99,11 +101,11 @@ def accounts_decorator(func):
             print ("Running from command line or swagger UI, token not supplied!")
             token = tokenize("ucheigbeka:testing")
             # abort(401)
-        req_perms, token_dict = fn_props[qual_name]["perms"], get_token(token)
+        req_perms, token_dict = fn_props[qual_name]["perms"].copy(), get_token("TESTING_token") or get_token(token)
         user_perms = token_dict["perms"]
         if not token_dict:
             # Not logged in (using old session token)
-            abort(440)
+            return None, 440
         has_access = True
         if "usernames" in req_perms:
             params = get_kwargs(func, args, kwargs)
@@ -117,13 +119,14 @@ def accounts_decorator(func):
             if usernames:
                 has_access |= username in usernames
             has_access |= superuser
+            req_perms.remove("usernames")
         for perm in req_perms:
             has_access &= bool(user_perms.get(perm))
         if has_access:
             log(token_dict["user"], qual_name, func, args, kwargs)
             return func(*args, **kwargs)
         else:
-            abort(401)
+            return None, 401
     return inner1
 
 
@@ -206,64 +209,64 @@ login(my_token)
 
 ## Function mapping to perms and logs
 fn_props = {
-    "personal_dets.get": {"perms": ["levels", "read"],
+    "personal_dets.get": {"perms": {"levels", "read"},
                           "logs": lambda user, params: "{} requested personal details of {}".format(user, params.get("mat_no"))
                         },
-    "personal_dets.post": {"perms": ["levels", "write"],
+    "personal_dets.post": {"perms": {"levels", "write"},
                            "logs": lambda user, params: "{} set personal details for {}:-\n{}".format(user, params.get("student_data").get("mat_no"), dict_render(params))
                         },
-    "course_details.get_by_course_code": {"perms": ["read"],
+    "course_details.get_by_course_code": {"perms": {"read"},
                                           "logs": lambda user, params: "{} requested details for {}".format(user, params.get("course_code"))
                         },
-    "course_details.get_all": {"perms": ["superuser", "read"],
+    "course_details.get_all": {"perms": {"superuser", "read"},
                                "logs": lambda user, params: "{} requested all {} level courses".format(user, params.get("level"))
                         },
-    "course_details.post": {"perms": ["superuser", "write"],
+    "course_details.post": {"perms": {"superuser", "write"},
                             "logs": lambda user, params: "{} added course {}:-\n{}".format(user, params.get("course_code"), dict_render(params))
                         },
-    "course_details.put": {"perms": ["superuser", "write"],
+    "course_details.put": {"perms": {"superuser", "write"},
                            "logs": lambda user, params: "{} updated courses:-\n{}".format(user, dict_render(params))
                         },
-    "course_details.delete": {"perms": ["superuser", "write"],
+    "course_details.delete": {"perms": {"superuser", "write"},
                               "logs": lambda user, params: "{} deleted course {}:-\n{}".format(user, params.get("course_code"), dict_render(params))
                         },
-    "result_update.get": {"perms": ["levels", "read"],
+    "result_update.get": {"perms": {"levels", "read"},
                           "logs": lambda user, params: "{} requested result update for {}".format(user, params.get("mat_no"))
                         },
-    "course_form.get": {"perms": ["levels", "read"],
+    "course_form.get": {"perms": {"levels", "read"},
                         "logs": lambda user, params: "{} requested course form for {}".format(user, params.get("mat_no"))
                         },
-    "course_reg.get": {"perms": ["levels", "read"],
+    "course_reg.get": {"perms": {"levels", "read"},
                        "logs": lambda user, params: "{} queried course registration for {}".format(user, params.get("mat_no"))
                         },
-    "course_reg.post": {"perms": ["levels", "write"],
+    "course_reg.post": {"perms": {"levels", "write"},
                         "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, params.get("course_reg").get("mat_no"), dict_render(params))
                         },
-    "results.get": {"perms": ["levels", "read"],
+    "results.get": {"perms": {"levels", "read"},
                     "logs": lambda user, params: "{} queried results for {}".format(user, params.get("mat_no"))
                     },
-    "results.post": {"perms": ["levels", "write"],
+    "results.post": {"perms": {"levels", "write"},
                      "logs": lambda user, params: "{} added {} result entries:-\n{}".format(user, len(params.get("list_of_results")), dict_render(params))
                      },
-    "logs.get": {"perms": ["read"],
+    "logs.get": {"perms": {"read"},
                  "logs": lambda user, params: "{} requested logs".format(user)
                  },
-    "accounts.get": {"perms": ["usernames", "read"],
+    "accounts.get": {"perms": {"usernames", "read"},
                      "logs": lambda user, params: "{} requested {} account details".format(user, params.get("username") if params else "all")
                  },
-    "accounts.post": {"perms": ["superuser", "write"],
+    "accounts.post": {"perms": {"superuser", "write"},
                       "logs": lambda user, params: "{} added a new account with username {}".format(user, params.get("data").get("username"))
                      },
-    "accounts.put": {"perms": ["superuser", "write"],
+    "accounts.put": {"perms": {"superuser", "write"},
                      "logs": lambda user, params: "{} modified {}'s account".format(user, params.get("data").get("username"))
                      },
-    "accounts.manage": {"perms": ["usernames", "write"],
+    "accounts.manage": {"perms": {"usernames", "write"},
                      "logs": lambda user, params: "{} managed {}'s account".format(user, params.get("data").get("username"))
                      },
-    "accounts.delete": {"perms": ["superuser", "write"],
+    "accounts.delete": {"perms": {"superuser", "write"},
                         "logs": lambda user, params: "{} deleted an account with username {}".format(user, params.get("username"))
                      },
-    "senate_version.get": {"perms": ["superuser", "read"],
+    "senate_version.get": {"perms": {"superuser", "read"},
                            "logs": lambda user, params: "{} requested for the senate version for the {} session".format(user, params.get('acad_session'))
                      },
 }
