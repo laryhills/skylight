@@ -13,7 +13,6 @@ from sms.config import cache_base_dir
 
 base_dir = os.path.dirname(__file__)
 current_session = get_current_session()
-file_name = token_hex(8)
 
 
 def get(acad_session, level=None):
@@ -39,28 +38,35 @@ def get(acad_session, level=None):
         htmls.append((html, level))
 
     lock = Lock()
+    file_name = token_hex(8)
     zip_path = os.path.join(cache_base_dir, file_name + '.zip')
     with ZipFile(zip_path, 'w', ZIP_DEFLATED) as zf:
-        threaded_call(generate_pdf, htmls, zf, lock)
+        threaded_call(generate_pdf, htmls, zf, file_name) #, lock)
     print('===>> total generation done in', perf_counter() - start)
     resp = send_from_directory(cache_base_dir, file_name + '.zip', as_attachment=True)
     return resp
 
 
-def threaded_call(func, iterable, zf, lock):
-    with ThreadPoolExecutor() as executor:
-        [executor.submit(func, item, zf, lock) for item in iterable]
+def threaded_call(func, iterable, zf, file_name, lock=None):
+    if not lock:
+        [func(item, zf, file_name) for item in iterable]
+    else:
+        with ThreadPoolExecutor() as executor:
+            [executor.submit(func, item, zf, file_name, lock) for item in iterable]
 
 
-def generate_pdf(item, zf, lock):
+def generate_pdf(item, zf, file_name, lock=None):
     html, level = item
     pdf_name = file_name + '_' + str(level) + '.pdf'
 
     t1 = perf_counter()
-    HTML(string=html).write_pdf(os.path.join(cache_base_dir, pdf_name))
+    pdf = HTML(string=html).write_pdf()
     print(f'{level} pdf generated in', perf_counter() - t1)
-    with lock:
-        zf.write(pdf_name)
+    if lock:
+        with lock:
+            zf.writestr(pdf_name, pdf)
+    else:
+        zf.writestr(pdf_name, pdf)
 
 
 def get_filtered_student_by_level(acad_session, level=None):
