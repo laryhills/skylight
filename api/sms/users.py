@@ -68,6 +68,8 @@ def access_decorator(func):
         if "levels" in req_perms:
             params = get_kwargs(func, args, kwargs)
             level = params.get("level")
+            if not level and isinstance(params.get("data"), dict):
+                level = params.get("data").get("level")
             mat_no = params.get("mat_no")
             if mat_no and not level:
                 level = get_level(mat_no)
@@ -170,7 +172,7 @@ def get_level(mat_no):
     session = load_session(db_name)
     PersonalInfo = session.PersonalInfo
     student_data = PersonalInfo.query.filter_by(mat_no=mat_no).first_or_404()
-    return student_data.current_level
+    return student_data.level
 
 ## USER-specific functions
 
@@ -213,7 +215,7 @@ fn_props = {
                           "logs": lambda user, params: "{} requested personal details of {}".format(user, params.get("mat_no"))
                         },
     "personal_dets.post": {"perms": {"levels", "write"},
-                           "logs": lambda user, params: "{} set personal details for {}:-\n{}".format(user, params.get("student_data").get("mat_no"), dict_render(params))
+                           "logs": lambda user, params: "{} added personal details for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
                         },
     "course_details.get_by_course_code": {"perms": {"read"},
                                           "logs": lambda user, params: "{} requested details for {}".format(user, params.get("course_code"))

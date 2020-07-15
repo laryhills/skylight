@@ -8,5 +8,5 @@ def get(mat_no, ret_JSON=True):
 
 
 @access_decorator
-def post(student_data):
-    return personal_info.post(student_data)
+def post(data):
+    return personal_info.post(data)
