@@ -61,10 +61,10 @@ def test_personal_dets_post():
     # Levels & write perms
     dummy_access_fn.__module__ = "personal_dets"
     dummy_access_fn.__name__ = "post"
-    student_data = {"mat_no": "ENG1603123", "current_level": 400}
+    student_data = {"mat_no": "ENG1603123", "level": 400}
     for perms in perms_list:
         config.add_token("TESTING_token", username, perms)
-        if perms["write"] and (student_data["current_level"] in perms["levels"] or perms["superuser"]):
+        if perms["write"] and (student_data["level"] in perms["levels"] or perms["superuser"]):
             has_access = 200
         else:
             has_access = 401
