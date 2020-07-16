@@ -113,3 +113,17 @@ def test_accounts_get_managed():
             has_access = 401
         output, ret_code = accounts_decorator(dummy_accounts_fn)(username="lordfme")
         assert has_access == ret_code
+
+
+def test_accounts_post():
+    # superuser and write perms
+    dummy_accounts_fn.__module__ = "accounts"
+    dummy_accounts_fn.__name__ = "post"
+    for perms in perms_list:
+        config.add_token("TESTING_token", username, perms)
+        if perms.get("write") and perms.get("superuser"):
+            has_access = 200
+        else:
+            has_access = 401
+        output, ret_code = accounts_decorator(dummy_accounts_fn)(data={"username":"post_test"})
+        assert has_access == ret_code
