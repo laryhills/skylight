@@ -1,10 +1,13 @@
 import sqlite3
 from sms import accounts
 from random import sample
+from sms import config
 
 conn = sqlite3.connect("sms/database/accounts.db")
 conn.row_factory=sqlite3.Row
 cur=conn.cursor()
+perms = {"read": True, "write": True, "superuser": True, "levels": [100, 200, 300, 600], "usernames": ["accounts_test"]}
+config.add_token("TESTING_token", "accounts_test", perms)
 
 def test_get_all_accounts():
     user_list, ret_code = accounts.get()

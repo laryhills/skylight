@@ -82,7 +82,8 @@ def access_decorator(func):
         for perm in req_perms:
             has_access &= bool(user_perms.get(perm))
         if has_access:
-            log(token_dict["user"], qual_name, func, args, kwargs)
+            if not get_token("TESTING_token"):
+                log(token_dict["user"], qual_name, func, args, kwargs)
             return func(*args, **kwargs)
         else:
             return None, 401
@@ -118,7 +119,8 @@ def accounts_decorator(func):
         for perm in req_perms:
             has_access &= bool(user_perms.get(perm))
         if has_access:
-            log(token_dict["user"], qual_name, func, args, kwargs)
+            if not get_token("TESTING_token"):
+                log(token_dict["user"], qual_name, func, args, kwargs)
             return func(*args, **kwargs)
         else:
             return None, 401
