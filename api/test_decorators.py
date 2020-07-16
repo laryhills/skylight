@@ -33,14 +33,14 @@ perms_list = [
     {"read": False, "write": False, "superuser": True, "levels": [], "usernames": ["lordfme"]},
     {"read": False, "write": False, "superuser": False, "levels": [], "usernames": ["lordfme"]},
 
-    {"read": True, "write": True, "superuser": True, "levels": [400], "usernames": ["decorator_test"]},
-    {"read": True, "write": True, "superuser": False, "levels": [400], "usernames": ["decorator_test"]},
-    {"read": True, "write": False, "superuser": True, "levels": [400], "usernames": ["decorator_test"]},
-    {"read": True, "write": False, "superuser": False, "levels": [400], "usernames": ["decorator_test"]},
-    {"read": False, "write": True, "superuser": True, "levels": [400], "usernames": ["decorator_test"]},
-    {"read": False, "write": True, "superuser": False, "levels": [400], "usernames": ["decorator_test"]},
-    {"read": False, "write": False, "superuser": True, "levels": [400], "usernames": ["decorator_test"]},
-    {"read": False, "write": False, "superuser": False, "levels": [400], "usernames": ["decorator_test"]},
+    {"read": True, "write": True, "superuser": True, "levels": [400], "usernames": [username]},
+    {"read": True, "write": True, "superuser": False, "levels": [400], "usernames": [username]},
+    {"read": True, "write": False, "superuser": True, "levels": [400], "usernames": [username]},
+    {"read": True, "write": False, "superuser": False, "levels": [400], "usernames": [username]},
+    {"read": False, "write": True, "superuser": True, "levels": [400], "usernames": [username]},
+    {"read": False, "write": True, "superuser": False, "levels": [400], "usernames": [username]},
+    {"read": False, "write": False, "superuser": True, "levels": [400], "usernames": [username]},
+    {"read": False, "write": False, "superuser": False, "levels": [400], "usernames": [username]},
 
 ]
 
@@ -93,11 +93,11 @@ def test_accounts_get_self():
     dummy_accounts_fn.__name__ = "get"
     for perms in perms_list:
         config.add_token("TESTING_token", username, perms)
-        if perms.get("read") and ( perms.get("superuser") or "decorator_test" in perms.get("usernames", []) ):
+        if perms.get("read") and ( perms.get("superuser") or username in perms.get("usernames", []) ):
             has_access = 200
         else:
             has_access = 401
-        output, ret_code = accounts_decorator(dummy_accounts_fn)(username="decorator_test")
+        output, ret_code = accounts_decorator(dummy_accounts_fn)(username=username)
         assert has_access == ret_code
 
 
@@ -125,5 +125,61 @@ def test_accounts_post():
             has_access = 200
         else:
             has_access = 401
-        output, ret_code = accounts_decorator(dummy_accounts_fn)(data={"username":"post_test"})
+        output, ret_code = accounts_decorator(dummy_accounts_fn)(data={"username":username})
+        assert has_access == ret_code
+
+
+def test_accounts_put():
+    # superuser and write perms
+    dummy_accounts_fn.__module__ = "accounts"
+    dummy_accounts_fn.__name__ = "put"
+    for perms in perms_list:
+        config.add_token("TESTING_token", username, perms)
+        if perms.get("write") and perms.get("superuser"):
+            has_access = 200
+        else:
+            has_access = 401
+        output, ret_code = accounts_decorator(dummy_accounts_fn)(data={"username":username})
+        assert has_access == ret_code
+
+
+def test_accounts_manage_self():
+    # usernames and write perms
+    dummy_accounts_fn.__module__ = "accounts"
+    dummy_accounts_fn.__name__ = "manage"
+    for perms in perms_list:
+        config.add_token("TESTING_token", username, perms)
+        if perms.get("write") and ( perms.get("superuser") or username in perms.get("usernames", []) ):
+            has_access = 200
+        else:
+            has_access = 401
+        output, ret_code = accounts_decorator(dummy_accounts_fn)(data={"username": username})
+        assert has_access == ret_code
+
+
+def test_accounts_manage_other():
+    # usernames and write perms
+    dummy_accounts_fn.__module__ = "accounts"
+    dummy_accounts_fn.__name__ = "manage"
+    for perms in perms_list:
+        config.add_token("TESTING_token", username, perms)
+        if perms.get("write") and ( perms.get("superuser") or "lordfme" in perms.get("usernames", []) ):
+            has_access = 200
+        else:
+            has_access = 401
+        output, ret_code = accounts_decorator(dummy_accounts_fn)(data={"username": "lordfme"})
+        assert has_access == ret_code
+
+
+def test_accounts_delete():
+    # superuser and write perms
+    dummy_accounts_fn.__module__ = "accounts"
+    dummy_accounts_fn.__name__ = "delete"
+    for perms in perms_list:
+        config.add_token("TESTING_token", username, perms)
+        if perms.get("write") and perms.get("superuser"):
+            has_access = 200
+        else:
+            has_access = 401
+        output, ret_code = accounts_decorator(dummy_accounts_fn)(username=username)
         assert has_access == ret_code
