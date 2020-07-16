@@ -67,20 +67,16 @@ def access_decorator(func):
         has_access = True
         if "levels" in req_perms:
             params = get_kwargs(func, args, kwargs)
-            level = params.get("level")
-            if not level and isinstance(params.get("data"), dict):
-                level = params.get("data").get("level")
+            level = params.get("level") or params.get("data", {}).get("level")
             mat_no = params.get("mat_no")
             if mat_no and not level:
                 level = get_level(mat_no)
             has_access = False
-            levels = user_perms.get("levels")
-            mat_nos = user_perms.get("mat_nos")
-            superuser = user_perms.get("superuser")
-            if level and levels:
-                has_access |= level in levels
-            if mat_no and mat_nos:
-                has_access |= mat_no in mat_nos
+            levels = user_perms.get("levels", [])
+            mat_nos = user_perms.get("mat_nos", [])
+            superuser = user_perms.get("superuser", False)
+            has_access |= level in levels
+            has_access |= mat_no in mat_nos
             has_access |= superuser
             req_perms.remove("levels")
         for perm in req_perms:
@@ -105,21 +101,18 @@ def accounts_decorator(func):
             # abort(401)
         req_perms, token_dict = fn_props[qual_name]["perms"].copy(), get_token("TESTING_token") or get_token(token)
         user_perms = token_dict["perms"]
+        print ("your perms", user_perms)
         if not token_dict:
             # Not logged in (using old session token)
             return None, 440
         has_access = True
         if "usernames" in req_perms:
             params = get_kwargs(func, args, kwargs)
-            if isinstance(params.get("data"), dict):
-                username = params.get("data").get("username")
-            else:
-                username = params.get("username")
+            username = params.get("username") or params.get("data",{}).get("username")
             has_access = False
-            usernames = user_perms.get("usernames")
-            superuser = user_perms.get("superuser")
-            if usernames:
-                has_access |= username in usernames
+            usernames = user_perms.get("usernames", [])
+            superuser = user_perms.get("superuser", False)
+            has_access |= username in usernames
             has_access |= superuser
             req_perms.remove("usernames")
         for perm in req_perms:
@@ -254,7 +247,7 @@ fn_props = {
                  "logs": lambda user, params: "{} requested logs".format(user)
                  },
     "accounts.get": {"perms": {"usernames", "read"},
-                     "logs": lambda user, params: "{} requested {} account details".format(user, params.get("username") if params else "all")
+                     "logs": lambda user, params: "{} requested {} account details".format(user, params.get("username", "all"))
                  },
     "accounts.post": {"perms": {"superuser", "write"},
                       "logs": lambda user, params: "{} added a new account with username {}".format(user, params.get("data").get("username"))
