@@ -14,6 +14,7 @@ dummy_access_fn = lambda *args, **kwargs: (True, 200)
 dummy_accounts_fn = lambda *args, **kwargs: (True, 200)
 
 perms_list = [
+    {},
     {"read": True, "write": True, "superuser": True, "levels": []},
     {"read": True, "write": True, "superuser": False, "levels": []},
     {"read": True, "write": False, "superuser": True, "levels": []},
@@ -50,7 +51,7 @@ def test_personal_dets_get():
     dummy_access_fn.__name__ = "get"
     for perms in perms_list:
         config.add_token("TESTING_token", username, perms)
-        if perms["read"] and (400 in perms["levels"] or perms["superuser"]):
+        if perms.get("read") and (400 in perms.get("levels", []) or perms.get("superuser")):
             has_access = 200
         else:
             has_access = 401
@@ -64,7 +65,7 @@ def test_personal_dets_post():
     student_data = {"mat_no": "ENG1603123", "level": 400}
     for perms in perms_list:
         config.add_token("TESTING_token", username, perms)
-        if perms["write"] and (student_data["level"] in perms["levels"] or perms["superuser"]):
+        if perms.get("write") and (student_data["level"] in perms.get("levels", []) or perms.get("superuser")):
             has_access = 200
         else:
             has_access = 401
@@ -72,4 +73,43 @@ def test_personal_dets_post():
         assert has_access == ret_code
 
 
-#def test_course_details_get_by_course
+def test_accounts_get_all():
+    # superuser & read perms
+    dummy_accounts_fn.__module__ = "accounts"
+    dummy_accounts_fn.__name__ = "get"
+    for perms in perms_list:
+        config.add_token("TESTING_token", username, perms)
+        if perms.get("read") and perms.get("superuser"):
+            has_access = 200
+        else:
+            has_access = 401
+        output, ret_code = accounts_decorator(dummy_accounts_fn)()
+        assert has_access == ret_code
+
+
+def test_accounts_get_self():
+    # usernames and read perms
+    dummy_accounts_fn.__module__ = "accounts"
+    dummy_accounts_fn.__name__ = "get"
+    for perms in perms_list:
+        config.add_token("TESTING_token", username, perms)
+        if perms.get("read") and ( perms.get("superuser") or "decorator_test" in perms.get("usernames", []) ):
+            has_access = 200
+        else:
+            has_access = 401
+        output, ret_code = accounts_decorator(dummy_accounts_fn)(username="decorator_test")
+        assert has_access == ret_code
+
+
+def test_accounts_get_managed():
+    # usernames and read perms
+    dummy_accounts_fn.__module__ = "accounts"
+    dummy_accounts_fn.__name__ = "get"
+    for perms in perms_list:
+        config.add_token("TESTING_token", username, perms)
+        if perms.get("read") and ( perms.get("superuser") or "lordfme" in perms.get("usernames", []) ):
+            has_access = 200
+        else:
+            has_access = 401
+        output, ret_code = accounts_decorator(dummy_accounts_fn)(username="lordfme")
+        assert has_access == ret_code
