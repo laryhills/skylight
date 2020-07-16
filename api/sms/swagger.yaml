@@ -493,7 +493,7 @@ definitions:
         type: integer
       session_admitted:
         type: integer
-      current_level:
+      level:
         type: integer
       sex:
         type: string
