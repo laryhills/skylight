@@ -17,6 +17,8 @@ def get(mat_no, ret_JSON=True):
 
 
 def post(data):
+    # TODO add patch path for modifying properties
+    # TODO add retcode 400 for bad inputs and retcode 200
     global PersonalInfo, PersonalInfoSchema
 
     session = int(data['session_admitted'])
