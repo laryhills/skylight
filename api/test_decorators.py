@@ -183,3 +183,62 @@ def test_accounts_delete():
             has_access = 401
         output, ret_code = accounts_decorator(dummy_accounts_fn)(username=username)
         assert has_access == ret_code
+
+
+def test_senate_version_get():
+    # superuser and read perms
+    dummy_accounts_fn.__module__ = "senate_version"
+    dummy_accounts_fn.__name__ = "get"
+    for perms in perms_list:
+        config.add_token("TESTING_token", username, perms)
+        if perms.get("read") and perms.get("superuser"):
+            has_access = 200
+        else:
+            has_access = 401
+        output, ret_code = accounts_decorator(dummy_accounts_fn)(acad_session="2019")
+        assert has_access == ret_code
+
+
+def test_get_logs():
+    # read perms
+    dummy_accounts_fn.__module__ = "logs"
+    dummy_accounts_fn.__name__ = "get"
+    for perms in perms_list:
+        config.add_token("TESTING_token", username, perms)
+        if perms.get("read"):
+            has_access = 200
+        else:
+            has_access = 401
+        output, ret_code = accounts_decorator(dummy_accounts_fn)()
+        assert has_access == ret_code
+
+
+def test_result_get():
+    # Levels and read perms
+    dummy_access_fn.__module__ = "results"
+    dummy_access_fn.__name__ = "get"
+    for perms in perms_list:
+        config.add_token("TESTING_token", username, perms)
+        if perms.get("read") and (400 in perms.get("levels", []) or perms.get("superuser")):
+            has_access = 200
+        else:
+            has_access = 401
+        output, ret_code = access_decorator(dummy_access_fn)(mat_no=student_400)
+        assert has_access == ret_code
+
+
+'''
+def test_result_post():
+    # Levels and write perms
+    # TODO how is this restricted to a level? what are list_of_results? and is it one level at a time?
+    dummy_access_fn.__module__ = "results"
+    dummy_access_fn.__name__ = "post"
+    for perms in perms_list:
+        config.add_token("TESTING_token", username, perms)
+        if perms.get("write") and (400 in perms.get("levels", []) or perms.get("superuser")):
+            has_access = 200
+        else:
+            has_access = 401
+        output, ret_code = access_decorator(dummy_access_fn)(list_of_results="lalala")
+        assert has_access == ret_code
+'''
