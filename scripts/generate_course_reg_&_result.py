@@ -460,7 +460,7 @@ def populate_db(conn, mat_no, entry_session, mod):
                     if gap_in_sessions:
                         new_session = exam_session - 4  # very skeptical about this. exam session could be flawed
                     else:
-                        new_session = entry_session + int((exam_level - 500) / 100)
+                        new_session = entry_session - (mod - 1) + int((exam_level - 500) / 100)
                     database = '{}-{}.db'.format(new_session, new_session + 1)
                 else:
                     is_symlink, database = 0, ''
@@ -470,7 +470,7 @@ def populate_db(conn, mat_no, entry_session, mod):
                 if gap_in_sessions:
                     new_session = exam_session - 3
                 else:
-                    new_session = entry_session + int((exam_level - 400) / 100)
+                    new_session = entry_session - (mod - 1) + int((exam_level - 400) / 100)
                 database = '{}-{}.db'.format(new_session, new_session + 1)
             else:
                 # 100 to 400 students
@@ -482,9 +482,15 @@ def populate_db(conn, mat_no, entry_session, mod):
                         # entry_session = exam_session - int(exam_level / 100) + 1
                         new_session = exam_session - int(exam_level / 100) + 2
                     else:
-                        new_session = entry_session + num_probation + 1
+                        new_session = entry_session - (mod - 1) + num_probation + 1
                     if num_probation:
                         new_session -= num_probation
+                    database = '{}-{}.db'.format(new_session, new_session + 1)
+                elif entry_session - (mod - 1) < curr_session - 4:
+                    # students who are supposed to have either graduated or spilling but for some reason are still around
+                    # probably should limit to curr_session - 7
+                    is_symlink = 1
+                    new_session = curr_session - int(current_level / 100) + 1
                     database = '{}-{}.db'.format(new_session, new_session + 1)
                 else:
                     is_symlink = 0
