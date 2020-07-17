@@ -137,6 +137,7 @@ def post(list_of_results):
             session_taken = results_object.pop('session')
             result_level = results_object.pop('level')
             carryovers = results_object.pop('carryovers')
+            results_object.pop('tcp')
             results_object.pop('category')
             results_object.pop('unusual_results')
 
