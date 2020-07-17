@@ -231,4 +231,7 @@ fn_props = {
     "senate_version.get": {"perms": ["superuser", "read"],
                            "logs": lambda user, params: "{} requested for the senate version for the {} session".format(user, params.get('acad_session'))
                      },
+    "gpa_cards.get": {"perms": ["levels", "read"],
+                      "logs": lambda user, params: "{} requested for the {} level gpa card".format(user, params.get('level'))
+                     },
 }
