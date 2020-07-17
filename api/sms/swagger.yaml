@@ -237,6 +237,21 @@ paths:
         440:
           description: Session expired, login again
 
+  /level_gpa_cards:
+    get:
+      tags: [Sheets]
+      operationId: sms.gpa_cards.get
+      parameters:
+        - in: query
+          name: level
+          type: integer
+          required: true
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Level_Gpa_Cards_get'
+
   /senate_version:
     get:
       tags: [Sheets]
@@ -251,7 +266,7 @@ paths:
         - in: query
           name: level
           type: integer
-          required: false
+          required: true
       responses:
         200:
           description: Success
@@ -632,3 +647,17 @@ definitions:
         type: string
       title:
         type: string
+
+  Level_Gpa_Cards_get:
+    type: array
+    items:
+      type: object
+      properties:
+        mat_no:
+          type: string
+        name:
+          type: string
+        gpas:
+          type: array
+        cgpa:
+          type: number
