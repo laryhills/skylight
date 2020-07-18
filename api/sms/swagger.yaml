@@ -237,6 +237,7 @@ paths:
         440:
           description: Session expired, login again
 
+
   /level_gpa_cards:
     get:
       tags: [Sheets]
@@ -267,6 +268,31 @@ paths:
           name: level
           type: integer
           required: true
+      responses:
+        200:
+          description: Success
+          schema:
+            type: file
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+
+  /broad_sheet:
+    get:
+      tags: [Sheets]
+      operationId: sms.broad_sheet.get
+      produces:
+        - application/octet-stream
+      parameters:
+        - in: query
+          name: acad_session
+          type: integer
+          required: true
+        - in: query
+          name: level
+          type: integer
+          required: false
       responses:
         200:
           description: Success
