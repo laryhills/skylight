@@ -321,7 +321,7 @@ paths:
         200:
           description: Success
           schema:
-            $ref: '#/definitions/CourseRegistration_get'
+            $ref: '#/definitions/CourseRegistration'
         401:
           description: Authentication failed
         403:
@@ -338,7 +338,7 @@ paths:
         - in: body
           name: course_reg
           schema:
-            $ref: '#/definitions/CourseRegistration_post'
+            $ref: '#/definitions/CourseRegistration'
       responses:
         200:
           description: Success
@@ -535,32 +535,15 @@ definitions:
       options:
         type: integer
 
-  CourseRegistration_get:
+  CourseRegistration:
     type: object
     properties:
+      mat_no:
+        type: string
       personal_info:
         type: object
         properties:
-          surname:
-            type: string
-          othernames:
-            type: string
-          depat:
-            type: string
-          mode_of_entry:
-            type: string
-          current_level:
-            type: string
-          phone_no:
-            type: string
-          sex:
-            type: string
-          email:
-            type: string
-          state_of_origin:
-            type: string
-          lga_of_origin:
-            type: string
+          items: {}
       table_to_populate:
         type: string
       course_reg_session:
@@ -595,39 +578,6 @@ definitions:
             items:
               type: array
               items: {}
-      probation_status:
-        type: integer
-      fees_status:
-        type: integer
-      others:
-        type: string
-      error:
-        type: string
-
-  CourseRegistration_post:
-    type: object
-    properties:
-      mat_no:
-        type: string
-      table_to_populate:
-        type: string
-      course_reg_session:
-        type: integer
-      course_reg_level:
-        type: integer
-      max_credits:
-        type: integer
-      courses:
-        type: object
-        properties:
-          first_sem:
-            type: array
-            items:
-              type: string
-          second_sem:
-            type: array
-            items:
-              type: string
       probation_status:
         type: integer
       fees_status:
