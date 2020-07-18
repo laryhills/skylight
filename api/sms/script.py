@@ -211,10 +211,16 @@ def get_details_for_ref_students(mat_no, session):
     name = student.othernames + ' ' + '<b>{}</b>'.format(student.surname)
     name += ' (Miss)' if student.sex == 'F' else ''
     level = get_level(mat_no, session=session)
-    session_failed_courses = get_session_failed_courses(mat_no, level, session)
-    credits_passed_list = get_gpa_credits(mat_no, session)[1]
-    total_credits_passed = sum(filter(lambda x: x, credits_passed_list))
-    total_credits = sum(get_credits(mat_no, session=session))
+    try:
+        session_failed_courses = get_session_failed_courses(mat_no, level, session)
+        credits_passed_list = get_gpa_credits(mat_no, session)[1]
+        total_credits_passed = sum(filter(lambda x: x, credits_passed_list))
+        total_credits = sum(get_credits(mat_no, session=session))
+    except AttributeError:
+        # Students who didn't register or sit for the exam
+        session_failed_courses = []
+        total_credits_passed = 0
+        total_credits = 0
 
     # KeyError for the utils.get_carryovers function
     # try:
@@ -263,26 +269,37 @@ def get_other_students_details(mat_no, session, group):
     return details
 
 
-def get_students_by_level(acad_session, retDB=False):
+def get_students_by_level(entry_session, level, retDB=False):
     """
     Gets all the mat numbers of students in a particular db
 
-    This only includes the regular students that entered during the `acad_session` session, DE and probating students
+    This only includes the regular students that entered during the `entry_session` session, DE and probating students
     that somehow have ties to this db.
 
-    :param acad_session: entry session
+    :param entry_session: entry session
+    :param level: level of students
     :param retDB: if True, returns a dict
     :return: list of mat numbers if not `retDB` else a dictionary of db name being mapped to a list of mat numbers
     """
-    db_name = '{}_{}'.format(acad_session, acad_session + 1)
-    session = load_session(db_name)
-    students = session.PersonalInfo.query.filter_by(is_symlink=0).all()
+    entry_session_db_name = '{}_{}'.format(entry_session, entry_session + 1)
+    session = load_session(entry_session_db_name)
+    students = session.PersonalInfo.query.filter_by(is_symlink=0).filter_by(mode_of_entry=1).all()
     if retDB:
-        students = {db_name: list(map(lambda stud: stud.mat_no, students))}
+        students = {entry_session_db_name: list(map(lambda stud: stud.mat_no, students))}
     else:
         students = list(map(lambda stud: stud.mat_no, students))
 
-    other_students = session.SymLink.query.all()    # DE and probating students
+    symlink_students = session.SymLink.query.order_by('DATABASE').all()    # DE and probating students
+    other_students = []
+    curr_db_name = ''
+    for stud in symlink_students:
+        if stud.database != curr_db_name:
+            curr_db_name = stud.database
+            session = load_session(curr_db_name.replace('-', '_')[:-3])
+        curr_level = get_level(stud.mat_no, session=session)
+        curr_level = curr_level if curr_level < 500 else 500
+        if curr_level == level:
+            other_students.append(stud)
     if retDB:
         # groups the students by their database name
         stud_db_map = {}
@@ -292,6 +309,9 @@ def get_students_by_level(acad_session, retDB=False):
                 stud_db_map[db_name].append(stud.mat_no)
             except KeyError:
                 stud_db_map[db_name] = [stud.mat_no]
+        if entry_session_db_name in stud_db_map:
+            de_probating_students = stud_db_map.pop(entry_session_db_name)
+            students[entry_session_db_name].extend(de_probating_students)
         students.update(stud_db_map)
     else:
         other_students = list(map(lambda stud: stud.mat_no, other_students))
@@ -322,19 +342,19 @@ def filter_students_by_category(level, category, db_name, students):
     return studs
 
 
-def get_students_by_category(level, acad_session, category=None, get_all=False):
+def get_students_by_category(level, entry_session, category=None, get_all=False):
     """
     Gets all students within a category
 
     If `get_all` is supplied, `category` is ignored
 
     :param level: level of students
-    :param acad_session: entry session of students
+    :param entry_session: entry session of students
     :param category: (Optional) category to fetch
     :param get_all: (Optional) if True return all categories of students
     :return: list of students if not `get_all` else dictionary of all category mapping to list of students
     """
-    mat_no_dict = get_students_by_level(acad_session, retDB=True)
+    mat_no_dict = get_students_by_level(entry_session, level, retDB=True)
     if get_all:
         students = dict.fromkeys(mat_no_dict)
         categories = get_categories(final_year=(level == 500))
@@ -359,7 +379,7 @@ def get_students_by_category(level, acad_session, category=None, get_all=False):
     return students
 
 
-def get_students_details_by_category(level, acad_session, category=None, get_all=False):
+def get_students_details_by_category(level, entry_session, category=None, get_all=False):
     """
     Gets the details for students in `level` level as required by the senate version for
     non-graduating students
@@ -367,7 +387,7 @@ def get_students_details_by_category(level, acad_session, category=None, get_all
     If `get_all` is supplied, `category` is ignored
 
     :param level: level of students
-    :param acad_session: entry session of students
+    :param entry_session: entry session of students
     :param category: (Optional) category to fetch
     :param get_all: (Optional) if true return the details of all categories of students
     :return: list of dicts of the details students with all categories if `get_all` is true else
@@ -375,7 +395,7 @@ def get_students_details_by_category(level, acad_session, category=None, get_all
     """
     populate_course_list(level)
 
-    students = get_students_by_category(level, acad_session, category=category, get_all=get_all)
+    students = get_students_by_category(level, entry_session, category=category, get_all=get_all)
     categories = get_categories()
     if get_all:
         students_details = {}
@@ -444,14 +464,13 @@ def filter_students_by_degree_class(degree_class, db_name, students):
     return studs
 
 
-def get_final_year_students_by_category(acad_session, category=None, get_all=False):
+def get_final_year_students_by_category(entry_session, category=None, get_all=False):
     """
-    Gets the details for students in `level` level as required by the senate version for
-    graduating students
+    Gets the details for students required by the senate version for graduating students
 
     If `get_all` is supplied, `category` is ignored
 
-    :param acad_session: entry session of students
+    :param entry_session: entry session of students
     :param category: (Optional) category to fetch
     :param get_all: (Optional) if true return the details of all categories of students
     :return: list of dicts of the details students with all categories if `get_all` is true else
@@ -459,7 +478,7 @@ def get_final_year_students_by_category(acad_session, category=None, get_all=Fal
     """
     populate_course_list(500)
 
-    students_categories = get_students_by_category(500, acad_session, category=category, get_all=get_all)
+    students_categories = get_students_by_category(500, entry_session, category=category, get_all=get_all)
     all_students_by_category = group_students_by_category(students_categories)
     if get_all:
         all_students = {}
