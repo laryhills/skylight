@@ -200,7 +200,7 @@ def get_500(entry_session):
                     best_students.append(student)
 
                 min_cgpa = min(cgpas)
-                idx = cgpas.index(idx)
+                idx = cgpas.index(min_cgpa)
                 if student['cgpa'] > min_cgpa:
                     cgpas[idx] = student['cgpa']
                     prize_winners[idx] = student
@@ -251,7 +251,7 @@ def get_500(entry_session):
     return send_from_directory(cache_base_dir, file_name, as_attachment=True)
 
 
-#@access_decorator
+@access_decorator
 def get(acad_session, level):
     entry_session = acad_session - int(level / 100) + 1
 
