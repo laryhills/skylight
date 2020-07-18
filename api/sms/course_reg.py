@@ -1,51 +1,42 @@
 from json import loads
-from flask import abort
-from sms.config import db
-from sms import personal_info
 from sms import utils
 from sms import results
+from sms import personal_info
+from sms import course_details
 from sms.utils import get_carryovers
 from sms.users import access_decorator
+from sms.config import db
+
 
 
 @access_decorator
 def get(mat_no, acad_session=None):
     # for new registrations, the assumption is that the level has been updated by admin
-    current_level = utils.get_level(mat_no)
     current_session = utils.get_current_session()
     if not acad_session:
         acad_session = current_session
-    depat = utils.get_depat('long')
 
-    person = personal_info.get(mat_no, 0)
-    phone_no = person['phone_no'] if person['phone_no'] else None
-    mode_of_entry = ["PUTME", "DE(200)", "DE(300)"][person["mode_of_entry"] - 1]
-    entry_session = person['session_admitted']
-    graduation_status = int(person['grad_stats']) if person['grad_stats'] else None
-    sex = ['Female', 'Male'][person['sex'] == 'M']
-    if person["sex"] == 'F':
-        person['surname'] += " (Miss)"
+    some_personal_info = personal_info.get(mat_no, 0)
+    current_level = some_personal_info['current_level']
+    mode_of_entry = some_personal_info["mode_of_entry"]
+    graduation_status = int(some_personal_info['grad_stats']) if some_personal_info['grad_stats'] else ''
+
+    some_personal_info["mode_of_entry"] = ["PUTME", "DE(200)", "DE(300)"][some_personal_info["mode_of_entry"] - 1]
+    some_personal_info['department'] = utils.get_depat('long')
+    for key in some_personal_info:
+        if not some_personal_info[key]:
+            some_personal_info[key] = ''
+    if some_personal_info["sex"] == 'F':
+        some_personal_info['surname'] += " (Miss)"
 
     course_reg_frame = {}
-    some_personal_info = {'surname': person['surname'],
-                          'othernames': person['othernames'].upper(),
-                          'depat': depat,
-                          'mode_of_entry': mode_of_entry,
-                          'current_level': str(current_level),
-                          'phone_no': phone_no,
-                          'sex': sex,
-                          'email': person['email_address'],
-                          'state_of_origin': person['state_of_origin'],
-                          'lga_of_origin': person['lga'] if 'lga' in person else ''}
-
-    mode_of_entry = person["mode_of_entry"]
 
     # use last course_reg table to account for temp withdrawals
     # these guys break any computation that relies on sessions
     course_reg = utils.get_registered_courses(mat_no, level=None, true_levels=False)
     probation_status = 0
-    fees_status = None
-    others = None
+    fees_status = 0
+    others = ''
 
     res_poll = utils.result_poll(mat_no)
     previous_categories = [x['category'] for x in res_poll if x and x['category'] and x['session'] < acad_session]
@@ -90,16 +81,13 @@ def get(mat_no, acad_session=None):
     elif get_new_registration:
         courses = loads(get_carryovers(mat_no))
         first_sem = courses['first_sem']
-        if first_sem:
-            first_sem_carryover_courses, first_sem_carryover_credits = list(zip(*first_sem))
-        else:
-            first_sem_carryover_courses, first_sem_carryover_credits = [], []
+        if first_sem: first_sem_carryover_courses, first_sem_carryover_credits = list(zip(*first_sem))
+        else: first_sem_carryover_courses, first_sem_carryover_credits = [], []
 
         second_sem = courses['second_sem']
-        if second_sem:
-            second_sem_carryover_courses, second_sem_carryover_credits = list(zip(*second_sem))
-        else:
-            second_sem_carryover_courses, second_sem_carryover_credits = [], []
+        if second_sem: second_sem_carryover_courses, second_sem_carryover_credits = list(zip(*second_sem))
+        else: second_sem_carryover_courses, second_sem_carryover_credits = [], []
+
         if current_level == 400:
             # Force only reg of UBITS for incoming 400L
             second_sem_carryover_courses, second_sem_carryover_credits = ["UBT400"], ["6"]
@@ -133,15 +121,14 @@ def get(mat_no, acad_session=None):
 
         # Getting maximum possible credits to register
         level_max_credits = utils.get_maximum_credits_for_course_reg()['normal']
+
         # Implementing the "clause of 51"
         if current_level >= 500:
             credit_sum = sum(map(int, first_sem_carryover_credits)) + sum(map(int, second_sem_carryover_credits))
-            for crs, title, credit in first_sem_choices:
-                credit_sum += credit
-            for crs, title, credit in second_sem_choices:
-                credit_sum += credit
-            if credit_sum == 51:
-                level_max_credits = utils.get_maximum_credits_course_reg()['clause_of_51']
+            credit_sum += sum([credit for crs, title, credit in first_sem_choices])
+            credit_sum += sum([credit for crs, title, credit in second_sem_choices])
+            if credit_sum > level_max_credits:
+                level_max_credits = utils.get_maximum_credits_for_course_reg()['clause_of_51']
 
         # Handle any case where carryover course credits exceeds the limit
         credit_sum = sum(map(int, first_sem_carryover_credits)) + sum(map(int, second_sem_carryover_credits))
@@ -151,7 +138,8 @@ def get(mat_no, acad_session=None):
             second_sem_choices.extend(second_sem_carry_courses)
             first_sem_carry_courses, second_sem_carry_courses = [], []
 
-        course_reg_frame = {'personal_info': some_personal_info,
+        course_reg_frame = {'mat_no': mat_no,
+                            'personal_info': some_personal_info,
                             'table_to_populate': table_to_populate,
                             'course_reg_session': current_session,
                             'course_reg_level': current_level,
@@ -162,39 +150,31 @@ def get(mat_no, acad_session=None):
                                         'second_sem': multisort(second_sem_choices)},
                             'probation_status': probation_status,
                             'fees_status': fees_status,
-                            'others': others,
-                            'error': None}
+                            'others': others}
 
     elif not get_new_registration:
         # getting old course registrations
-        course_reg_level   = course_registration['course_reg_level']
-        course_reg_session = course_registration['course_reg_session']
-        table_to_get       = course_registration['table']
         courses_registered = course_registration['courses']
-        probation_status   = course_registration['probation'] if 'probation' in course_registration else None
-        fees_status        = course_registration['fees_status'] if 'fees_status' in course_registration else None
-        others             = course_registration['others'] if 'others' in course_registration else None
-
         courses = [[], []]  # first_sem, second_sem
         for course_code in courses_registered:
-            course_dets = utils.course_details.get(course_code, 0)
+            course_dets = course_details.get(course_code, 0)
             courses[course_dets['course_semester']-1].append((course_code, course_dets['course_title'], course_dets['course_credit']))
         first_sem = courses[0]
         second_sem = courses[1]
 
-        course_reg_frame = {'personal_info': some_personal_info,
-                            'table_to_populate': table_to_get,
-                            'course_reg_session': course_reg_session,
-                            'course_reg_level': course_reg_level,
-                            'max_credits': None,
+        course_reg_frame = {'mat_no': mat_no,
+                            'personal_info': some_personal_info,
+                            'table_to_populate': course_registration['table'],
+                            'course_reg_session': course_registration['course_reg_session'],
+                            'course_reg_level': course_registration['course_reg_level'],
+                            'max_credits': '',
                             'courses': {'first_sem': multisort(first_sem),
                                         'second_sem': multisort(second_sem)},
                             'choices': {'first_sem': [],
                                         'second_sem': []},
-                            'probation_status': probation_status,
-                            'fees_status': fees_status,
-                            'others': others,
-                            'error': None}
+                            'probation_status': course_registration['probation'],
+                            'fees_status': course_registration['fees_status'],
+                            'others': course_registration['others']}
     return course_reg_frame
 
 
@@ -203,71 +183,73 @@ def post(course_reg):
 
     """ ======= FORMAT =======
         mat_no: 'ENGxxxxxxx'
+        personal_info: {...}
         table_to_populate: 'CourseRegxxx'
-        course_reg_session = 20xx
-        course_reg_level = x00
+        course_reg_session: 20xx
+        course_reg_level: x00
         max_credits: <int>
-        courses:
-            first_sem: ['course_code1', 'course_code2', ...]
-            second_sem: []
+        courses: {
+                   first_sem: [ ('course_code_1', 'course_title_1', 'course_credits_1'),
+                                ('course_code_2', 'course_title_2', 'course_credits_2'), ...]
+                   second_sem: []
+                 }
+        choices: {
+                   first_sem: [ ('course_code_1', 'course_title_1', 'course_credits_1'),
+                                ('course_code_2', 'course_title_2', 'course_credits_2'), ...]
+                   second_sem: []
+                 }
         probation_status: <int>
         fees_status: <int>
         others: ''
         =======================
 
     example...
-    c_reg = {'mat_no': 'ENG1503886', 'table_to_populate': 'CourseReg500', 'course_reg_session': 2019, 'course_reg_level': 500, 'max_credits': 50, 'courses': {'first_sem': ['MEE521', 'MEE451', 'MEE561', 'MEE571', 'EMA481', 'MEE502'], 'second_sem': []}, 'probation_status': 0, 'fees_status': None, 'others': None}
+    c_reg = {'mat_no': 'ENG1503886', personal_info: {}, 'table_to_populate': 'CourseReg500', 'course_reg_session': 2019, 'course_reg_level': 500, 'max_credits': 50, 'courses': {'first_sem': ['MEE521', 'MEE451', 'MEE561', 'MEE571', 'EMA481', 'MEE502'], 'second_sem': []}, 'probation_status': 0, 'fees_status': None, 'others': None}
     """
 
     courses = []
-    courses.extend(course_reg['courses']['first_sem'])
-    courses.extend(course_reg['courses']['second_sem'])
+    tcr = [0, 0]
+    for idx, sem in enumerate(['first_sem', 'second_sem']):
+        for course_obj in course_reg['courses'][sem]:
+            courses.append(course_obj[0])
+            tcr[idx] += course_obj[2]
     courses = sorted(courses)
 
-    mat_no             = course_reg['mat_no']
-    table_to_populate  = course_reg['table_to_populate']
+    mat_no = course_reg['mat_no']
+    table_to_populate = course_reg['table_to_populate']
     course_reg_session = course_reg['course_reg_session']
-    course_reg_level   = course_reg['course_reg_level']
-    fees_status        = course_reg['fees_status']
-    probation          = course_reg['probation_status']
-    others             = course_reg['others']
-
     db_name = utils.get_DB(mat_no)[:-3]
     session = utils.load_session(db_name)
 
     try:
-        exec('from sms.models._{0} import {1}Schema'.format(db_name, table_to_populate))
-        exec('from sms.models._{0} import {1}'.format(db_name, table_to_populate))
+        course_reg_xxx_schema = eval('session.{}Schema()'.format(table_to_populate))
     except ImportError:
-        abort(400)
+        return '{} table does not exist'.format(table_to_populate), 403
 
-    CourseRegxxxSchema = locals()[table_to_populate+'Schema']
-    CourseRegxxx = locals()[table_to_populate]
-
-    table_columns = utils.get_attribute_names(CourseRegxxx)
+    table_columns = course_reg_xxx_schema.load_fields.keys()
     registration = {}
     for col in table_columns:
         if col in courses:
             registration[col] = '1'
             courses.remove(col)
-        elif col not in ['mat_no', 'carryovers', 'probation', 'others', 'fees_status', 'level', 'session']:
+        elif col not in ['mat_no', 'carryovers', 'probation', 'others', 'fees_status', 'level', 'session', 'tcr']:
             registration[col] = '0'
     registration['carryovers'] = ','.join(courses)
     registration['mat_no'] = mat_no
-    registration['probation'] = probation
-    registration['others'] = others
-    registration['fees_status'] = fees_status
-    registration['level'] = course_reg_level
+    registration['tcr'] = sum(tcr)
+    registration['level'] = course_reg['course_reg_level']
     registration['session'] = course_reg_session
+    registration['probation'] = course_reg['probation_status']
+    registration['fees_status'] = course_reg['fees_status']
+    registration['others'] = course_reg['others']
 
-    course_reg_xxx_schema = CourseRegxxxSchema()
     course_registration = course_reg_xxx_schema.load(registration)
     db.session.add(course_registration)
     db.session.commit()
 
     # Here we check if there were any stray results waiting in unusual results for this session
     session_results = [x for x in utils.result_poll(mat_no) if x and (x['session'] == course_reg_session)]
-    if session_results and session_results[0]['unusual_results']:
+    if session_results and 'unusual_results' in session_results[0] and session_results[0]['unusual_results']:
         unusual_results = session_results[0]['unusual_results'].split(',')
         unusual_results = [[x.split(' ')[0], course_reg_session, mat_no, x.split(' ')[1]] for x in unusual_results]
         results.post(unusual_results)
