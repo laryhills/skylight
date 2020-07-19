@@ -1,10 +1,9 @@
 import os.path
-from secrets import token_hex
-from threading import Lock
-from concurrent.futures import ThreadPoolExecutor
-from time import perf_counter
 from weasyprint import HTML
+from time import perf_counter
+from secrets import token_hex
 from zipfile import ZipFile, ZIP_DEFLATED
+from concurrent.futures import ProcessPoolExecutor
 from flask import render_template, send_from_directory
 
 from sms.utils import get_current_session, get_registered_courses, get_level
@@ -37,36 +36,42 @@ def get(acad_session, level=None):
         print(f'{str(level)}: html fetched in', perf_counter() - t1)
         htmls.append((html, level))
 
-    lock = Lock()
     file_name = token_hex(8)
     zip_path = os.path.join(cache_base_dir, file_name + '.zip')
     with ZipFile(zip_path, 'w', ZIP_DEFLATED) as zf:
-        threaded_call(generate_pdf, htmls, zf, file_name) #, lock)
+        generate_pdf_wrapper(generate_pdf, htmls, file_name, zf, concurrency=True)
     print('===>> total generation done in', perf_counter() - start)
     resp = send_from_directory(cache_base_dir, file_name + '.zip', as_attachment=True)
     return resp
 
 
-def threaded_call(func, iterable, zf, file_name, lock=None):
-    if not lock:
-        [func(item, zf, file_name) for item in iterable]
+def generate_pdf_wrapper(func, iterable, file_name, zf, concurrency=False):
+    if not concurrency:
+        [func(item, file_name, zf) for item in iterable]
     else:
-        with ThreadPoolExecutor() as executor:
-            [executor.submit(func, item, zf, file_name, lock) for item in iterable]
+        with ProcessPoolExecutor(max_workers=5) as executor:
+            [executor.submit(func, item, file_name) for item in iterable]
+        for level in range(100, 600, 100):
+            try:
+                pdf_name = file_name + '_' + str(level) + '.pdf'
+                pdf = open(os.path.join(cache_base_dir, pdf_name), 'rb').read()
+                zf.writestr(pdf_name, pdf)
+            except Exception as e:
+                pass
 
 
-def generate_pdf(item, zf, file_name, lock=None):
+def generate_pdf(item, file_name, zf=None):
     html, level = item
     pdf_name = file_name + '_' + str(level) + '.pdf'
 
     t1 = perf_counter()
     pdf = HTML(string=html).write_pdf()
     print(f'{level} pdf generated in', perf_counter() - t1)
-    if lock:
-        with lock:
-            zf.writestr(pdf_name, pdf)
-    else:
+    if zf:
         zf.writestr(pdf_name, pdf)
+    else:
+        with open(os.path.join(cache_base_dir, pdf_name), 'wb') as pdf_file:
+            pdf_file.write(pdf)
 
 
 def get_filtered_student_by_level(acad_session, level=None):
@@ -74,7 +79,7 @@ def get_filtered_student_by_level(acad_session, level=None):
     students_by_level = {}
     for level in levels:
         associated_db = acad_session - level//100 + 1
-        students = get_students_by_level(associated_db)
+        students = get_students_by_level(associated_db, level)
         # students = list(filter(lambda mat: get_level_at_acad_session(mat, acad_session) == level, students))
         students_by_level[level] = students
     return students_by_level
@@ -93,4 +98,3 @@ def get_level_at_acad_session(mat_no, acad_session):
 # if __name__ == '__main__':
 #     html = cProfile.run(get(2018, 400))
 #     print('yeah')
-
