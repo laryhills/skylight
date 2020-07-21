@@ -12,5 +12,6 @@ for session in sessions:
     for index in range(len(lines)):
         lines[index] = lines[index].replace('##NAME##', '{0}-{1}'.format(session, session + 1))
     model.writelines(lines)
+    model.close()
 
 print('Done')
