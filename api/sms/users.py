@@ -138,12 +138,10 @@ def log(user, qual_name, func, args, kwargs):
 lastLoaded = None
 
 def load_session(session):
-    #Import model and force import override if necessary (session changes)
-    global lastLoaded
     exec('from sms.models import _{}'.format(session))
-    if ('sms.models._{}'.format(session) in modules) and (lastLoaded!=session):
-        exec('reload(_{})'.format(session))
-    lastLoaded = session
+    for prop in dir(eval("_"+session)):
+        if prop.endswith(session):
+            exec("_{}.{} = _{}.{}".format(session, prop[:-10], session, prop))
     return eval('_{}'.format(session))
 
 
