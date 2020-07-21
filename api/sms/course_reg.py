@@ -51,21 +51,15 @@ def get_old(mat_no, acad_session):
 @access_decorator
 def get_old_for_edit(mat_no, acad_session):
     current_session = utils.get_current_session()
-    if acad_session and acad_session != current_session:
+    if acad_session != current_session:
         print('Elevated access to course_reg.get_new granted')
-    elif not acad_session:
-        acad_session = current_session
 
-    check = check_registration_eligibility(mat_no, acad_session)
-    if check[1] != 200:
-        return check
-    else:
-        obj = get_old_course_reg(mat_no, acad_session)
-        if obj[1] != 200:
-            return obj
-        old_course_reg = obj[0]
-        old_course_reg['max_credits'] = utils.get_maximum_credits_for_course_reg()['normal']
-        return old_course_reg, 200
+    obj = get_old_course_reg(mat_no, acad_session)
+    if obj[1] != 200:
+        return obj
+    old_course_reg = obj[0]
+    old_course_reg['max_credits'] = utils.get_maximum_credits_for_course_reg()['normal']
+    return old_course_reg, 200
 
 
 @access_decorator
