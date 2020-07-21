@@ -31,12 +31,10 @@ from sms.config import db
 
 
 @access_decorator
-def get_new(mat_no, acad_session=None):
+def get_new(mat_no, acad_session=utils.get_current_session()):
     current_session = utils.get_current_session()
-    if acad_session and acad_session != current_session:
+    if acad_session != current_session:
         return 'You do not have authorization to perform course registration outside the current session', 401
-    elif not acad_session:
-        acad_session = current_session
 
     check = check_registration_eligibility(mat_no, acad_session)
     if check[1] != 200:
