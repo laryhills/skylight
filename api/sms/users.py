@@ -166,8 +166,8 @@ def log_post(log_data):
     db.session.add(log_record)
     db.session.commit()
 
-## PERFORM LOGIN, REMOVE IN PROD
 
+# PERFORM LOGIN, REMOVE IN PROD
 my_token = {'token': tokenize("ucheigbeka:testing")}
 print("Using token ", my_token['token'])
 login(my_token)
@@ -201,12 +201,21 @@ fn_props = {
     "course_form.get": {"perms": ["read"],
                         "logs": lambda user, params: "{} requested course form for {}".format(user, params.get("mat_no"))
                         },
-    "course_reg.get": {"perms": ["read"],
-                       "logs": lambda user, params: "{} queried course registration for {}".format(user, params.get("mat_no"))
+    "course_reg.get_old": {"perms": ["levels", "read"],
+                           "logs": lambda user, params: "{} queried course registration for {}".format(user, params.get("mat_no"))
                         },
-    "course_reg.post": {"perms": ["write"],
+    "course_reg.get_new": {"perms": ["levels", "read"],
+                           "logs": lambda user, params: "{} queried course registration for {}".format(user, params.get("mat_no"))
+                        },
+    "course_reg.get_old_for_edit": {"perms": ["read"],
+                                    "logs": lambda user, params: "{} queried course registration for {}".format(user, params.get("mat_no"))
+                        },
+    "course_reg.post": {"perms": ["levels", "write"],
                         "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, params.get("course_reg").get("mat_no"), dict_render(params))
                         },
+    "course_reg.put": {"perms": ["write"],
+                       "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, params.get("course_reg").get("mat_no"), dict_render(params))
+                       },
     "results.get": {"perms": ["read"],
                     "logs": lambda user, params: "{} queried results for {}".format(user, params.get("mat_no"))
                     },
