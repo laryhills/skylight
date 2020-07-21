@@ -10,7 +10,9 @@ for session in sessions:
     temp_file = open(temp_file_path)
     lines = temp_file.readlines()
     for index in range(len(lines)):
-        lines[index] = lines[index].replace('##NAME##', '{0}-{1}'.format(session, session + 1))
+        lines[index] = lines[index].replace(
+            '##NAME##', '{0}-{1}'.format(session, session + 1)).replace(
+            '##NAME_2##', '_{0}_{1}'.format(session, session + 1))
     model.writelines(lines)
 
 print('Done')
