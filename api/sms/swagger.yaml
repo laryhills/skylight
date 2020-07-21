@@ -303,10 +303,10 @@ paths:
         440:
           description: Session expired, login again
 
-  /course_reg:
+  /course_reg_new:
     get:
       tags: [Course Registration]
-      operationId: sms.course_reg.get
+      operationId: sms.course_reg.get_new
       summary: Get course registration
       parameters:
         - in: query
@@ -321,11 +321,13 @@ paths:
         200:
           description: Success
           schema:
-            $ref: '#/definitions/CourseRegistration_get'
+            $ref: '#/definitions/CourseRegistration'
+        400:
+          description: Bad Request
         401:
           description: Authentication failed
         403:
-          description: Forbidden - Course reg not available
+          description: Forbidden
           schema:
             type: string
         440:
@@ -338,12 +340,89 @@ paths:
         - in: body
           name: course_reg
           schema:
-            $ref: '#/definitions/CourseRegistration_post'
+            $ref: '#/definitions/CourseRegistration'
       responses:
         200:
           description: Success
         401:
           description: Authentication failed
+        403:
+          description: Forbidden
+          schema:
+            type: string
+        440:
+          description: Session expired, login again
+
+  /course_reg_edit:
+    get:
+      tags: [Course Registration]
+      operationId: sms.course_reg.get_old_for_edit
+      summary: Get old course registration for edit, requires elevated access
+      parameters:
+        - in: query
+          name: mat_no
+          type: string
+          required: true
+        - in: query
+          name: acad_session
+          type: integer
+          required: true
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/CourseRegistration'
+        401:
+          description: Authentication failed
+        404:
+          description: No course registration for entered session
+        440:
+          description: Session expired, login again
+
+    put:
+      tags: [Course Registration]
+      operationId: sms.course_reg.put
+      summary: Edit old course registration, requires elevated access
+      parameters:
+        - in: body
+          name: course_reg
+          schema:
+            $ref: '#/definitions/CourseRegistration'
+      responses:
+        200:
+          description: Success
+        401:
+          description: Authentication failed
+        403:
+          description: Forbidden
+          schema:
+            type: string
+        440:
+          description: Session expired, login again
+
+  /course_reg_old:
+    get:
+      tags: [Course Registration]
+      operationId: sms.course_reg.get_old
+      summary: Get previous course registration
+      parameters:
+        - in: query
+          name: mat_no
+          type: string
+          required: true
+        - in: query
+          name: acad_session
+          type: integer
+          required: true
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/CourseRegistration'
+        401:
+          description: Authentication failed
+        404:
+          description: No course registration for entered session
         440:
           description: Session expired, login again
 
@@ -401,6 +480,10 @@ paths:
     get:
       tags: [Accounts]
       operationId: sms.accounts.get
+      parameters:
+        - in: query
+          name: username
+          type: string
       responses:
         200:
           description: Success
@@ -409,50 +492,86 @@ paths:
             items: {}
         401:
           description: Unauthorised
+        404:
+          description: Account not found
     post:
       tags: [Accounts]
       operationId: sms.accounts.post
       parameters:
         - in: body
           name: data
+          required: true
           schema:
             $ref: '#/definitions/Accounts_post'
       responses:
         200:
           description: Account successfully created
+        400:
+          description: Account creation failed. Invalid, missing, empty or duplicate field present
         401:
           description: Unauthorised
+    patch:
+      tags: [Accounts]
+      operationId: sms.accounts.manage
+      parameters:
+        - in: body
+          name: data
+          required: true
+          schema:
+            type: object
+            properties:
+              username:
+                type: string
+              password:
+                type: string
+              title:
+                type: string
+              fullname:
+                type: string
+              email:
+                type: string
+      responses:
+        200:
+          description: Account successfully updated
+        400:
+          description: Account modification failed. Empty, invalid or duplicate field supplied
+        401:
+          description: Unauthorised
+        404:
+          description: Account not found
     put:
       tags: [Accounts]
       operationId: sms.accounts.put
       parameters:
         - in: body
           name: data
+          required: true
           schema:
-            type: object
-            properties:
-              user_id:
-                type: integer
-              password:
-                type: string
+            $ref: '#/definitions/Accounts_post'
       responses:
         200:
           description: Account successfully updated
+        400:
+          description: Account modification failed. Empty, invalid or duplicate field supplied
         401:
           description: Unauthorised
+        404:
+          description: Account not found
     delete:
       tags: [Accounts]
       operationId: sms.accounts.delete
       parameters:
         - in: query
-          name: uid
-          type: integer
+          name: username
+          type: string
           required: true
       responses:
         200:
           description: Account successfully deleted
         401:
           description: Unauthorised
+        404:
+          description: Account not found
 
   /logs:
     get:
@@ -494,7 +613,7 @@ definitions:
         type: integer
       session_admitted:
         type: integer
-      current_level:
+      level:
         type: integer
       sex:
         type: string
@@ -535,32 +654,15 @@ definitions:
       options:
         type: integer
 
-  CourseRegistration_get:
+  CourseRegistration:
     type: object
     properties:
+      mat_no:
+        type: string
       personal_info:
         type: object
         properties:
-          surname:
-            type: string
-          othernames:
-            type: string
-          depat:
-            type: string
-          mode_of_entry:
-            type: string
-          current_level:
-            type: string
-          phone_no:
-            type: string
-          sex:
-            type: string
-          email:
-            type: string
-          state_of_origin:
-            type: string
-          lga_of_origin:
-            type: string
+          items: {}
       table_to_populate:
         type: string
       course_reg_session:
@@ -601,39 +703,6 @@ definitions:
         type: integer
       others:
         type: string
-      error:
-        type: string
-
-  CourseRegistration_post:
-    type: object
-    properties:
-      mat_no:
-        type: string
-      table_to_populate:
-        type: string
-      course_reg_session:
-        type: integer
-      course_reg_level:
-        type: integer
-      max_credits:
-        type: integer
-      courses:
-        type: object
-        properties:
-          first_sem:
-            type: array
-            items:
-              type: string
-          second_sem:
-            type: array
-            items:
-              type: string
-      probation_status:
-        type: integer
-      fees_status:
-        type: integer
-      others:
-        type: string
 
   Results_get:
     type: object
@@ -661,17 +730,17 @@ definitions:
   Accounts_post:
     type: object
     properties:
-      firstname:
-        type: string
-      lastname:
-        type: string
-      email:
-        type: string
       username:
         type: string
       password:
         type: string
+      permissions:
+        type: string
       title:
+        type: string
+      fullname:
+        type: string
+      email:
         type: string
 
   Level_Gpa_Cards_get:

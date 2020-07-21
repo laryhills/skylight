@@ -14,5 +14,6 @@ for session in sessions:
             '##NAME##', '{0}-{1}'.format(session, session + 1)).replace(
             '##NAME_2##', '_{0}_{1}'.format(session, session + 1))
     model.writelines(lines)
+    model.close()
 
 print('Done')

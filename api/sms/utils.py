@@ -57,6 +57,8 @@ def get_credits(mat_no, mode_of_entry=None, session=None):
 
 
 def get_maximum_credits_for_course_reg():
+    # todo: get this from db
+
     return {'normal': 50,
             'clause_of_51': 51}
 
