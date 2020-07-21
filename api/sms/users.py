@@ -165,7 +165,7 @@ def get_level(mat_no, session=None):
         db_name = get_DB(mat_no)[:-3]
         session = load_session(db_name)
     PersonalInfo = session.PersonalInfo
-    student_data = PersonalInfo.query.filter_by(mat_no=mat_no).first_or_404()
+    student_data = PersonalInfo.query.filter_by(mat_no=mat_no).first()
     current_level = student_data.level
     if current_level == 500:
         if student_data.is_symlink and student_data.grad_stats == 0:
