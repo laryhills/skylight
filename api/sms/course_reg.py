@@ -100,7 +100,7 @@ def check_registration_eligibility(mat_no, acad_session):
     elif previous_category not in 'ABC':
         error_text = 'Student cannot carry out course reg as his category is {}'.format(previous_category)
     if error_text != '':
-        return error_texModelt, 403
+        return error_text, 403
 
     ret_obj = (mat_no, acad_session, table_to_populate, probation_status, s_personal_info)
     return ret_obj, 200
@@ -155,7 +155,7 @@ def get_new_course_reg_frame(mat_no, acad_session, table_to_populate, probation_
                         'probation_status': probation_status,
                         'fees_status': 0,
                         'others': ''}
-    return course_reg_frame
+    return course_reg_frame, 200
 
 
 def get_old_course_reg(mat_no, acad_session, old_course_reg=None, s_personal_info=None):

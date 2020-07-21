@@ -303,7 +303,7 @@ paths:
         440:
           description: Session expired, login again
 
-  /course_reg:
+  /course_reg_new:
     get:
       tags: [Course Registration]
       operationId: sms.course_reg.get_new
@@ -347,7 +347,7 @@ paths:
         440:
           description: Session expired, login again
 
-  /course_reg_elevated:
+  /course_reg_edit:
     get:
       tags: [Course Registration]
       operationId: sms.course_reg.get_old_for_edit
