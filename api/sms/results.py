@@ -9,12 +9,13 @@ from copy import deepcopy
 @access_decorator
 def post(list_of_results):
     """  ==== JSON FORMAT FOR THE RESULTS ====
-       [['MEE551', '2019', 'ENG1503886', '98'],
-        ['MEE561', '2019', 'ENG1503886', '98'],
-        ['MEE571', '2019', 'ENG1503886', '98'],
-        ['MEE521', '2019', 'ENG1503886', '98']]
 
-        er = [['MEE351', '2019', 'ENG1503886', '98'],['MEE451', '2019', 'ENG1503886', '98'],['EMA481', '2019', 'ENG1503886', '98'],['MEE561', '2019', 'ENG1503886', '98'],['MEE571', '2019', 'ENG1503886', '98'],['MEE521', '2019', 'ENG1503886', '98'],['MEE572', '2019', 'ENG1503886', '98']]
+    res = [
+              ['MEE351', '2019', 'ENG1503886', '98'],['MEE451', '2019', 'ENG1503886', '98'],
+              ['EMA481', '2019', 'ENG1503886', '98'],['MEE561', '2019', 'ENG1503886', '98'],
+              ['MEE571', '2019', 'ENG1503886', '98'],['MEE521', '2019', 'ENG1503886', '98'],
+              ['MEE572', '2019', 'ENG1503886', '98'],
+          ]
     """
 
     base_dir = os.path.dirname(__file__)
@@ -137,6 +138,7 @@ def post(list_of_results):
             session_taken = results_object.pop('session')
             result_level = results_object.pop('level')
             carryovers = results_object.pop('carryovers')
+            results_object.pop('tcp')
             results_object.pop('category')
             results_object.pop('unusual_results')
 
@@ -216,6 +218,7 @@ def get(mat_no, acad_session):
     results.pop('mat_no')
     results.pop('category')
     results.pop('session')
+    total_credits_passed = results.pop('tcp')
     result_level = results.pop('level')
     carryovers = results.pop('carryovers')
     unusual_results = results.pop('unusual_results')
@@ -233,8 +236,8 @@ def get(mat_no, acad_session):
         if course_reg[reg]['courses'] and course_reg[reg]['course_reg_session'] == acad_session:
             course_reg = course_reg[reg]['courses']
             break
-    reg_extras = [[x, '', '', 0, 'Registered, no result'] for x in set(course_reg).difference(set(list(zip(*all_courses))[0]))]
-    res_extras = [[x, '', '', 0, 'Course not registered'] for x in set(list(zip(*all_courses))[0]).difference(set(course_reg))]
+    reg_extras = [[x, '', '', 0, 0, 'Registered, no result'] for x in set(course_reg).difference(set(list(zip(*all_courses))[0]))]
+    res_extras = [[x, '', '', 0, 0, 'Course not registered'] for x in set(list(zip(*all_courses))[0]).difference(set(course_reg))]
     for index in range(len(res_extras)):
         for x in range(len(all_courses)):
             if all_courses[x][0] == res_extras[index][0]:
@@ -247,9 +250,10 @@ def get(mat_no, acad_session):
     for index in range(len(all_courses)):
         course_dets = course_details.get(all_courses[index][0], 0)
         if len(all_courses[index]) == 5:
-            all_courses[index][3] = course_dets['course_semester']
+            all_courses[index][3] = course_dets['course_credit']
+            all_courses[index][4] = course_dets['course_semester']
         else:
-            all_courses[index].extend([course_dets['course_semester'], ''])
+            all_courses[index].extend([course_dets['course_credit'], course_dets['course_semester'], ''])
     frame['level_written'] = result_level
     frame['session_written'] = acad_session
     frame['mat_no'] = mat_no

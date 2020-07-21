@@ -30,6 +30,7 @@ bcrypt = Bcrypt(app)
 tokens = {}
 
 cache_base_dir = os.path.join(os.path.expanduser('~'), 'sms', 'cache_mechanical')
+if not os.path.exists(cache_base_dir): os.makedirs(cache_base_dir)
 
 
 def add_token(token, username, permissions):

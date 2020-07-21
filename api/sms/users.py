@@ -158,15 +158,30 @@ def get_DB(mat_no, ignore_404=False):
     return db_name.replace('-', '_')
 
 
-def get_level(mat_no):
+def get_level(mat_no, session=None):
     # 600-800 - is spill, 100-500 spill not inc, grad_status - graduated
     # if next = True, return next level else current level
-    db_name = get_DB(mat_no)[:-3]
-    session = load_session(db_name)
+    if not session:
+        db_name = get_DB(mat_no)[:-3]
+        session = load_session(db_name)
     PersonalInfo = session.PersonalInfo
     student_data = PersonalInfo.query.filter_by(mat_no=mat_no).first_or_404()
-    return student_data.level
+    current_level = student_data.level
+    if current_level == 500:
+        if student_data.is_symlink and student_data.grad_stats == 0:
+            # Spillover students
+            for level in [800, 700, 600]:
+                course_reg_obj = eval('session.CourseReg{}'.format(level)).query.filter_by(mat_no=mat_no).first()
+                if course_reg_obj:
+                    current_level = course_reg_obj.level
+                    break
+            else:
+                # Just a backup
+                affiliated_session = int(student_data.database.split('-')[0])
+                current_level += (affiliated_session - student_data.session_admitted) * 100
+    return current_level
 
+  
 ## USER-specific functions
 
 def dict_render(dictionary, indent = 0):
@@ -196,8 +211,8 @@ def log_post(log_data):
     db.session.add(log_record)
     db.session.commit()
 
-## PERFORM LOGIN, REMOVE IN PROD
 
+# PERFORM LOGIN, REMOVE IN PROD
 my_token = {'token': tokenize("ucheigbeka:testing")}
 print("Using token ", my_token['token'])
 login(my_token)
@@ -231,12 +246,21 @@ fn_props = {
     "course_form.get": {"perms": {"levels", "read"},
                         "logs": lambda user, params: "{} requested course form for {}".format(user, params.get("mat_no"))
                         },
-    "course_reg.get": {"perms": {"levels", "read"},
-                       "logs": lambda user, params: "{} queried course registration for {}".format(user, params.get("mat_no"))
+    "course_reg.get_old": {"perms": {"levels", "read"},
+                           "logs": lambda user, params: "{} queried course registration for {}".format(user, params.get("mat_no"))
+                        },
+    "course_reg.get_new": {"perms": {"levels", "read"},
+                           "logs": lambda user, params: "{} queried course registration for {}".format(user, params.get("mat_no"))
+                        },
+    "course_reg.get_old_for_edit": {"perms": {"read"},
+                                    "logs": lambda user, params: "{} queried course registration for {}".format(user, params.get("mat_no"))
                         },
     "course_reg.post": {"perms": {"levels", "write"},
                         "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, params.get("course_reg").get("mat_no"), dict_render(params))
                         },
+    "course_reg.put": {"perms": ["write"],
+                       "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, params.get("course_reg").get("mat_no"), dict_render(params))
+                       },
     "results.get": {"perms": {"levels", "read"},
                     "logs": lambda user, params: "{} queried results for {}".format(user, params.get("mat_no"))
                     },
@@ -263,5 +287,8 @@ fn_props = {
                      },
     "senate_version.get": {"perms": {"superuser", "read"},
                            "logs": lambda user, params: "{} requested for the senate version for the {} session".format(user, params.get('acad_session'))
+                     },
+    "gpa_cards.get": {"perms": ["levels", "read"],
+                      "logs": lambda user, params: "{} requested for the {} level gpa card".format(user, params.get('level'))
                      },
 }

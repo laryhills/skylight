@@ -73,12 +73,12 @@ def load_cat_section_500(cat, students, session):
     return section
 
 
-def get_100_to_400(acad_session, level=None):
+def get_100_to_400(entry_session, level):
     start_time = time.time()
-    stud_categories = get_students_details_by_category(level, acad_session, get_all=True)
+    stud_categories = get_students_details_by_category(level, entry_session, get_all=True)
     data = ''
     for cat in stud_categories:
-        data += load_cat_section(cat, stud_categories[cat], acad_session)
+        data += load_cat_section(cat, stud_categories[cat], entry_session)
 
     template_dir = os.path.join(base_dir, 'templates', '100_400_senate_version.htm')
     with open(template_dir) as fd:
@@ -118,9 +118,10 @@ def get_100_to_400(acad_session, level=None):
     else:
         best_students = []
 
+    session = entry_session + int(level / 100) - 1
     params = {
-        'session': '{}/{}'.format(acad_session, acad_session + 1),
-        'session_2': '{}/{}'.format(acad_session, str(acad_session + 1)[-2:]),
+        'session': '{}/{}'.format(session, session + 1),
+        'session_2': '{}/{}'.format(session, str(session + 1)[-2:]),
         'dept': get_depat(),
         'level': level,
         'summary_data': summary_data,
@@ -136,9 +137,9 @@ def get_100_to_400(acad_session, level=None):
     return send_from_directory(cache_base_dir, file_name, as_attachment=True)
 
 
-def get_500(acad_session):
+def get_500(entry_session):
     start_time = time.time()
-    all_students = get_final_year_students_by_category(acad_session, get_all=True)
+    all_students = get_final_year_students_by_category(entry_session, get_all=True)
     groups_dict = get_groups_dict()
     students_sum, total_students = dict(), 0
     percent_distribution = dict()
@@ -174,7 +175,7 @@ def get_500(acad_session):
     data = ''
     for group in all_students:
         category = groups_dict[group][0]
-        data += load_cat_section_500(category, all_students[group], acad_session)
+        data += load_cat_section_500(category, all_students[group], entry_session)
 
     template_dir = os.path.join(base_dir, 'templates', '500_senate_version.htm')
     with open(template_dir) as fd:
@@ -199,7 +200,7 @@ def get_500(acad_session):
                     best_students.append(student)
 
                 min_cgpa = min(cgpas)
-                idx = cgpas.index(idx)
+                idx = cgpas.index(min_cgpa)
                 if student['cgpa'] > min_cgpa:
                     cgpas[idx] = student['cgpa']
                     prize_winners[idx] = student
@@ -222,9 +223,10 @@ def get_500(acad_session):
                     # find a way to resolve ties
                     pass
 
+    session = entry_session + 4
     params = {
-        'session': acad_session,
-        'session_2': '{}/{}'.format(acad_session, str(acad_session + 1)[-2:]),
+        'session': session,
+        'session_2': '{}/{}'.format(session, str(session + 1)[-2:]),
         'dept': get_depat(),
         'successful_students': successful_students,
         'referred_students': referred_students,
@@ -249,13 +251,11 @@ def get_500(acad_session):
     return send_from_directory(cache_base_dir, file_name, as_attachment=True)
 
 
-#@access_decorator
-def get(acad_session, level=None):
-    if not level:
-        level = (get_current_session() - acad_session) * 100
-        level = 500 if level > 500 else level
+@access_decorator
+def get(acad_session, level):
+    entry_session = acad_session - int(level / 100) + 1
 
     if level == 500:
-        return get_500(acad_session)
+        return get_500(entry_session)
     else:
-        return get_100_to_400(acad_session, level=level)
+        return get_100_to_400(entry_session, level=level)

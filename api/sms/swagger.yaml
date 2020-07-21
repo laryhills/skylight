@@ -237,12 +237,53 @@ paths:
         440:
           description: Session expired, login again
 
+
+  /level_gpa_cards:
+    get:
+      tags: [Sheets]
+      operationId: sms.gpa_cards.get
+      parameters:
+        - in: query
+          name: level
+          type: integer
+          required: true
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Level_Gpa_Cards_get'
+
   /senate_version:
     get:
       tags: [Sheets]
       operationId: sms.senate_version.get
       produces:
         - application/pdf
+      parameters:
+        - in: query
+          name: acad_session
+          type: integer
+          required: true
+        - in: query
+          name: level
+          type: integer
+          required: true
+      responses:
+        200:
+          description: Success
+          schema:
+            type: file
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+
+  /broad_sheet:
+    get:
+      tags: [Sheets]
+      operationId: sms.broad_sheet.get
+      produces:
+        - application/octet-stream
       parameters:
         - in: query
           name: acad_session
@@ -262,10 +303,10 @@ paths:
         440:
           description: Session expired, login again
 
-  /course_reg:
+  /course_reg_new:
     get:
       tags: [Course Registration]
-      operationId: sms.course_reg.get
+      operationId: sms.course_reg.get_new
       summary: Get course registration
       parameters:
         - in: query
@@ -280,7 +321,7 @@ paths:
         200:
           description: Success
           schema:
-            $ref: '#/definitions/CourseRegistration_get'
+            $ref: '#/definitions/CourseRegistration'
         401:
           description: Authentication failed
         403:
@@ -297,12 +338,87 @@ paths:
         - in: body
           name: course_reg
           schema:
-            $ref: '#/definitions/CourseRegistration_post'
+            $ref: '#/definitions/CourseRegistration'
       responses:
         200:
           description: Success
         401:
           description: Authentication failed
+        440:
+          description: Session expired, login again
+
+  /course_reg_edit:
+    get:
+      tags: [Course Registration]
+      operationId: sms.course_reg.get_old_for_edit
+      summary: Get old course registration for edit, requires elevated access
+      parameters:
+        - in: query
+          name: mat_no
+          type: string
+          required: true
+        - in: query
+          name: acad_session
+          type: integer
+          required: true
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/CourseRegistration'
+        401:
+          description: Authentication failed
+        403:
+          description: Forbidden - Course reg not available
+          schema:
+            type: string
+        440:
+          description: Session expired, login again
+
+    put:
+      tags: [Course Registration]
+      operationId: sms.course_reg.put
+      summary: Edit old course registration, requires elevated access
+      parameters:
+        - in: body
+          name: course_reg
+          schema:
+            $ref: '#/definitions/CourseRegistration'
+      responses:
+        200:
+          description: Success
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+
+  /course_reg_old:
+    get:
+      tags: [Course Registration]
+      operationId: sms.course_reg.get_old
+      summary: Get previous course registration
+      parameters:
+        - in: query
+          name: mat_no
+          type: string
+          required: true
+        - in: query
+          name: acad_session
+          type: integer
+          required: true
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/CourseRegistration'
+        401:
+          description: Authentication failed
+        403:
+          description: Forbidden - Course reg not available
+          schema:
+            type: string
+        404:
+          description: Course reg not found
         440:
           description: Session expired, login again
 
@@ -534,32 +650,15 @@ definitions:
       options:
         type: integer
 
-  CourseRegistration_get:
+  CourseRegistration:
     type: object
     properties:
+      mat_no:
+        type: string
       personal_info:
         type: object
         properties:
-          surname:
-            type: string
-          othernames:
-            type: string
-          depat:
-            type: string
-          mode_of_entry:
-            type: string
-          current_level:
-            type: string
-          phone_no:
-            type: string
-          sex:
-            type: string
-          email:
-            type: string
-          state_of_origin:
-            type: string
-          lga_of_origin:
-            type: string
+          items: {}
       table_to_populate:
         type: string
       course_reg_session:
@@ -594,39 +693,6 @@ definitions:
             items:
               type: array
               items: {}
-      probation_status:
-        type: integer
-      fees_status:
-        type: integer
-      others:
-        type: string
-      error:
-        type: string
-
-  CourseRegistration_post:
-    type: object
-    properties:
-      mat_no:
-        type: string
-      table_to_populate:
-        type: string
-      course_reg_session:
-        type: integer
-      course_reg_level:
-        type: integer
-      max_credits:
-        type: integer
-      courses:
-        type: object
-        properties:
-          first_sem:
-            type: array
-            items:
-              type: string
-          second_sem:
-            type: array
-            items:
-              type: string
       probation_status:
         type: integer
       fees_status:
@@ -672,3 +738,17 @@ definitions:
         type: string
       email:
         type: string
+
+  Level_Gpa_Cards_get:
+    type: array
+    items:
+      type: object
+      properties:
+        mat_no:
+          type: string
+        name:
+          type: string
+        gpas:
+          type: array
+        cgpa:
+          type: number
