@@ -1,58 +1,92 @@
 from sms.config import db, bcrypt
-from sms.users import access_decorator
+from sms.users import access_decorator, accounts_decorator
 from sms.models.user import User, UserSchema
 
-perm_title = {
-    '{"read": true, "write": true, "superuser": true, "levels": [100, 200, 300, 400, 500, 600]}': 'Head of department',
-    '{"read": true, "write": true, "superuser": false, "levels": [100, 200, 300, 400, 500, 600]}': 'Exam officer',
-    '{"read": true, "write": true, "superuser": false, "levels": [100]}': '100 level course adviser',
-    '{"read": true, "write": true, "superuser": false, "levels": [200]}': '200 level course adviser',
-    '{"read": true, "write": true, "superuser": false, "levels": [300]}': '300 level course adviser',
-    '{"read": true, "write": true, "superuser": false, "levels": [400]}': '400 level course adviser',
-    '{"read": true, "write": true, "superuser": false, "levels": [500]}': '500 level course adviser',
-    '{"read": true, "write": true, "superuser": false, "levels": [600]}': '500 level course adviser(2)',
-    '{"read": true, "write": false, "superuser": false, "levels": [100, 200, 300, 400, 500, 600]}': 'Secretary',
-}
+
+all_fields = {"username", "password", "permissions", "title", "fullname", "email"}
+required = {"username", "password", "permissions", "title", "fullname", "email"}
 
 
-@access_decorator
-def get():
-    all_users = User.query.all()
-    user_schema = UserSchema(many=True)
+@accounts_decorator
+def get(username=None):
     accounts = []
-    for user in user_schema.dump(all_users):
-        title = perm_title[user.pop('permissions')]
-        user['title'] = title
+    if username == None:
+        users = User.query.all()
+    else:
+        users = [User.query.filter_by(username=username).first()]
+    for user in UserSchema(many=True).dump(users):
         accounts.append(user)
-
+    if username and not user:
+        return accounts, 404
     return accounts, 200
 
 
-@access_decorator
+@accounts_decorator
 def post(data):
-    title = data.pop('title')
-    password = data.pop('password')
-    data['permissions'] = [key for key, val in perm_title.items() if val == title][0]
-    data['user_id'] = User.query.count() + 1
-    user_schema = UserSchema()
-    new_user = user_schema.load(data)
-    new_user.password = bcrypt.generate_password_hash(password)
+    if not all([data.get(prop) for prop in required]) or (data.keys() - all_fields):
+        # Empty value supplied or Invalid field supplied or Missing field present
+        return None, 400
+    # TODO not recv this in plain-text
+    hashed_password = bcrypt.generate_password_hash(data["password"]).decode("utf-8")
+    data["password"] = hashed_password
+    if User.query.filter(
+        (User.username == data["username"]) | (User.title == data["title"])
+    ).first():
+        # username or title already taken
+        return None, 400
+    new_user = UserSchema().load(data)
     db.session.add(new_user)
     db.session.commit()
+    return None, 200
 
 
-@access_decorator
+@accounts_decorator
 def put(data):
-    uid = data['user_id']
-    password = data['password']
-    user = User.query.filter_by(user_id=uid).first()
-    user.password = bcrypt.generate_password_hash(password)
-    db.session.add(user)
-    db.session.commit()
+    if not all([data.get(prop) for prop in (required & data.keys())]) or (data.keys() - all_fields):
+        # Empty value supplied or Invalid field supplied
+        return None, 400
+    username, password = data.get("username"), data.get("password")
+    # TODO not recv password in plain text, do decode here
+    if not User.query.filter_by(username=username).first():
+        return None, 404
+    if password:
+        data["password"] = bcrypt.generate_password_hash(password).decode("utf-8")
+    User.query.filter_by(username=username).update(data)
+    try:
+        db.session.commit()
+    except:
+        # Duplicate title
+        return None, 400
+    return None, 200
 
 
-@access_decorator
-def delete(uid):
-    user = User.query.filter_by(user_id=uid).first()
+@accounts_decorator
+def manage(data):
+    if "permissions" in data:
+        data.pop("permissions")
+    if not all([data.get(prop) for prop in (required & data.keys())]) or (data.keys() - all_fields):
+        # Empty value supplied or Invalid field supplied
+        return None, 400
+    username, password = data.get("username"), data.get("password")
+    # TODO not recv password in plain text, do decode here
+    if not User.query.filter_by(username=username).first():
+        return None, 404
+    if password:
+        data["password"] = bcrypt.generate_password_hash(password).decode("utf-8")
+    User.query.filter_by(username=username).update(data)
+    try:
+        db.session.commit()
+    except:
+        # Duplicate title
+        return None, 400
+    return None, 200
+
+
+@accounts_decorator
+def delete(username):
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return None, 404
     db.session.delete(user)
     db.session.commit()
+    return None, 200

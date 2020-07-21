@@ -16,10 +16,12 @@ def get(mat_no, ret_JSON=True):
     return personalinfo_schema.dump(student_data)
 
 
-def post(student_data):
+def post(data):
+    # TODO add patch path for modifying properties
+    # TODO add retcode 400 for bad inputs and retcode 200
     global PersonalInfo, PersonalInfoSchema
 
-    session = int(student_data['session_admitted'])
+    session = int(data['session_admitted'])
     db_name = '{}_{}.db'.format(session, session + 1)
 
     try:
@@ -29,10 +31,10 @@ def post(student_data):
         abort(400)
     db_name = db_name.replace('_', '-')
     master_schema = MasterSchema()
-    master_model = master_schema.load({'mat_no': student_data['mat_no'], 'database': db_name})
+    master_model = master_schema.load({'mat_no': data['mat_no'], 'database': db_name})
     PersonalInfoSchema = locals()['PersonalInfoSchema']
     personalinfo_schema = PersonalInfoSchema()
-    student = personalinfo_schema.load(student_data)
+    student = personalinfo_schema.load(data)
     student.is_symlink = 0
     db.session.add(master_model)
     db.session.add(student)

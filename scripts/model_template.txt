@@ -11,7 +11,7 @@ class PersonalInfo(db.Model):
     mode_of_entry = db.Column('MODE_OF_ENTRY', db.Integer, nullable=False)
     session_admitted = db.Column('SESSION_ADMIT', db.Integer, nullable=False)
     session_grad = db.Column('SESSION_GRADUATED', db.Integer, nullable=True)
-    current_level = db.Column('CURRENT_LEVEL', db.Integer, nullable=True)
+    level = db.Column('CURRENT_LEVEL', db.Integer, nullable=True)
     option = db.Column('OPTION', db.String(20), nullable=True)
     sex = db.Column('SEX', db.String(1), nullable=False)
     date_of_birth = db.Column('DATE_OF_BIRTH', db.String(10), nullable=False)
