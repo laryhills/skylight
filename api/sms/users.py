@@ -135,13 +135,8 @@ def log(user, qual_name, func, args, kwargs):
 
 ## UTILS functions
 
-lastLoaded = None
-
 def load_session(session):
     exec('from sms.models import _{}'.format(session))
-    for prop in dir(eval("_"+session)):
-        if prop.endswith(session):
-            exec("_{}.{} = _{}.{}".format(session, prop[:-10], session, prop))
     return eval('_{}'.format(session))
 
 
