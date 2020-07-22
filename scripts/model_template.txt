@@ -7,10 +7,9 @@ Base = declarative_base()
 Base.query = session.query_property()
 
 
-class PersonalInfo##NAME_2##(Base):
+class PersonalInfo(Base):
     __bind_key__ = '##NAME##'
     __tablename__ = 'PersonalInfo'
-    __table_args__ = {'extend_existing': True}
     mat_no = db.Column('MATNO', db.String(10), primary_key=True, unique=True)
     surname = db.Column('SURNAME', db.Text, nullable=False)
     othernames = db.Column('OTHERNAMES', db.Text, nullable=False)
@@ -32,18 +31,16 @@ class PersonalInfo##NAME_2##(Base):
     database = db.Column('DATABASE', db.String(12), nullable=False)
 
 
-class SymLink##NAME_2##(Base):
+class SymLink(Base):
     __bind_key__ = '##NAME##'
     __tablename__ = 'SymLink'
-    __table_args__ = {'extend_existing': True}
     mat_no = db.Column('MATNO', db.String(10), primary_key=True, unique=True)
     database = db.Column('DATABASE', db.String(12), nullable=False)
 
 
-class Result100##NAME_2##(Base):
+class Result100(Base):
     __bind_key__ = '##NAME##'
     __tablename__ = 'Result100'
-    __table_args__ = {'extend_existing': True}
     mat_no = db.Column('MATNO', db.String(10), primary_key=True)
     CHM111 = db.Column(db.Text)
     CHM113 = db.Column(db.Text)
@@ -70,10 +67,9 @@ class Result100##NAME_2##(Base):
     unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
-class Result200##NAME_2##(Base):
+class Result200(Base):
     __bind_key__ = '##NAME##'
     __tablename__ = 'Result200'
-    __table_args__ = {'extend_existing': True}
     mat_no = db.Column('MATNO', db.String(10), primary_key=True)
     CHE222 = db.Column(db.Text)
     CVE211 = db.Column(db.Text)
@@ -99,10 +95,9 @@ class Result200##NAME_2##(Base):
     unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
-class Result300##NAME_2##(Base):
+class Result300(Base):
     __bind_key__ = '##NAME##'
     __tablename__ = 'Result300'
-    __table_args__ = {'extend_existing': True}
     mat_no = db.Column('MATNO', db.String(10), primary_key=True)
     CVE311 = db.Column(db.Text)
     EEE317 = db.Column(db.Text)
@@ -131,10 +126,9 @@ class Result300##NAME_2##(Base):
     unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
-class Result400##NAME_2##(Base):
+class Result400(Base):
     __bind_key__ = '##NAME##'
     __tablename__ = 'Result400'
-    __table_args__ = {'extend_existing': True}
     mat_no = db.Column('MATNO', db.String(10), primary_key=True)
     CED300 = db.Column(db.Text)
     ELA401 = db.Column(db.Text)
@@ -155,10 +149,9 @@ class Result400##NAME_2##(Base):
     unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
-class Result500##NAME_2##(Base):
+class Result500(Base):
     __bind_key__ = '##NAME##'
     __tablename__ = 'Result500'
-    __table_args__ = {'extend_existing': True}
     mat_no = db.Column('MATNO', db.String(10), primary_key=True)
     MEE501 = db.Column(db.Text)
     MEE502 = db.Column(db.Text)
@@ -192,10 +185,9 @@ class Result500##NAME_2##(Base):
     unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
-class Result600##NAME_2##(Base):
+class Result600(Base):
     __bind_key__ = '##NAME##'
     __tablename__ = 'Result600'
-    __table_args__ = {'extend_existing': True}
     mat_no = db.Column('MATNO', db.String(10), primary_key=True)
     level = db.Column('LEVEL', db.Integer)
     session = db.Column('SESSION', db.Integer)
@@ -205,10 +197,9 @@ class Result600##NAME_2##(Base):
     unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
-class Result700##NAME_2##(Base):
+class Result700(Base):
     __bind_key__ = '##NAME##'
     __tablename__ = 'Result700'
-    __table_args__ = {'extend_existing': True}
     mat_no = db.Column('MATNO', db.String(10), primary_key=True)
     level = db.Column('LEVEL', db.Integer)
     session = db.Column('SESSION', db.Integer)
@@ -218,10 +209,9 @@ class Result700##NAME_2##(Base):
     unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
-class Result800##NAME_2##(Base):
+class Result800(Base):
     __bind_key__ = '##NAME##'
     __tablename__ = 'Result800'
-    __table_args__ = {'extend_existing': True}
     mat_no = db.Column('MATNO', db.String(10), primary_key=True)
     level = db.Column('LEVEL', db.Integer)
     session = db.Column('SESSION', db.Integer)
@@ -231,10 +221,9 @@ class Result800##NAME_2##(Base):
     unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
-class Courses##NAME_2##(Base):
+class Courses(Base):
     __bind_key__ = '##NAME##'
     __tablename__ = 'Courses'
-    __table_args__ = {'extend_existing': True}
     mode_of_entry = db.Column('MODE_OF_ENTRY', db.Integer, primary_key=True)
     level100 = db.Column('LEVEL100', db.Text)
     level200 = db.Column('LEVEL200', db.Text)
@@ -243,10 +232,9 @@ class Courses##NAME_2##(Base):
     level500 = db.Column('LEVEL500', db.Text)
 
 
-class Credits##NAME_2##(Base):
+class Credits(Base):
     __bind_key__ = '##NAME##'
     __tablename__ = 'Credits'
-    __table_args__ = {'extend_existing': True}
     mode_of_entry = db.Column('MODE_OF_ENTRY', db.Integer, primary_key=True)
     level100 = db.Column('LEVEL100', db.Integer)
     level200 = db.Column('LEVEL200', db.Integer)
@@ -255,10 +243,9 @@ class Credits##NAME_2##(Base):
     level500 = db.Column('LEVEL500', db.Integer)
 
 
-class GPA_Credits##NAME_2##(Base):
+class GPA_Credits(Base):
     __bind_key__ = '##NAME##'
     __tablename__ = 'GPA_CREDITS'
-    __table_args__ = {'extend_existing': True}
     mat_no = db.Column('MATNO', db.String(10), primary_key=True)
     level100 = db.Column('LEVEL100', db.Text)
     level200 = db.Column('LEVEL200', db.Text)
@@ -268,25 +255,22 @@ class GPA_Credits##NAME_2##(Base):
     cgpa = db.Column('CGPA', db.Float(precision=4, asdecimal=True))
 
 
-class GradingRule##NAME_2##(Base):
+class GradingRule(Base):
     __bind_key__ = '##NAME##'
     __tablename__ = 'GradingRule'
-    __table_args__ = {'extend_existing': True}
     rule = db.Column('Rule', db.Text, primary_key=True)
 
 
-class DegreeClass##NAME_2##(Base):
+class DegreeClass(Base):
     __bind_key__ = '##NAME##'
     __tablename__ = 'DegreeClass'
-    __table_args__ = {'extend_existing': True}
     cls = db.Column('Class', db.Text, primary_key=True)
     limits = db.Column('Limits', db.Text)
 
 
-class CourseReg100##NAME_2##(Base):
+class CourseReg100(Base):
     __bind_key__ = '##NAME##'
     __tablename__ = 'CourseReg100'
-    __table_args__ = {'extend_existing': True}
     mat_no = db.Column('MATNO', db.String(10), primary_key=True)
     CHM111 = db.Column(db.Text)
     CHM113 = db.Column(db.Text)
@@ -314,10 +298,9 @@ class CourseReg100##NAME_2##(Base):
     others = db.Column('OTHERS', db.Text)
 
 
-class CourseReg200##NAME_2##(Base):
+class CourseReg200(Base):
     __bind_key__ = '##NAME##'
     __tablename__ = 'CourseReg200'
-    __table_args__ = {'extend_existing': True}
     mat_no = db.Column('MATNO', db.String(10), primary_key=True)
     CHE222 = db.Column(db.Text)
     CVE211 = db.Column(db.Text)
@@ -344,10 +327,9 @@ class CourseReg200##NAME_2##(Base):
     others = db.Column('OTHERS', db.Text)
 
 
-class CourseReg300##NAME_2##(Base):
+class CourseReg300(Base):
     __bind_key__ = '##NAME##'
     __tablename__ = 'CourseReg300'
-    __table_args__ = {'extend_existing': True}
     mat_no = db.Column('MATNO', db.String(10), primary_key=True)
     CVE311 = db.Column(db.Text)
     EEE317 = db.Column(db.Text)
@@ -377,10 +359,9 @@ class CourseReg300##NAME_2##(Base):
     others = db.Column('OTHERS', db.Text)
 
 
-class CourseReg400##NAME_2##(Base):
+class CourseReg400(Base):
     __bind_key__ = '##NAME##'
     __tablename__ = 'CourseReg400'
-    __table_args__ = {'extend_existing': True}
     mat_no = db.Column('MATNO', db.String(10), primary_key=True)
     CED300 = db.Column(db.Text)
     ELA401 = db.Column(db.Text)
@@ -402,10 +383,9 @@ class CourseReg400##NAME_2##(Base):
     others = db.Column('OTHERS', db.Text)
 
 
-class CourseReg500##NAME_2##(Base):
+class CourseReg500(Base):
     __bind_key__ = '##NAME##'
     __tablename__ = 'CourseReg500'
-    __table_args__ = {'extend_existing': True}
     mat_no = db.Column('MATNO', db.String(10), primary_key=True)
     MEE501 = db.Column(db.Text)
     MEE502 = db.Column(db.Text)
@@ -440,10 +420,9 @@ class CourseReg500##NAME_2##(Base):
     others = db.Column('OTHERS', db.Text)
 
 
-class CourseReg600##NAME_2##(Base):
+class CourseReg600(Base):
     __bind_key__ = '##NAME##'
     __tablename__ = 'CourseReg600'
-    __table_args__ = {'extend_existing': True}
     mat_no = db.Column('MATNO', db.String(10), primary_key=True)
     level = db.Column('LEVEL', db.Integer)
     session = db.Column('SESSION', db.Integer)
@@ -454,10 +433,9 @@ class CourseReg600##NAME_2##(Base):
     others = db.Column('OTHERS', db.Text)
 
 
-class CourseReg700##NAME_2##(Base):
+class CourseReg700(Base):
     __bind_key__ = '##NAME##'
     __tablename__ = 'CourseReg700'
-    __table_args__ = {'extend_existing': True}
     mat_no = db.Column('MATNO', db.String(10), primary_key=True)
     level = db.Column('LEVEL', db.Integer)
     session = db.Column('SESSION', db.Integer)
@@ -468,10 +446,9 @@ class CourseReg700##NAME_2##(Base):
     others = db.Column('OTHERS', db.Text)
 
 
-class CourseReg800##NAME_2##(Base):
+class CourseReg800(Base):
     __bind_key__ = '##NAME##'
     __tablename__ = 'CourseReg800'
-    __table_args__ = {'extend_existing': True}
     mat_no = db.Column('MATNO', db.String(10), primary_key=True)
     level = db.Column('LEVEL', db.Integer)
     session = db.Column('SESSION', db.Integer)
@@ -482,128 +459,128 @@ class CourseReg800##NAME_2##(Base):
     others = db.Column('OTHERS', db.Text)
 
 
-class PersonalInfoSchema##NAME_2##(ma.ModelSchema):
+class PersonalInfoSchema(ma.ModelSchema):
     class Meta:
-        model = PersonalInfo##NAME_2##
+        model = PersonalInfo
         exclude = ('is_symlink', 'database')
         sqla_session = db.session
 
 
-class Result100Schema##NAME_2##(ma.ModelSchema):
+class Result100Schema(ma.ModelSchema):
     class Meta:
-        model = Result100##NAME_2##
+        model = Result100
         sqla_session = db.session
 
 
-class Result200Schema##NAME_2##(ma.ModelSchema):
+class Result200Schema(ma.ModelSchema):
     class Meta:
-        model = Result200##NAME_2##
+        model = Result200
         sqla_session = db.session
 
 
-class Result300Schema##NAME_2##(ma.ModelSchema):
+class Result300Schema(ma.ModelSchema):
     class Meta:
-        model = Result300##NAME_2##
+        model = Result300
         sqla_session = db.session
 
 
-class Result400Schema##NAME_2##(ma.ModelSchema):
+class Result400Schema(ma.ModelSchema):
     class Meta:
-        model = Result400##NAME_2##
+        model = Result400
         sqla_session = db.session
 
 
-class Result500Schema##NAME_2##(ma.ModelSchema):
+class Result500Schema(ma.ModelSchema):
     class Meta:
-        model = Result500##NAME_2##
+        model = Result500
         sqla_session = db.session
 
 
-class Result600Schema##NAME_2##(ma.ModelSchema):
+class Result600Schema(ma.ModelSchema):
     class Meta:
-        model = Result600##NAME_2##
+        model = Result600
         sqla_session = db.session
 
 
-class Result700Schema##NAME_2##(ma.ModelSchema):
+class Result700Schema(ma.ModelSchema):
     class Meta:
-        model = Result700##NAME_2##
+        model = Result700
         sqla_session = db.session
 
 
-class Result800Schema##NAME_2##(ma.ModelSchema):
+class Result800Schema(ma.ModelSchema):
     class Meta:
-        model = Result800##NAME_2##
+        model = Result800
         sqla_session = db.session
 
 
 class ResultSchema(ma.ModelSchema):
     class Meta:
-        model = Result600##NAME_2##
+        model = Result600
         sqla_session = db.session
 
 
-class CoursesSchema##NAME_2##(ma.ModelSchema):
+class CoursesSchema(ma.ModelSchema):
     class Meta:
-        model = Courses##NAME_2##
+        model = Courses
         sqla_session = db.session
 
 
-class CreditsSchema##NAME_2##(ma.ModelSchema):
+class CreditsSchema(ma.ModelSchema):
     class Meta:
-        model = Credits##NAME_2##
+        model = Credits
         sqla_session = db.session
 
 
-class GPACreditsSchema##NAME_2##(ma.ModelSchema):
+class GPACreditsSchema(ma.ModelSchema):
     class Meta:
-        model = GPA_Credits##NAME_2##
+        model = GPA_Credits
         sqla_session = db.session
 
 
-class CourseReg100Schema##NAME_2##(ma.ModelSchema):
+class CourseReg100Schema(ma.ModelSchema):
     class Meta:
-        model = CourseReg100##NAME_2##
+        model = CourseReg100
         sqla_session = db.session
 
 
-class CourseReg200Schema##NAME_2##(ma.ModelSchema):
+class CourseReg200Schema(ma.ModelSchema):
     class Meta:
-        model = CourseReg200##NAME_2##
+        model = CourseReg200
         sqla_session = db.session
 
 
-class CourseReg300Schema##NAME_2##(ma.ModelSchema):
+class CourseReg300Schema(ma.ModelSchema):
     class Meta:
-        model = CourseReg300##NAME_2##
+        model = CourseReg300
         sqla_session = db.session
 
 
-class CourseReg400Schema##NAME_2##(ma.ModelSchema):
+class CourseReg400Schema(ma.ModelSchema):
     class Meta:
-        model = CourseReg400##NAME_2##
+        model = CourseReg400
         sqla_session = db.session
 
 
-class CourseReg500Schema##NAME_2##(ma.ModelSchema):
+class CourseReg500Schema(ma.ModelSchema):
     class Meta:
-        model = CourseReg500##NAME_2##
+        model = CourseReg500
         sqla_session = db.session
 
 
-class CourseReg600Schema##NAME_2##(ma.ModelSchema):
+class CourseReg600Schema(ma.ModelSchema):
     class Meta:
-        model = CourseReg600##NAME_2##
+        model = CourseReg600
         sqla_session = db.session
 
 
-class CourseReg700Schema##NAME_2##(ma.ModelSchema):
+class CourseReg700Schema(ma.ModelSchema):
     class Meta:
-        model = CourseReg700##NAME_2##
+        model = CourseReg700
         sqla_session = db.session
 
 
-class CourseReg800Schema##NAME_2##(ma.ModelSchema):
+class CourseReg800Schema(ma.ModelSchema):
     class Meta:
-        model = CourseReg800##NAME_2##
+        model = CourseReg800
         sqla_session = db.session
