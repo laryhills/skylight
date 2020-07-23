@@ -250,7 +250,7 @@ fn_props = {
     "course_reg.post": {"perms": {"levels", "write"},# Done
                         "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
                         },
-    "course_reg.put": {"perms": {"superuser", "write"},
+    "course_reg.put": {"perms": {"superuser", "write"},# Done
                        "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
                        },
     "results.get": {"perms": {"levels", "read"},# Done - partly (handle acad session)
