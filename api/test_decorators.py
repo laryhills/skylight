@@ -195,7 +195,7 @@ def test_senate_version_get():
             has_access = 200
         else:
             has_access = 401
-        output, ret_code = accounts_decorator(dummy_accounts_fn)(acad_session="2019")
+        output, ret_code = accounts_decorator(dummy_accounts_fn)(acad_session=2019)
         assert has_access == ret_code
 
 
@@ -224,6 +224,20 @@ def test_result_get():
         else:
             has_access = 401
         output, ret_code = access_decorator(dummy_access_fn)(mat_no=student_400)
+        assert has_access == ret_code
+
+
+def test_course_reg_get():
+    # Levels and read perms
+    dummy_access_fn.__module__ = "course_reg"
+    dummy_access_fn.__name__ = "get"
+    for perms in perms_list:
+        config.add_token("TESTING_token", username, perms)
+        if perms.get("read") and (400 in perms.get("levels", []) or perms.get("superuser")):
+            has_access = 200
+        else:
+            has_access = 401
+        output, ret_code = access_decorator(dummy_access_fn)(mat_no=student_400, acad_session=2019)
         assert has_access == ret_code
 
 
