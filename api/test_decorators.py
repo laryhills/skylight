@@ -323,3 +323,45 @@ def test_course_form_get():
             has_access = 401
         output, ret_code = access_decorator(dummy_access_fn)(mat_no=student_400)
         assert has_access == ret_code
+
+
+def test_course_details_post():
+    # Superuser and write perms
+    dummy_access_fn.__module__ = "course_details"
+    dummy_access_fn.__name__ = "post"
+    for perms in perms_list:
+        config.add_token("TESTING_token", username, perms)
+        if perms.get("write") and perms.get("superuser"):
+            has_access = 200
+        else:
+            has_access = 401
+        output, ret_code = access_decorator(dummy_access_fn)()
+        assert has_access == ret_code
+
+
+def test_course_details_put():
+    # Superuser and write perms
+    dummy_access_fn.__module__ = "course_details"
+    dummy_access_fn.__name__ = "put"
+    for perms in perms_list:
+        config.add_token("TESTING_token", username, perms)
+        if perms.get("write") and perms.get("superuser"):
+            has_access = 200
+        else:
+            has_access = 401
+        output, ret_code = access_decorator(dummy_access_fn)()
+        assert has_access == ret_code
+
+
+def test_course_details_delete():
+    # Superuser and write perms
+    dummy_access_fn.__module__ = "course_details"
+    dummy_access_fn.__name__ = "delete"
+    for perms in perms_list:
+        config.add_token("TESTING_token", username, perms)
+        if perms.get("write") and perms.get("superuser"):
+            has_access = 200
+        else:
+            has_access = 401
+        output, ret_code = access_decorator(dummy_access_fn)()
+        assert has_access == ret_code

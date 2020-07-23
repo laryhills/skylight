@@ -214,10 +214,10 @@ login(my_token)
 
 ## Function mapping to perms and logs
 fn_props = {
-    "personal_dets.get": {"perms": {"levels", "read"}, # Done
+    "personal_dets.get": {"perms": {"levels", "read"},
                           "logs": lambda user, params: "{} requested personal details of {}".format(user, params.get("mat_no"))
                         },
-    "personal_dets.post": {"perms": {"levels", "write"}, # Done
+    "personal_dets.post": {"perms": {"levels", "write"},
                            "logs": lambda user, params: "{} added personal details for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
                         },
     "course_details.post": {"perms": {"superuser", "write"},
@@ -229,52 +229,52 @@ fn_props = {
     "course_details.delete": {"perms": {"superuser", "write"},
                               "logs": lambda user, params: "{} deleted course {}:-\n{}".format(user, params.get("course_code"), dict_render(params))
                         },
-    "result_update.get": {"perms": {"levels", "read"},# Done
+    "result_update.get": {"perms": {"levels", "read"},
                           "logs": lambda user, params: "{} requested result update for {}".format(user, params.get("mat_no"))
                         },
-    "course_form.get": {"perms": {"levels", "read"},# Done
+    "course_form.get": {"perms": {"levels", "read"},
                         "logs": lambda user, params: "{} requested course form for {}".format(user, params.get("mat_no"))
                         },
-    "course_reg.get": {"perms": {"levels", "read"},# Done
+    "course_reg.get": {"perms": {"levels", "read"},
                            "logs": lambda user, params: "{} queried course registration for {}".format(user, params.get("mat_no"))
                         },
-    "course_reg.init_new": {"perms": {"levels", "read"},# Done
+    "course_reg.init_new": {"perms": {"levels", "read"},
                            "logs": lambda user, params: "{} queried course registration for {}".format(user, params.get("mat_no"))
                         },
-    "course_reg.post": {"perms": {"levels", "write"},# Done
+    "course_reg.post": {"perms": {"levels", "write"},
                         "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
                         },
-    "course_reg.put": {"perms": {"superuser", "write"},# Done
+    "course_reg.put": {"perms": {"superuser", "write"},
                        "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
                        },
-    "results.get": {"perms": {"levels", "read"},# Done - partly (handle acad session)
+    "results.get": {"perms": {"levels", "read"},
                     "logs": lambda user, params: "{} queried results for {}".format(user, params.get("mat_no"))
                     },
     "results.post": {"perms": {"levels", "write"},
                      "logs": lambda user, params: "{} added {} result entries:-\n{}".format(user, len(params.get("list_of_results")), dict_render(params))
                      },
-    "logs.get": {"perms": {"read"},# Done
+    "logs.get": {"perms": {"read"},
                  "logs": lambda user, params: "{} requested logs".format(user)
                  },
-    "accounts.get": {"perms": {"usernames", "read"},# Done
+    "accounts.get": {"perms": {"usernames", "read"},
                      "logs": lambda user, params: "{} requested {} account details".format(user, params.get("username", "all"))
                  },
-    "accounts.post": {"perms": {"superuser", "write"},# Done
+    "accounts.post": {"perms": {"superuser", "write"},
                       "logs": lambda user, params: "{} added a new account with username {}".format(user, params.get("data").get("username"))
                      },
-    "accounts.put": {"perms": {"superuser", "write"},# Done
+    "accounts.put": {"perms": {"superuser", "write"},
                      "logs": lambda user, params: "{} modified {}'s account".format(user, params.get("data").get("username"))
                      },
-    "accounts.manage": {"perms": {"usernames", "write"},# Done
+    "accounts.manage": {"perms": {"usernames", "write"},
                      "logs": lambda user, params: "{} managed {}'s account".format(user, params.get("data").get("username"))
                      },
-    "accounts.delete": {"perms": {"superuser", "write"},# Done
+    "accounts.delete": {"perms": {"superuser", "write"},
                         "logs": lambda user, params: "{} deleted an account with username {}".format(user, params.get("username"))
                      },
-    "senate_version.get": {"perms": {"superuser", "read"},# Done
+    "senate_version.get": {"perms": {"superuser", "read"},
                            "logs": lambda user, params: "{} requested for the senate version for the {} session".format(user, params.get('acad_session'))
                      },
-    "gpa_cards.get": {"perms": {"levels", "read"},# Done
+    "gpa_cards.get": {"perms": {"levels", "read"},
                       "logs": lambda user, params: "{} requested for the {} level gpa card".format(user, params.get('level'))
                      },
 }
