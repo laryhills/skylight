@@ -40,7 +40,7 @@ def init_new(mat_no, acad_session=utils.get_current_session()):
     if check[1] != 200:
         return check
     else:
-        return get_new_course_reg_frame(*check[0])
+        return init_new_course_reg(*check[0])
 
 
 @access_decorator
@@ -49,7 +49,7 @@ def get(mat_no, acad_session):
     if acad_session != current_session:
         print('Elevated access to course_reg.get_new granted')
 
-    obj = get_old_course_reg(mat_no, acad_session)
+    obj = get_existing_course_reg(mat_no, acad_session)
     if obj[1] != 200:
         return obj
     old_course_reg = obj[0]
@@ -95,7 +95,7 @@ def check_registration_eligibility(mat_no, acad_session):
     return ret_obj, 200
 
 
-def get_new_course_reg_frame(mat_no, acad_session, table_to_populate, probation_status, s_personal_info):
+def init_new_course_reg(mat_no, acad_session, table_to_populate, probation_status, s_personal_info):
     current_level = utils.get_level(mat_no)
     first_sem_carryover_courses, second_sem_carryover_courses = course_reg_utils.fetch_carryovers(mat_no, current_level)
     mode_of_entry = s_personal_info.pop('mode_of_entry_numeric')
@@ -147,7 +147,7 @@ def get_new_course_reg_frame(mat_no, acad_session, table_to_populate, probation_
     return course_reg_frame, 200
 
 
-def get_old_course_reg(mat_no, acad_session, old_course_reg=None, s_personal_info=None):
+def get_existing_course_reg(mat_no, acad_session, old_course_reg=None, s_personal_info=None):
     if not s_personal_info: s_personal_info = course_reg_utils.process_personal_info(mat_no)
     if not old_course_reg:
         course_reg = utils.get_registered_courses(mat_no, level=None, true_levels=False)
