@@ -161,7 +161,7 @@ def get_level(mat_no, session=None):
         session = load_session(db_name)
     PersonalInfo = session.PersonalInfo
     student_data = PersonalInfo.query.filter_by(mat_no=mat_no).first()
-    current_level = student_data.level
+    current_level = student_data.current_level
     if current_level == 500:
         if student_data.is_symlink and student_data.grad_stats == 0:
             # Spillover students
@@ -241,20 +241,17 @@ fn_props = {
     "course_form.get": {"perms": {"levels", "read"},
                         "logs": lambda user, params: "{} requested course form for {}".format(user, params.get("mat_no"))
                         },
-    "course_reg.get_old": {"perms": {"levels", "read"},
+    "course_reg.get": {"perms": {"levels", "read"},
                            "logs": lambda user, params: "{} queried course registration for {}".format(user, params.get("mat_no"))
                         },
-    "course_reg.get_new": {"perms": {"levels", "read"},
+    "course_reg.init_new": {"perms": {"levels", "read"},
                            "logs": lambda user, params: "{} queried course registration for {}".format(user, params.get("mat_no"))
-                        },
-    "course_reg.get_old_for_edit": {"perms": {"read"},
-                                    "logs": lambda user, params: "{} queried course registration for {}".format(user, params.get("mat_no"))
                         },
     "course_reg.post": {"perms": {"levels", "write"},
-                        "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, params.get("course_reg").get("mat_no"), dict_render(params))
+                        "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
                         },
     "course_reg.put": {"perms": {"write"},
-                       "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, params.get("course_reg").get("mat_no"), dict_render(params))
+                       "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
                        },
     "results.get": {"perms": {"levels", "read"},# Done - partly (handle acad session)
                     "logs": lambda user, params: "{} queried results for {}".format(user, params.get("mat_no"))

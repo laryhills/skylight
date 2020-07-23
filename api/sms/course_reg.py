@@ -31,7 +31,7 @@ from sms.config import db
 
 
 @access_decorator
-def get_new(mat_no, acad_session=utils.get_current_session()):
+def init_new(mat_no, acad_session=utils.get_current_session()):
     current_session = utils.get_current_session()
     if acad_session != current_session:
         return 'You do not have authorization to perform course registration outside the current session', 401
@@ -44,12 +44,7 @@ def get_new(mat_no, acad_session=utils.get_current_session()):
 
 
 @access_decorator
-def get_old(mat_no, acad_session):
-    return get_old_course_reg(mat_no, acad_session)
-
-
-@access_decorator
-def get_old_for_edit(mat_no, acad_session):
+def get(mat_no, acad_session):
     current_session = utils.get_current_session()
     if acad_session != current_session:
         print('Elevated access to course_reg.get_new granted')
@@ -63,17 +58,17 @@ def get_old_for_edit(mat_no, acad_session):
 
 
 @access_decorator
-def post(course_reg):
+def post(data):
     current_session = utils.get_current_session()
-    if course_reg['course_reg_session'] != current_session:
+    if data['course_reg_session'] != current_session:
         return 'You do not have authorization to perform course registration outside the current session', 401
-    return post_course_reg(course_reg)
+    return post_course_reg(data)
 
 
 @access_decorator
-def put(course_reg):
+def put(data):
     print('Elevated course_reg write access granted')
-    return post_course_reg(course_reg)
+    return post_course_reg(data)
 
 
 def check_registration_eligibility(mat_no, acad_session):
@@ -182,17 +177,17 @@ def get_old_course_reg(mat_no, acad_session, old_course_reg=None, s_personal_inf
     return course_reg_frame, 200
 
 
-def post_course_reg(course_reg):
+def post_course_reg(data):
     courses = []
     tcr = [0, 0]
     for idx, sem in enumerate(['first_sem', 'second_sem']):
-        for course_obj in course_reg['courses'][sem]:
+        for course_obj in data['courses'][sem]:
             courses.append(course_obj[0])
             tcr[idx] += course_obj[2]
     courses = sorted(courses)
-    mat_no = course_reg['mat_no']
-    table_to_populate = course_reg['table_to_populate']
-    course_reg_session = course_reg['course_reg_session']
+    mat_no = data['mat_no']
+    table_to_populate = data['table_to_populate']
+    course_reg_session = data['course_reg_session']
     db_name = utils.get_DB(mat_no)[:-3]
     session = utils.load_session(db_name)
 
@@ -212,11 +207,11 @@ def post_course_reg(course_reg):
     registration['carryovers'] = ','.join(courses)
     registration['mat_no'] = mat_no
     registration['tcr'] = sum(tcr)
-    registration['level'] = course_reg['course_reg_level']
+    registration['level'] = data['course_reg_level']
     registration['session'] = course_reg_session
-    registration['probation'] = course_reg['probation_status']
-    registration['fees_status'] = course_reg['fees_status']
-    registration['others'] = course_reg['others']
+    registration['probation'] = data['probation_status']
+    registration['fees_status'] = data['fees_status']
+    registration['others'] = data['others']
 
     course_registration = course_reg_xxx_schema.load(registration)
     db.session.add(course_registration)
