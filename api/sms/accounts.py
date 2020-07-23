@@ -15,6 +15,7 @@ def get(username=None):
     else:
         users = [User.query.filter_by(username=username).first()]
     for user in UserSchema(many=True).dump(users):
+        user.pop("password")
         accounts.append(user)
     if username and not user:
         return accounts, 404
