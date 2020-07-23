@@ -68,7 +68,7 @@ def access_decorator(func):
         if "levels" in req_perms:
             params = get_kwargs(func, args, kwargs)
             level = params.get("level") or params.get("data", {}).get("level")
-            mat_no = params.get("mat_no")
+            mat_no = params.get("mat_no") or params.get("data", {}).get("mat_no")
             if mat_no and not level:
                 level = get_level(mat_no)
             has_access = False
@@ -247,10 +247,10 @@ fn_props = {
     "course_reg.init_new": {"perms": {"levels", "read"},# Done
                            "logs": lambda user, params: "{} queried course registration for {}".format(user, params.get("mat_no"))
                         },
-    "course_reg.post": {"perms": {"levels", "write"},
+    "course_reg.post": {"perms": {"levels", "write"},# Done
                         "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
                         },
-    "course_reg.put": {"perms": {"write"},
+    "course_reg.put": {"perms": {"superuser", "write"},
                        "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
                        },
     "results.get": {"perms": {"levels", "read"},# Done - partly (handle acad session)

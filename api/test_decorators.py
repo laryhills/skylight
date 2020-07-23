@@ -255,6 +255,20 @@ def test_course_reg_init_new():
         assert has_access == ret_code
 
 
+def test_course_reg_post():
+    # Levels and write perms
+    dummy_access_fn.__module__ = "course_reg"
+    dummy_access_fn.__name__ = "post"
+    for perms in perms_list:
+        config.add_token("TESTING_token", username, perms)
+        if perms.get("write") and (400 in perms.get("levels", []) or perms.get("superuser")):
+            has_access = 200
+        else:
+            has_access = 401
+        output, ret_code = access_decorator(dummy_access_fn)(data={"mat_no": student_400})
+        assert has_access == ret_code
+
+
 def test_gpa_cards_get():
     # Levels and read perms
     dummy_access_fn.__module__ = "gpa_cards"
