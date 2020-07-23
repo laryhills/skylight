@@ -244,7 +244,7 @@ fn_props = {
     "course_reg.get": {"perms": {"levels", "read"},# Done
                            "logs": lambda user, params: "{} queried course registration for {}".format(user, params.get("mat_no"))
                         },
-    "course_reg.init_new": {"perms": {"levels", "read"},
+    "course_reg.init_new": {"perms": {"levels", "read"},# Done
                            "logs": lambda user, params: "{} queried course registration for {}".format(user, params.get("mat_no"))
                         },
     "course_reg.post": {"perms": {"levels", "write"},
