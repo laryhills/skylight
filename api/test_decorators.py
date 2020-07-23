@@ -296,3 +296,30 @@ def test_gpa_cards_get():
         output, ret_code = access_decorator(dummy_access_fn)(level=400)
         assert has_access == ret_code
 
+
+def test_result_update_get():
+    # Levels and read perms
+    dummy_access_fn.__module__ = "result_update"
+    dummy_access_fn.__name__ = "get"
+    for perms in perms_list:
+        config.add_token("TESTING_token", username, perms)
+        if perms.get("read") and (400 in perms.get("levels", []) or perms.get("superuser")):
+            has_access = 200
+        else:
+            has_access = 401
+        output, ret_code = access_decorator(dummy_access_fn)(mat_no=student_400)
+        assert has_access == ret_code
+
+
+def test_course_form_get():
+    # Levels and read perms
+    dummy_access_fn.__module__ = "course_form"
+    dummy_access_fn.__name__ = "get"
+    for perms in perms_list:
+        config.add_token("TESTING_token", username, perms)
+        if perms.get("read") and (400 in perms.get("levels", []) or perms.get("superuser")):
+            has_access = 200
+        else:
+            has_access = 401
+        output, ret_code = access_decorator(dummy_access_fn)(mat_no=student_400)
+        assert has_access == ret_code

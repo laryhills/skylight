@@ -23,12 +23,10 @@ def get_course_details(course_code=None, level=None, use_curr_session=True):
         return get_all(level, use_curr_session=use_curr_session)
 
 
-@access_decorator
 def get_by_course_code(course_code):
     return [get(course_code, retJSON=False)], 200
 
 
-@access_decorator
 def get_all(level, use_curr_session=True):
     if use_curr_session:
         # curr_session = get_current_session()

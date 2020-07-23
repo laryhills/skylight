@@ -220,12 +220,6 @@ fn_props = {
     "personal_dets.post": {"perms": {"levels", "write"}, # Done
                            "logs": lambda user, params: "{} added personal details for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
                         },
-    "course_details.get_by_course_code": {"perms": {"read"},
-                                          "logs": lambda user, params: "{} requested details for {}".format(user, params.get("course_code"))
-                        },
-    "course_details.get_all": {"perms": {"superuser", "read"},
-                               "logs": lambda user, params: "{} requested all {} level courses".format(user, params.get("level"))
-                        },
     "course_details.post": {"perms": {"superuser", "write"},
                             "logs": lambda user, params: "{} added course {}:-\n{}".format(user, params.get("course_code"), dict_render(params))
                         },
@@ -235,10 +229,10 @@ fn_props = {
     "course_details.delete": {"perms": {"superuser", "write"},
                               "logs": lambda user, params: "{} deleted course {}:-\n{}".format(user, params.get("course_code"), dict_render(params))
                         },
-    "result_update.get": {"perms": {"levels", "read"},
+    "result_update.get": {"perms": {"levels", "read"},# Done
                           "logs": lambda user, params: "{} requested result update for {}".format(user, params.get("mat_no"))
                         },
-    "course_form.get": {"perms": {"levels", "read"},
+    "course_form.get": {"perms": {"levels", "read"},# Done
                         "logs": lambda user, params: "{} requested course form for {}".format(user, params.get("mat_no"))
                         },
     "course_reg.get": {"perms": {"levels", "read"},# Done
