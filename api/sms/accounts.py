@@ -1,3 +1,4 @@
+from sqlalchemy.exc import IntegrityError
 from sms.config import db, bcrypt
 from sms.users import access_decorator, accounts_decorator
 from sms.models.user import User, UserSchema
@@ -15,10 +16,10 @@ def get(username=None):
     else:
         users = [User.query.filter_by(username=username).first()]
     for user in UserSchema(many=True).dump(users):
-        user.pop("password")
+        user.pop("password", None)
         accounts.append(user)
     if username and not user:
-        return accounts, 404
+        return "Invalid username", 404
     return accounts, 200
 
 
@@ -26,7 +27,7 @@ def get(username=None):
 def post(data):
     if not all([data.get(prop) for prop in required]) or (data.keys() - all_fields):
         # Empty value supplied or Invalid field supplied or Missing field present
-        return None, 400
+        return "Invalid field supplied or missing a compulsory field", 400
     # TODO not recv this in plain-text
     hashed_password = bcrypt.generate_password_hash(data["password"]).decode("utf-8")
     data["password"] = hashed_password
@@ -34,7 +35,7 @@ def post(data):
         (User.username == data["username"]) | (User.title == data["title"])
     ).first():
         # username or title already taken
-        return None, 400
+        return "Username or title already taken", 400
     new_user = UserSchema().load(data)
     db.session.add(new_user)
     db.session.commit()
@@ -45,19 +46,19 @@ def post(data):
 def put(data):
     if not all([data.get(prop) for prop in (required & data.keys())]) or (data.keys() - all_fields):
         # Empty value supplied or Invalid field supplied
-        return None, 400
+        return "Invalid field supplied", 400
     username, password = data.get("username"), data.get("password")
     # TODO not recv password in plain text, do decode here
     if not User.query.filter_by(username=username).first():
-        return None, 404
+        return "Invalid username", 404
     if password:
         data["password"] = bcrypt.generate_password_hash(password).decode("utf-8")
-    User.query.filter_by(username=username).update(data)
     try:
+        User.query.filter_by(username=username).update(data)
         db.session.commit()
-    except:
+    except IntegrityError:
         # Duplicate title
-        return None, 400
+        return "Duplicate title supplied", 400
     return None, 200
 
 
@@ -67,19 +68,19 @@ def manage(data):
         data.pop("permissions")
     if not all([data.get(prop) for prop in (required & data.keys())]) or (data.keys() - all_fields):
         # Empty value supplied or Invalid field supplied
-        return None, 400
+        return "Invalid field supplied", 400
     username, password = data.get("username"), data.get("password")
     # TODO not recv password in plain text, do decode here
     if not User.query.filter_by(username=username).first():
-        return None, 404
+        return "Invalid username", 404
     if password:
         data["password"] = bcrypt.generate_password_hash(password).decode("utf-8")
-    User.query.filter_by(username=username).update(data)
     try:
+        User.query.filter_by(username=username).update(data)
         db.session.commit()
-    except:
+    except IntegrityError:
         # Duplicate title
-        return None, 400
+        return "Duplicate title supplied", 400
     return None, 200
 
 
@@ -87,7 +88,7 @@ def manage(data):
 def delete(username):
     user = User.query.filter_by(username=username).first()
     if not user:
-        return None, 404
+        return "Invalid username", 404
     db.session.delete(user)
     db.session.commit()
     return None, 200
