@@ -53,12 +53,12 @@ def put(data):
         return "Invalid username", 404
     if password:
         data["password"] = bcrypt.generate_password_hash(password).decode("utf-8")
-    try:
-        User.query.filter_by(username=username).update(data)
-        db.session.commit()
-    except IntegrityError:
-        # Duplicate title
-        return "Duplicate title supplied", 400
+    if "title" in data:
+        user = User.query.filter_by(title=data["title"]).first()
+        if user and user.username != username:
+            return "Duplicate title supplied", 400
+    User.query.filter_by(username=username).update(data)
+    db.session.commit()
     return None, 200
 
 
@@ -75,12 +75,12 @@ def manage(data):
         return "Invalid username", 404
     if password:
         data["password"] = bcrypt.generate_password_hash(password).decode("utf-8")
-    try:
-        User.query.filter_by(username=username).update(data)
-        db.session.commit()
-    except IntegrityError:
-        # Duplicate title
-        return "Duplicate title supplied", 400
+    if "title" in data:
+        user = User.query.filter_by(title=data["title"]).first()
+        if user and user.username != username:
+            return "Duplicate title supplied", 400
+    User.query.filter_by(username=username).update(data)
+    db.session.commit()
     return None, 200
 
 
