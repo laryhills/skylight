@@ -67,15 +67,20 @@ def test_post_new_account():
 
 def test_post_errors():
     dummy_acct = acct_base.copy()
+    dummy_acct["extra_field"] = "extra"
+    output, ret_code = accounts.post(data=dummy_acct)
+    # Ensure no extra unnecessary field
+    assert (output, ret_code) == ("Invalid field supplied or missing a compulsory field", 400)
+    dummy_acct.pop("extra_field")
     for prop in accounts.required:
         tmp = dummy_acct.pop(prop)
         output, ret_code = accounts.post(data=dummy_acct)
         # Required field missing
-        assert ret_code == 400
+        assert (output, ret_code) == ("Invalid field supplied or missing a compulsory field", 400)
         dummy_acct[prop] = ""
         output, ret_code = accounts.post(data=dummy_acct)
         # Required field present but empty
-        assert ret_code == 400
+        assert (output, ret_code) == ("Invalid field supplied or missing a compulsory field", 400)
         dummy_acct[prop] = tmp
     non_duplicates = ["username", "title"]
     for prop in non_duplicates:
@@ -84,7 +89,7 @@ def test_post_errors():
         dummy_acct[prop] = value
         output, ret_code = accounts.post(data=dummy_acct)
         # username or title taken
-        assert ret_code == 400
+        assert (output, ret_code) == ("Username or title already taken", 400)
 
 
 def test_delete_account():
@@ -108,6 +113,33 @@ def test_put_account():
     dummy_acct.pop("password")
     for prop in dummy_acct:
         assert dummy_acct[prop] == user_row[prop]
+    delete_account(dummy_acct["username"])
+
+
+def test_put_errors():
+    dummy_acct = acct_base.copy()
+    insert_account((dummy_acct["username"], "somepwdhash", "{}", "Put Test", "Putin Vlad", "vlad@put.in"))
+    dummy_acct["extra_field"] = "extra"
+    output, ret_code = accounts.put(data=dummy_acct)
+    assert (output, ret_code) == ("Invalid field supplied", 400)
+    dummy_acct.pop("extra_field")
+    for prop in accounts.required & dummy_acct.keys():
+        tmp = dummy_acct.pop(prop)
+        dummy_acct[prop] = ""
+        output, ret_code = accounts.put(data=dummy_acct)
+        # Required field present but empty
+        assert (output, ret_code) == ("Invalid field supplied", 400)
+        dummy_acct[prop] = tmp
+    dummy_acct["username"] = "invalid_username_" + str(time())
+    output, ret_code = accounts.put(data=dummy_acct)
+    # Test can't edit non-existing user
+    assert (output, ret_code) == ("Invalid username", 404)
+    dummy_acct["username"] = acct_base["username"]
+    title = cur.execute("SELECT * FROM user").fetchone()["title"]
+    dummy_acct["title"] = title
+    print ("password", dummy_acct["password"])
+    output, ret_code = accounts.put(data=dummy_acct)
+    assert (output, ret_code) == ("Duplicate title supplied", 400)
     delete_account(dummy_acct["username"])
 
 
