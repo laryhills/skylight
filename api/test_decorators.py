@@ -195,7 +195,7 @@ def test_senate_version_get():
             has_access = 200
         else:
             has_access = 401
-        output, ret_code = accounts_decorator(dummy_accounts_fn)(acad_session="2019")
+        output, ret_code = accounts_decorator(dummy_accounts_fn)(acad_session=2019)
         assert has_access == ret_code
 
 
@@ -227,11 +227,37 @@ def test_result_get():
         assert has_access == ret_code
 
 
-'''
-def test_result_post():
+def test_course_reg_get():
+    # Levels and read perms
+    dummy_access_fn.__module__ = "course_reg"
+    dummy_access_fn.__name__ = "get"
+    for perms in perms_list:
+        config.add_token("TESTING_token", username, perms)
+        if perms.get("read") and (400 in perms.get("levels", []) or perms.get("superuser")):
+            has_access = 200
+        else:
+            has_access = 401
+        output, ret_code = access_decorator(dummy_access_fn)(mat_no=student_400, acad_session=2019)
+        assert has_access == ret_code
+
+
+def test_course_reg_init_new():
+    # Levels and read perms
+    dummy_access_fn.__module__ = "course_reg"
+    dummy_access_fn.__name__ = "init_new"
+    for perms in perms_list:
+        config.add_token("TESTING_token", username, perms)
+        if perms.get("read") and (400 in perms.get("levels", []) or perms.get("superuser")):
+            has_access = 200
+        else:
+            has_access = 401
+        output, ret_code = access_decorator(dummy_access_fn)(mat_no=student_400, acad_session=2019)
+        assert has_access == ret_code
+
+
+def test_course_reg_post():
     # Levels and write perms
-    # TODO how is this restricted to a level? what are list_of_results? and is it one level at a time?
-    dummy_access_fn.__module__ = "results"
+    dummy_access_fn.__module__ = "course_reg"
     dummy_access_fn.__name__ = "post"
     for perms in perms_list:
         config.add_token("TESTING_token", username, perms)
@@ -239,6 +265,103 @@ def test_result_post():
             has_access = 200
         else:
             has_access = 401
-        output, ret_code = access_decorator(dummy_access_fn)(list_of_results="lalala")
+        output, ret_code = access_decorator(dummy_access_fn)(data={"mat_no": student_400})
         assert has_access == ret_code
-'''
+
+
+def test_course_reg_put():
+    # Superuser and write perms
+    dummy_access_fn.__module__ = "course_reg"
+    dummy_access_fn.__name__ = "put"
+    for perms in perms_list:
+        config.add_token("TESTING_token", username, perms)
+        if perms.get("write") and perms.get("superuser"):
+            has_access = 200
+        else:
+            has_access = 401
+        output, ret_code = access_decorator(dummy_access_fn)(data={"mat_no": student_400})
+        assert has_access == ret_code
+
+
+def test_gpa_cards_get():
+    # Levels and read perms
+    dummy_access_fn.__module__ = "gpa_cards"
+    dummy_access_fn.__name__ = "get"
+    for perms in perms_list:
+        config.add_token("TESTING_token", username, perms)
+        if perms.get("read") and (400 in perms.get("levels", []) or perms.get("superuser")):
+            has_access = 200
+        else:
+            has_access = 401
+        output, ret_code = access_decorator(dummy_access_fn)(level=400)
+        assert has_access == ret_code
+
+
+def test_result_update_get():
+    # Levels and read perms
+    dummy_access_fn.__module__ = "result_update"
+    dummy_access_fn.__name__ = "get"
+    for perms in perms_list:
+        config.add_token("TESTING_token", username, perms)
+        if perms.get("read") and (400 in perms.get("levels", []) or perms.get("superuser")):
+            has_access = 200
+        else:
+            has_access = 401
+        output, ret_code = access_decorator(dummy_access_fn)(mat_no=student_400)
+        assert has_access == ret_code
+
+
+def test_course_form_get():
+    # Levels and read perms
+    dummy_access_fn.__module__ = "course_form"
+    dummy_access_fn.__name__ = "get"
+    for perms in perms_list:
+        config.add_token("TESTING_token", username, perms)
+        if perms.get("read") and (400 in perms.get("levels", []) or perms.get("superuser")):
+            has_access = 200
+        else:
+            has_access = 401
+        output, ret_code = access_decorator(dummy_access_fn)(mat_no=student_400)
+        assert has_access == ret_code
+
+
+def test_course_details_post():
+    # Superuser and write perms
+    dummy_access_fn.__module__ = "course_details"
+    dummy_access_fn.__name__ = "post"
+    for perms in perms_list:
+        config.add_token("TESTING_token", username, perms)
+        if perms.get("write") and perms.get("superuser"):
+            has_access = 200
+        else:
+            has_access = 401
+        output, ret_code = access_decorator(dummy_access_fn)()
+        assert has_access == ret_code
+
+
+def test_course_details_put():
+    # Superuser and write perms
+    dummy_access_fn.__module__ = "course_details"
+    dummy_access_fn.__name__ = "put"
+    for perms in perms_list:
+        config.add_token("TESTING_token", username, perms)
+        if perms.get("write") and perms.get("superuser"):
+            has_access = 200
+        else:
+            has_access = 401
+        output, ret_code = access_decorator(dummy_access_fn)()
+        assert has_access == ret_code
+
+
+def test_course_details_delete():
+    # Superuser and write perms
+    dummy_access_fn.__module__ = "course_details"
+    dummy_access_fn.__name__ = "delete"
+    for perms in perms_list:
+        config.add_token("TESTING_token", username, perms)
+        if perms.get("write") and perms.get("superuser"):
+            has_access = 200
+        else:
+            has_access = 401
+        output, ret_code = access_decorator(dummy_access_fn)()
+        assert has_access == ret_code

@@ -68,7 +68,7 @@ def access_decorator(func):
         if "levels" in req_perms:
             params = get_kwargs(func, args, kwargs)
             level = params.get("level") or params.get("data", {}).get("level")
-            mat_no = params.get("mat_no")
+            mat_no = params.get("mat_no") or params.get("data", {}).get("mat_no")
             if mat_no and not level:
                 level = get_level(mat_no)
             has_access = False
@@ -220,12 +220,6 @@ fn_props = {
     "personal_dets.post": {"perms": {"levels", "write"},
                            "logs": lambda user, params: "{} added personal details for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
                         },
-    "course_details.get_by_course_code": {"perms": {"read"},
-                                          "logs": lambda user, params: "{} requested details for {}".format(user, params.get("course_code"))
-                        },
-    "course_details.get_all": {"perms": {"superuser", "read"},
-                               "logs": lambda user, params: "{} requested all {} level courses".format(user, params.get("level"))
-                        },
     "course_details.post": {"perms": {"superuser", "write"},
                             "logs": lambda user, params: "{} added course {}:-\n{}".format(user, params.get("course_code"), dict_render(params))
                         },
@@ -241,20 +235,17 @@ fn_props = {
     "course_form.get": {"perms": {"levels", "read"},
                         "logs": lambda user, params: "{} requested course form for {}".format(user, params.get("mat_no"))
                         },
-    "course_reg.get_old": {"perms": {"levels", "read"},
+    "course_reg.get": {"perms": {"levels", "read"},
                            "logs": lambda user, params: "{} queried course registration for {}".format(user, params.get("mat_no"))
                         },
-    "course_reg.get_new": {"perms": {"levels", "read"},
+    "course_reg.init_new": {"perms": {"levels", "read"},
                            "logs": lambda user, params: "{} queried course registration for {}".format(user, params.get("mat_no"))
-                        },
-    "course_reg.get_old_for_edit": {"perms": {"read"},
-                                    "logs": lambda user, params: "{} queried course registration for {}".format(user, params.get("mat_no"))
                         },
     "course_reg.post": {"perms": {"levels", "write"},
-                        "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, params.get("course_reg").get("mat_no"), dict_render(params))
+                        "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
                         },
-    "course_reg.put": {"perms": ["write"],
-                       "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, params.get("course_reg").get("mat_no"), dict_render(params))
+    "course_reg.put": {"perms": {"superuser", "write"},
+                       "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
                        },
     "results.get": {"perms": {"levels", "read"},
                     "logs": lambda user, params: "{} queried results for {}".format(user, params.get("mat_no"))
@@ -283,7 +274,7 @@ fn_props = {
     "senate_version.get": {"perms": {"superuser", "read"},
                            "logs": lambda user, params: "{} requested for the senate version for the {} session".format(user, params.get('acad_session'))
                      },
-    "gpa_cards.get": {"perms": ["levels", "read"],
+    "gpa_cards.get": {"perms": {"levels", "read"},
                       "logs": lambda user, params: "{} requested for the {} level gpa card".format(user, params.get('level'))
                      },
 }
