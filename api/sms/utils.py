@@ -7,8 +7,7 @@ from sms import users
 from sms import config
 from sms.models.courses import Options, OptionsSchema
 from sms.models.master import Category, Category500
-from sqlalchemy.orm import class_mapper
-import sqlalchemy.orm
+from sqlalchemy.orm import class_mapper, ColumnProperty
 
 '''
 Handle frequently called or single use simple utility functions
@@ -251,7 +250,7 @@ def get_registered_courses(mat_no, level=None, true_levels=False):
 
 def get_attribute_names(cls):
     return [prop.key for prop in class_mapper(cls).iterate_properties
-        if isinstance(prop, sqlalchemy.orm.ColumnProperty)]
+        if isinstance(prop, ColumnProperty)]
 
 
 def compute_gpa(mat_no, ret_json=True):
