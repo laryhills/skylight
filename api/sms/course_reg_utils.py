@@ -25,7 +25,7 @@ def get_probation_status_and_prev_category(res_poll, acad_session):
 
 def get_table_to_populate(current_level, acad_session, res_poll, course_reg):
     table_to_populate = ''
-    # use results table for the session if it exists
+    # use table corresponding to results table for the session if it exists
     index = [ind for ind, x in enumerate(res_poll) if x and x['session'] == acad_session]
     if index and not course_reg[100 * (index[0] + 1)]['courses']:
         # check if table corresponding to level is free
