@@ -1,5 +1,5 @@
 import os.path
-from sms import utils
+from sms import utils, results_utils
 from sms import course_details
 from sms.config import db
 from sms.users import access_decorator
@@ -17,6 +17,9 @@ def post(list_of_results):
               ['MEE572', '2019', 'ENG1503886', '98'],
           ]
     """
+    # todo: rewrite based on changes to db
+    #       write a similar function for superusers to change results not in current session
+    #       ...while this one handles current session
 
     base_dir = os.path.dirname(__file__)
     result_errors = open(os.path.join(base_dir, 'result_errors.txt'), 'a')
@@ -25,7 +28,7 @@ def post(list_of_results):
     for index, result_details in enumerate(list_of_results):
         course_code, session_taken, mat_no, score = result_details
         session_taken, score = map(int, [session_taken, score])
-        grade = utils.compute_grade(mat_no, score, ignore_404=True)
+        grade = utils.compute_grade(mat_no, score)
 
         # Error check on grade and score
         if not grade:
@@ -43,7 +46,6 @@ def post(list_of_results):
 
         is_unusual = False
         previous_entry_grade = ''  # for updating GPA value
-        is_first = False
 
         course_reg = utils.get_registered_courses(mat_no, level=None, true_levels=False)
         course_registration = {}
@@ -68,34 +70,24 @@ def post(list_of_results):
 
         db_name = utils.get_DB(mat_no)[:-3]
         session = utils.load_session(db_name)
+
         result_level = course_registration['course_reg_level']
-        res = utils.result_poll(mat_no)
-        result_record = {}
-        table_to_populate = ''
-
-        for idx, result in enumerate(res):
-            if result and result['session'] == session_taken:
-                result_record = result
-                table_to_populate = 'Result' + str((idx + 1) * 100)
-                break
+        res_poll = utils.result_poll(mat_no)
+        result_record, table_to_populate = results_utils.get_result_at_acad_session(session_taken, res_poll)
         if not result_record:
-            # selecting Result table for a fresh input (first result entered for the student for the session)
-            is_first = True
-            if courses_registered: table_to_populate = 'Result' + course_registration['table'][-3:]
-            elif res[result_level//100 - 1] == {}: table_to_populate = 'Result' + str(result_level)
-            else:
-                table_to_populate = 'Result' + str(100 * ([ind for ind, result in enumerate(res) if not result][0] + 1))
-
             # preparing the new table
-            table_columns = utils.get_attribute_names(eval('session.{}'.format(table_to_populate)))
+            table_to_populate = results_utils.get_table_to_populate(course_registration, res_poll)
+            table_columns = eval('session.{}().load_fields.keys()'.format(table_to_populate))
             result_record = {'mat_no': mat_no, 'session': session_taken, 'level': result_level, 'category': None,
-                             'carryovers': '', 'unusual_results': ''}
-            for col in table_columns:
+                             'carryovers': '', 'unusual_results': '', 'tcp': 0}
+            for col in set(table_columns).intersection(set(result_record.keys())):
                 if col not in result_record:
                     result_record[col] = None
+                    # todo prefill -1,ABS for courses in course_reg for new table
 
         # Check if a previous entry for the course exists for session
         if not is_unusual and result_record['unusual_results'] and course_code in result_record['unusual_results']:
+            # todo check for prefilled -1,ABS... I guess "is_first" flag would be useful here
             print('\n====>>  ', 'moving result record {} for {} from store to result table'.format(course_code, mat_no))
         elif (course_code in result_record and result_record[course_code]) or (course_code in result_record['carryovers']) or (course_code in result_record['unusual_results']):
             old = ''
@@ -130,7 +122,7 @@ def post(list_of_results):
 
         # get the session category
         if not courses_registered:
-            previous_categories = [x['category'] for x in res if x and x['category'] and x['session'] < session_taken]
+            previous_categories = [x['category'] for x in res_poll if x and x['category'] and x['session'] < session_taken]
             result_record['category'] = 'E' if 'C' in previous_categories else 'D' #todo test this for when it should be 'D'
         else:
             results_object = deepcopy(result_record)
@@ -153,6 +145,11 @@ def post(list_of_results):
                 #       add every unique course query here
                 #       search this dict first for the course credit
                 #       ...Next release of course
+                #       .
+                #  NEW: since it's per-level this would work out really well
+                #       only update dict for carryovers
+                #       dict should be IN FUNCTION but OUTSIDE LOOP
+                #
                 credit = course_details.get(course, 0)['course_credit']
                 crs_grade = [x[1] for x in result_courses if x[0] == course]
                 if crs_grade and crs_grade[0] not in ['F', 'ABS']:
@@ -203,10 +200,10 @@ def post(list_of_results):
 
 @access_decorator
 def get(mat_no, acad_session):
-    res = utils.result_poll(mat_no)
+    res_poll = utils.result_poll(mat_no)
     results = {}
     table_to_populate = ''
-    for index, result in enumerate(res):
+    for index, result in enumerate(res_poll):
         if result and result['session'] == acad_session:
             results = result
             table_to_populate = 'Result' + str((index+1) * 100)
