@@ -30,3 +30,4 @@
         --- /course_reg     :  returns details for new course_reg
         --- util funcs      :  to select table, to get credits registered (from db even), others
 25) An asterisk next to level GPAs in reports when the courses for that level are not all passed
+26) If course reg for session already exists, it should be editable in front end when called with get
