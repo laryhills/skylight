@@ -194,9 +194,12 @@ def post_course_reg(data):
     table_to_populate = data['table_to_populate']
     course_reg_session = data['course_reg_session']
 
-    db_name = utils.get_DB(mat_no)[:-3]
-    if not db_name:
+    try:
+        db_name = utils.get_DB(mat_no)[:-3]
+    except Exception as e:
+        print(e)
         return 'Student not found in database', 403
+
     session = utils.load_session(db_name)
 
     try:
