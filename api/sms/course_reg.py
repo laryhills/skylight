@@ -75,6 +75,11 @@ def check_registration_eligibility(mat_no, acad_session):
     current_level = utils.get_level(mat_no)
     res_poll = utils.result_poll(mat_no)
     course_reg = utils.get_registered_courses(mat_no, level=None, true_levels=False)
+
+    course_reg_exists = course_reg_utils.get_course_reg_at_acad_session(acad_session, course_reg)
+    if course_reg_exists:
+        return 'Course Registration already exists', 403
+
     s_personal_info = course_reg_utils.process_personal_info(mat_no)
     table_to_populate = course_reg_utils.get_table_to_populate(current_level, acad_session, res_poll, course_reg)
     probation_status, previous_category = course_reg_utils.get_probation_status_and_prev_category(res_poll, acad_session)
