@@ -84,14 +84,19 @@ def test_post_errors():
         # Required field present but empty
         assert (output, ret_code) == ("Invalid field supplied or missing a compulsory field", 400)
         dummy_acct[prop] = tmp
+    dummy_acct["password"] = "invalid password"
+    output, ret_code = accounts.post(data=dummy_acct)
+    assert (output, ret_code) == ("Invalid password hash", 400)
+    dummy_acct["password"] = acct_base["password"]
     non_duplicates = ["username", "title"]
     for prop in non_duplicates:
         value = cur.execute("SELECT * FROM user").fetchone()[prop]
-        dummy_acct = acct_base.copy()
+        tmp = dummy_acct[prop]
         dummy_acct[prop] = value
         output, ret_code = accounts.post(data=dummy_acct)
         # username or title taken
         assert (output, ret_code) == ("Username or title already taken", 400)
+        dummy_acct[prop] = tmp
 
 
 def test_delete_account():
@@ -137,6 +142,10 @@ def test_put_errors():
     # Test can't edit non-existing user
     assert (output, ret_code) == ("Invalid username", 404)
     dummy_acct["username"] = acct_base["username"]
+    dummy_acct["password"] = "invalid password"
+    output, ret_code = accounts.put(data=dummy_acct)
+    assert (output, ret_code) == ("Invalid password hash", 400)
+    dummy_acct["password"] = acct_base["password"]
     title = cur.execute("SELECT * FROM user").fetchone()["title"]
     dummy_acct["title"] = title
     output, ret_code = accounts.put(data=dummy_acct)
@@ -178,6 +187,10 @@ def test_manage_errors():
     # Test can't edit non-existing user
     assert (output, ret_code) == ("Invalid username", 404)
     dummy_acct["username"] = acct_base["username"]
+    dummy_acct["password"] = "invalid password"
+    output, ret_code = accounts.manage(data=dummy_acct)
+    assert (output, ret_code) == ("Invalid password hash", 400)
+    dummy_acct["password"] = acct_base["password"]
     title = cur.execute("SELECT * FROM user").fetchone()["title"]
     dummy_acct["title"] = title
     output, ret_code = accounts.manage(data=dummy_acct)
