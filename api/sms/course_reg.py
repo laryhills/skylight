@@ -27,7 +27,8 @@ from sms import utils
 from sms import results
 from sms import course_reg_utils
 from sms.users import access_decorator
-from sms.config import db
+from sms.config import db, app
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 
 @access_decorator
@@ -225,8 +226,9 @@ def post_course_reg(data):
     registration['others'] = data['others']
 
     course_registration = course_reg_xxx_schema.load(registration)
-    db.session.add(course_registration)
-    db.session.commit()
+    session = scoped_session(sessionmaker(bind=db.get_engine(app, db_name.replace("_", "-"))))
+    session.add(course_registration)
+    session.commit()
 
     # Here we check if there were any stray results waiting in unusual results for this session
     session_results = [x for x in utils.result_poll(mat_no) if x and (x['session'] == course_reg_session)]

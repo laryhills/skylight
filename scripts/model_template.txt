@@ -463,124 +463,124 @@ class PersonalInfoSchema(ma.ModelSchema):
     class Meta:
         model = PersonalInfo
         exclude = ('is_symlink', 'database')
-        sqla_session = db.session
+        sqla_session = session
 
 
 class Result100Schema(ma.ModelSchema):
     class Meta:
         model = Result100
-        sqla_session = db.session
+        sqla_session = session
 
 
 class Result200Schema(ma.ModelSchema):
     class Meta:
         model = Result200
-        sqla_session = db.session
+        sqla_session = session
 
 
 class Result300Schema(ma.ModelSchema):
     class Meta:
         model = Result300
-        sqla_session = db.session
+        sqla_session = session
 
 
 class Result400Schema(ma.ModelSchema):
     class Meta:
         model = Result400
-        sqla_session = db.session
+        sqla_session = session
 
 
 class Result500Schema(ma.ModelSchema):
     class Meta:
         model = Result500
-        sqla_session = db.session
+        sqla_session = session
 
 
 class Result600Schema(ma.ModelSchema):
     class Meta:
         model = Result600
-        sqla_session = db.session
+        sqla_session = session
 
 
 class Result700Schema(ma.ModelSchema):
     class Meta:
         model = Result700
-        sqla_session = db.session
+        sqla_session = session
 
 
 class Result800Schema(ma.ModelSchema):
     class Meta:
         model = Result800
-        sqla_session = db.session
+        sqla_session = session
 
 
 class ResultSchema(ma.ModelSchema):
     class Meta:
         model = Result600
-        sqla_session = db.session
+        sqla_session = session
 
 
 class CoursesSchema(ma.ModelSchema):
     class Meta:
         model = Courses
-        sqla_session = db.session
+        sqla_session = session
 
 
 class CreditsSchema(ma.ModelSchema):
     class Meta:
         model = Credits
-        sqla_session = db.session
+        sqla_session = session
 
 
 class GPACreditsSchema(ma.ModelSchema):
     class Meta:
         model = GPA_Credits
-        sqla_session = db.session
+        sqla_session = session
 
 
 class CourseReg100Schema(ma.ModelSchema):
     class Meta:
         model = CourseReg100
-        sqla_session = db.session
+        sqla_session = session
 
 
 class CourseReg200Schema(ma.ModelSchema):
     class Meta:
         model = CourseReg200
-        sqla_session = db.session
+        sqla_session = session
 
 
 class CourseReg300Schema(ma.ModelSchema):
     class Meta:
         model = CourseReg300
-        sqla_session = db.session
+        sqla_session = session
 
 
 class CourseReg400Schema(ma.ModelSchema):
     class Meta:
         model = CourseReg400
-        sqla_session = db.session
+        sqla_session = session
 
 
 class CourseReg500Schema(ma.ModelSchema):
     class Meta:
         model = CourseReg500
-        sqla_session = db.session
+        sqla_session = session
 
 
 class CourseReg600Schema(ma.ModelSchema):
     class Meta:
         model = CourseReg600
-        sqla_session = db.session
+        sqla_session = session
 
 
 class CourseReg700Schema(ma.ModelSchema):
     class Meta:
         model = CourseReg700
-        sqla_session = db.session
+        sqla_session = session
 
 
 class CourseReg800Schema(ma.ModelSchema):
     class Meta:
         model = CourseReg800
-        sqla_session = db.session
+        sqla_session = session
