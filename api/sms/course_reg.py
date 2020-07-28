@@ -195,7 +195,7 @@ def post_course_reg(data):
     course_reg_session = data['course_reg_session']
 
     try:
-        db_name = utils.get_DB(mat_no)[:-3]
+        db_name = utils.get_DB(mat_no)
     except Exception as e:
         print(e)
         return 'Student not found in database', 403

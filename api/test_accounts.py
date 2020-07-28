@@ -150,6 +150,7 @@ def test_manage_account():
     assert ret_code == 200
     dummy_acct.pop("password")
     user_row = get_account(dummy_acct["username"])
+    # Ensure permissions cannot be changed
     assert old_props[2] == user_row["permissions"]
     for prop in dummy_acct:
         assert dummy_acct[prop] == user_row[prop]

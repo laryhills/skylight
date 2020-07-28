@@ -42,7 +42,7 @@ def get_credits(mat_no, mode_of_entry=None, session=None):
     :return: list of total credits for each level
     """
     if not session:
-        db_name = get_DB(mat_no)[:-3]
+        db_name = get_DB(mat_no)
         session = load_session(db_name)
     Credits, CreditsSchema = session.Credits, session.CreditsSchema
 
@@ -73,7 +73,7 @@ def get_courses(mat_no, mode_of_entry=None):
     :param mode_of_entry: (Optional) mode of entry of student
     :return: list of courses
     """
-    db_name = get_DB(mat_no)[:-3]
+    db_name = get_DB(mat_no)
     session = load_session(db_name)
     Courses, CoursesSchema = session.Courses, session.CoursesSchema
 
@@ -178,7 +178,7 @@ def result_poll(mat_no, level=None):
     :param level: level of the result
     :return: List of results
     """
-    db_name = get_DB(mat_no)[:-3]
+    db_name = get_DB(mat_no)
     session = load_session(db_name)
     ans=[]
     levels = [level] if level else range(100,900,100)
@@ -189,10 +189,9 @@ def result_poll(mat_no, level=None):
     return ans
 
 
-def get_grading_rule(mat_no, ignore_404=False):
-    db_name = get_DB(mat_no, ignore_404=ignore_404)
+def get_grading_rule(mat_no):
+    db_name = get_DB(mat_no)
     if not db_name: return []
-    db_name = db_name[:-3]
     session = load_session(db_name)
     grading_rule = session.GradingRule.query.all()[0].rule
     grading_rule = grading_rule.split(',')
@@ -206,7 +205,7 @@ def get_grading_point(mat_no):
 
 def get_registered_courses(mat_no, level=None, true_levels=False):
     # Get courses registered for all levels if level=None else for level
-    db_name = get_DB(mat_no)[:-3]
+    db_name = get_DB(mat_no)
     session = load_session(db_name)
     courses_registered = defaultdict(dict)
     if level and not true_levels:
@@ -283,7 +282,7 @@ def compute_gpa(mat_no, ret_json=True):
 
 def get_gpa_credits(mat_no, session=None):
     if not session:
-        db_name = get_DB(mat_no)[:-3]
+        db_name = get_DB(mat_no)
         session = load_session(db_name)
     stud = session.GPA_Credits.query.filter_by(mat_no=mat_no).first()
     gpa_credits = stud.level100, stud.level200, stud.level300, stud.level400, stud.level500
@@ -380,7 +379,7 @@ def get_category(mat_no, level, session=None):
     :return: category of student
     """
     if not session:
-        db_name = get_DB(mat_no)[:-3]
+        db_name = get_DB(mat_no)
         session = load_session(db_name)
     res_obj = eval('session.Result{}'.format(level))
     student = res_obj.query.filter_by(mat_no=mat_no).first()

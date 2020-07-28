@@ -68,7 +68,7 @@ def post(list_of_results):
                              'session'.format(mat_no, index, course_code, session_taken, session_taken+1))
             print('\n====>>  ', error_log[-1])
 
-        db_name = utils.get_DB(mat_no)[:-3]
+        db_name = utils.get_DB(mat_no)
         session = utils.load_session(db_name)
 
         result_level = course_registration['course_reg_level']
