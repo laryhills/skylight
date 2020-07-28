@@ -10,6 +10,7 @@ from sms.models.logs import LogsSchema
 from sys import modules
 from importlib import reload
 from time import time
+from itsdangerous.exc import BadSignature
 from itsdangerous import JSONWebSignatureSerializer as Serializer
 
 
@@ -32,9 +33,14 @@ def tokenize(text):
     return s.dumps(text).decode('utf-8')
 
 
-def detokenize(token):
+def detokenize(token, parse=True):
     s = Serializer(hash_key())
-    return dict(zip(*[("username","password"),s.loads(token).split(':')]))
+    try:
+        if parse:
+            return dict(zip(*[("username","password"),s.loads(token).split(':')]))
+        return s.loads(token)
+    except BadSignature:
+        return None
 
 
 def session_key():

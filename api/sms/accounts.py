@@ -1,6 +1,6 @@
 from sqlalchemy.exc import IntegrityError
 from sms.config import db, bcrypt
-from sms.users import access_decorator, accounts_decorator
+from sms.users import access_decorator, accounts_decorator, detokenize
 from sms.models.user import User, UserSchema
 
 
@@ -28,9 +28,8 @@ def post(data):
     if not all([data.get(prop) for prop in required]) or (data.keys() - all_fields):
         # Empty value supplied or Invalid field supplied or Missing field present
         return "Invalid field supplied or missing a compulsory field", 400
-    # TODO not recv this in plain-text
-    hashed_password = bcrypt.generate_password_hash(data["password"]).decode("utf-8")
-    data["password"] = hashed_password
+    if not detokenize(data["password"], parse=False):
+        return "Invalid password hash", 400
     if User.query.filter(
         (User.username == data["username"]) | (User.title == data["title"])
     ).first():
@@ -51,8 +50,8 @@ def put(data):
     # TODO not recv password in plain text, do decode here
     if not User.query.filter_by(username=username).first():
         return "Invalid username", 404
-    if password:
-        data["password"] = bcrypt.generate_password_hash(password).decode("utf-8")
+    if password and not detokenize(data["password"], parse=False):
+        return "Invalid password hash", 400
     if "title" in data:
         user = User.query.filter_by(title=data["title"]).first()
         if user and user.username != username:
@@ -73,8 +72,8 @@ def manage(data):
     # TODO not recv password in plain text, do decode here
     if not User.query.filter_by(username=username).first():
         return "Invalid username", 404
-    if password:
-        data["password"] = bcrypt.generate_password_hash(password).decode("utf-8")
+    if password and not detokenize(data["password"], parse=False):
+        return "Invalid password hash", 400
     if "title" in data:
         user = User.query.filter_by(title=data["title"]).first()
         if user and user.username != username:

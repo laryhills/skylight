@@ -3,6 +3,7 @@ from sms import accounts
 from random import sample
 from sms import config
 from time import time
+from sms.users import tokenize
 
 conn = sqlite3.connect("sms/database/accounts.db")
 conn.row_factory=sqlite3.Row
@@ -10,8 +11,9 @@ cur=conn.cursor()
 perms = {"read": True, "write": True, "superuser": True, "levels": [100, 200, 300, 600], "usernames": ["accounts_test"]}
 config.add_token("TESTING_token", "accounts_test", perms)
 acct_keys = ("username", "password", "permissions", "title", "fullname", "email")
-acct_values = ("accounts_test", "somepwdhash", "{}", "Testing", "Accounts Test", "accounts@te.st")
+acct_values = ("accounts_test", tokenize("somepwdhash"), "{}", "Testing", "Accounts Test", "accounts@te.st")
 acct_base = dict(zip(acct_keys, acct_values))
+#TODO add invalid password tests for post, put, manage
 
 
 def get_account(username):
