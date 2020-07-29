@@ -25,8 +25,9 @@
 22) Make logs.py able to get log data with filter already applied (filter in backend?)
         ---Logs only filters already fetched data, this causes some problems,
 23) Unify the data formats for input and output for /course_reg and /results
-24) Split heavy course_reg into bits
+24) Split heavy course_reg into bits                                      >>>>> done
         --- /course_reg_old :  returns "not yet registered" for when course reg not yet done for the session
         --- /course_reg     :  returns details for new course_reg
         --- util funcs      :  to select table, to get credits registered (from db even), others
 25) An asterisk next to level GPAs in reports when the courses for that level are not all passed
+26) Add table in sessional dbs for logging result errors

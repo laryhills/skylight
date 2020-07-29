@@ -5,7 +5,7 @@ from sms.models.master import Master, MasterSchema
 
 
 def get(mat_no, ret_JSON=True):
-    db_name = utils.get_DB(mat_no)[:-3]
+    db_name = utils.get_DB(mat_no)
     session = utils.load_session(db_name)
     PersonalInfo = session.PersonalInfo
     PersonalInfoSchema = session.PersonalInfoSchema

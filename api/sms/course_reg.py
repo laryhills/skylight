@@ -27,7 +27,8 @@ from sms import utils
 from sms import results
 from sms import course_reg_utils
 from sms.users import access_decorator
-from sms.config import db
+from sms.config import db, app
+from sqlalchemy.orm import scoped_session, sessionmaker
 
 
 @access_decorator
@@ -75,6 +76,11 @@ def check_registration_eligibility(mat_no, acad_session):
     current_level = utils.get_level(mat_no)
     res_poll = utils.result_poll(mat_no)
     course_reg = utils.get_registered_courses(mat_no, level=None, true_levels=False)
+
+    course_reg_exists = course_reg_utils.get_course_reg_at_acad_session(acad_session, course_reg)
+    if course_reg_exists:
+        return 'Course Registration already exists', 403
+
     s_personal_info = course_reg_utils.process_personal_info(mat_no)
     table_to_populate = course_reg_utils.get_table_to_populate(current_level, acad_session, res_poll, course_reg)
     probation_status, previous_category = course_reg_utils.get_probation_status_and_prev_category(res_poll, acad_session)
@@ -91,12 +97,11 @@ def check_registration_eligibility(mat_no, acad_session):
     if error_text != '':
         return error_text, 403
 
-    ret_obj = (mat_no, acad_session, table_to_populate, probation_status, s_personal_info)
+    ret_obj = (mat_no, acad_session, table_to_populate, current_level, probation_status, s_personal_info)
     return ret_obj, 200
 
 
-def init_new_course_reg(mat_no, acad_session, table_to_populate, probation_status, s_personal_info):
-    current_level = utils.get_level(mat_no)
+def init_new_course_reg(mat_no, acad_session, table_to_populate, current_level, probation_status, s_personal_info):
     first_sem_carryover_courses, second_sem_carryover_courses = course_reg_utils.fetch_carryovers(mat_no, current_level)
     mode_of_entry = s_personal_info.pop('mode_of_entry_numeric')
     # populating choices
@@ -188,8 +193,12 @@ def post_course_reg(data):
     mat_no = data['mat_no']
     table_to_populate = data['table_to_populate']
     course_reg_session = data['course_reg_session']
-    db_name = utils.get_DB(mat_no)[:-3]
-    session = utils.load_session(db_name)
+
+    try:
+        db_name = utils.get_DB(mat_no)
+        session = utils.load_session(db_name)
+    except ImportError:
+        return 'Student not found in database', 403
 
     try:
         course_reg_xxx_schema = eval('session.{}Schema()'.format(table_to_populate))
@@ -214,8 +223,10 @@ def post_course_reg(data):
     registration['others'] = data['others']
 
     course_registration = course_reg_xxx_schema.load(registration)
-    db.session.add(course_registration)
-    db.session.commit()
+    # db_session = scoped_session(sessionmaker(bind=db.get_engine(app, db_name.replace("_", "-"))))
+    db_session = course_reg_xxx_schema.Meta.sqla_session
+    db_session.add(course_registration)
+    db_session.commit()
 
     # Here we check if there were any stray results waiting in unusual results for this session
     session_results = [x for x in utils.result_poll(mat_no) if x and (x['session'] == course_reg_session)]

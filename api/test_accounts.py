@@ -3,6 +3,7 @@ from sms import accounts
 from random import sample
 from sms import config
 from time import time
+from sms.users import tokenize
 
 conn = sqlite3.connect("sms/database/accounts.db")
 conn.row_factory=sqlite3.Row
@@ -10,8 +11,9 @@ cur=conn.cursor()
 perms = {"read": True, "write": True, "superuser": True, "levels": [100, 200, 300, 600], "usernames": ["accounts_test"]}
 config.add_token("TESTING_token", "accounts_test", perms)
 acct_keys = ("username", "password", "permissions", "title", "fullname", "email")
-acct_values = ("accounts_test", "somepwdhash", "{}", "Testing", "Accounts Test", "accounts@te.st")
+acct_values = ("accounts_test", tokenize("somepwdhash"), "{}", "Testing", "Accounts Test", "accounts@te.st")
 acct_base = dict(zip(acct_keys, acct_values))
+#TODO add invalid password tests for post, put, manage
 
 
 def get_account(username):
@@ -82,14 +84,19 @@ def test_post_errors():
         # Required field present but empty
         assert (output, ret_code) == ("Invalid field supplied or missing a compulsory field", 400)
         dummy_acct[prop] = tmp
+    dummy_acct["password"] = "invalid password"
+    output, ret_code = accounts.post(data=dummy_acct)
+    assert (output, ret_code) == ("Invalid password hash", 400)
+    dummy_acct["password"] = acct_base["password"]
     non_duplicates = ["username", "title"]
     for prop in non_duplicates:
         value = cur.execute("SELECT * FROM user").fetchone()[prop]
-        dummy_acct = acct_base.copy()
+        tmp = dummy_acct[prop]
         dummy_acct[prop] = value
         output, ret_code = accounts.post(data=dummy_acct)
         # username or title taken
         assert (output, ret_code) == ("Username or title already taken", 400)
+        dummy_acct[prop] = tmp
 
 
 def test_delete_account():
@@ -135,6 +142,10 @@ def test_put_errors():
     # Test can't edit non-existing user
     assert (output, ret_code) == ("Invalid username", 404)
     dummy_acct["username"] = acct_base["username"]
+    dummy_acct["password"] = "invalid password"
+    output, ret_code = accounts.put(data=dummy_acct)
+    assert (output, ret_code) == ("Invalid password hash", 400)
+    dummy_acct["password"] = acct_base["password"]
     title = cur.execute("SELECT * FROM user").fetchone()["title"]
     dummy_acct["title"] = title
     output, ret_code = accounts.put(data=dummy_acct)
@@ -150,6 +161,7 @@ def test_manage_account():
     assert ret_code == 200
     dummy_acct.pop("password")
     user_row = get_account(dummy_acct["username"])
+    # Ensure permissions cannot be changed
     assert old_props[2] == user_row["permissions"]
     for prop in dummy_acct:
         assert dummy_acct[prop] == user_row[prop]
@@ -175,6 +187,10 @@ def test_manage_errors():
     # Test can't edit non-existing user
     assert (output, ret_code) == ("Invalid username", 404)
     dummy_acct["username"] = acct_base["username"]
+    dummy_acct["password"] = "invalid password"
+    output, ret_code = accounts.manage(data=dummy_acct)
+    assert (output, ret_code) == ("Invalid password hash", 400)
+    dummy_acct["password"] = acct_base["password"]
     title = cur.execute("SELECT * FROM user").fetchone()["title"]
     dummy_acct["title"] = title
     output, ret_code = accounts.manage(data=dummy_acct)

@@ -10,6 +10,7 @@ from sms.models.logs import LogsSchema
 from sys import modules
 from importlib import reload
 from time import time
+from itsdangerous.exc import BadSignature
 from itsdangerous import JSONWebSignatureSerializer as Serializer
 
 
@@ -33,9 +34,14 @@ def tokenize(text):
     return s.dumps(text).decode('utf-8')
 
 
-def detokenize(token):
+def detokenize(token, parse=True):
     s = Serializer(hash_key())
-    return dict(zip(*[("username","password"),s.loads(token).split(':')]))
+    try:
+        if parse:
+            return dict(zip(*[("username","password"),s.loads(token).split(':')]))
+        return s.loads(token)
+    except BadSignature:
+        return None
 
 
 def session_key():
@@ -141,24 +147,21 @@ def load_session(session):
     return eval('_{}'.format(session))
 
 
-def get_DB(mat_no, ignore_404=False):
+def get_DB(mat_no):
     # Lookup the student's details in the master db
-    if ignore_404:
-        student = Master.query.filter_by(mat_no=mat_no).first()
-        if not student:
-            return None
-    else:
-        student = Master.query.filter_by(mat_no=mat_no).first_or_404()
+    student = Master.query.filter_by(mat_no=mat_no).first()
+    if not student:
+        return None
     master_schema = MasterSchema()
     db_name = master_schema.dump(student)['database']
-    return db_name.replace('-', '_')
+    return db_name.replace('-', '_')[:-3]
 
 
 def get_level(mat_no, session=None):
     # 600-800 - is spill, 100-500 spill not inc, grad_status - graduated
     # if next = True, return next level else current level
     if not session:
-        db_name = get_DB(mat_no)[:-3]
+        db_name = get_DB(mat_no)
         session = load_session(db_name)
     PersonalInfo = session.PersonalInfo
     student_data = PersonalInfo.query.filter_by(mat_no=mat_no).first()
@@ -254,6 +257,9 @@ fn_props = {
     "results.post": {"perms": {"levels", "write"},
                      "logs": lambda user, params: "{} added {} result entries:-\n{}".format(user, len(params.get("list_of_results")), dict_render(params))
                      },
+    "results.put": {"perms": {"superuser", "write"},
+                    "logs": lambda user, params: "{} added {} result entries:-\n{}".format(user, len(params.get("list_of_results")), dict_render(params))
+                    },
     "logs.get": {"perms": {"read"},
                  "logs": lambda user, params: "{} requested logs".format(user)
                  },
