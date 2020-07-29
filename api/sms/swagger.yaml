@@ -36,6 +36,8 @@ paths:
             properties:
               token:
                 type: string
+              title:
+                type: string
         401:
           description: Authentication failed
 
