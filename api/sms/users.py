@@ -20,6 +20,7 @@ def login(token):
         if bcrypt.check_password_hash(stored_user.password, user['password']):
             token_dict = {'token': token['token']}
             add_token(token['token'], stored_user.username, loads(stored_user.permissions))
+            token_dict['title'] = stored_user.title
             return token_dict, 200
         abort(401)
     except Exception:
@@ -173,7 +174,7 @@ def get_level(mat_no, session=None):
             else:
                 # Just a backup
                 affiliated_session = int(student_data.database.split('-')[0])
-                current_level += (affiliated_session - student_data.session_admitted) * 100
+                current_level += (affiliated_session - student_data.session_admitted + student_data.mode_of_entry - 1) * 100
     return current_level
 
   
