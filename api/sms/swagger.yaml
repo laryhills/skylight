@@ -421,12 +421,14 @@ paths:
           description: Success
           schema:
             $ref: '#/definitions/Results_get'
+        400:
+          description: Bad request
         401:
-          description: Authentication failed
+          description: Unauthorised
         403:
-          description: Forbidden - No result available
-          schema:
-            type: string
+          description: Forbidden
+        404:
+          description: No results found
         440:
           description: Session expired, login again
     post:
@@ -440,14 +442,47 @@ paths:
           schema:
             $ref: '#/definitions/Results_post'
       responses:
-        200:
+        201:
           description: Success
           schema:
             type: array
             items:
               type: string
+        400:
+          description: Bad request
         401:
-          description: Authentication failed
+          description: Unauthorised
+        403:
+          description: Forbidden
+        404:
+          description: Not found
+        440:
+          description: Session expired, login again
+    put:
+      tags: [Results]
+      operationId: sms.results.put
+      summary: Edit past result records
+      description: Post results to the database as a list of list ==> [ [course_code, session, mat_no, score], [next record], ... ]
+      parameters:
+        - in: body
+          name: list_of_results
+          schema:
+            $ref: '#/definitions/Results_post'
+      responses:
+        201:
+          description: Success
+          schema:
+            type: array
+            items:
+              type: string
+        400:
+          description: Bad request
+        401:
+          description: Unauthorised
+        403:
+          description: Forbidden
+        404:
+          description: Not found
         440:
           description: Session expired, login again
 

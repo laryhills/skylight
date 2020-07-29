@@ -256,6 +256,9 @@ fn_props = {
     "results.post": {"perms": {"levels", "write"},
                      "logs": lambda user, params: "{} added {} result entries:-\n{}".format(user, len(params.get("list_of_results")), dict_render(params))
                      },
+    "results.put": {"perms": {"superuser", "write"},
+                    "logs": lambda user, params: "{} added {} result entries:-\n{}".format(user, len(params.get("list_of_results")), dict_render(params))
+                    },
     "logs.get": {"perms": {"read"},
                  "logs": lambda user, params: "{} requested logs".format(user)
                  },
