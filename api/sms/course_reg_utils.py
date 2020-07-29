@@ -81,15 +81,20 @@ def enrich_course_list(course_list, fields=('course_code', 'course_title', 'cour
     """
     Add details to courses supplied in course_list
 
-    :param course_list: <list>: ['course_code_1', 'course_code_2', ...]
+    :param course_list: <list: str>: ['course_code_1', 'course_code_2', ...]
+                     or <list: list>: [['course_code_1', '', ...], ['course_code_2', '', ...]]
     :param fields: <list> (optional): the course details fields to include in the order required
     :return: the enriched list
     """
     enriched_course_list = []
     for crse in course_list:
-        crse_dets = course_details.get(crse, 0)
-        course = [crse_dets[field] for field in fields]
-        enriched_course_list.append(course)
+        if isinstance(crse, list):
+            crse_dets = course_details.get(crse[0], 0)
+            [crse.append(crse_dets[field]) for field in fields if field != 'course_code']
+        elif isinstance(crse, str):
+            crse_dets = course_details.get(crse, 0)
+            crse = [crse_dets[field] for field in fields]
+        enriched_course_list.append(crse)
     return enriched_course_list
 
 
