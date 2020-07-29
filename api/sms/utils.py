@@ -307,7 +307,7 @@ def get_level_weightings(mod):
 def compute_grade(mat_no, score, ignore_404=False):
     if score > 100 or score < 0:
         return ''
-    grading_rules = [rule.split(' ') for rule in get_grading_rule(mat_no, ignore_404=ignore_404)]
+    grading_rules = [rule.split(' ') for rule in get_grading_rule(mat_no)]
     if not grading_rules: return ''
     grading_rules = sorted(grading_rules, key=lambda x: int(x[2]), reverse=True)
     for index in range(len(grading_rules)):
