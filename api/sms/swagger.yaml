@@ -463,7 +463,7 @@ paths:
     put:
       tags: [Results]
       operationId: sms.results.put
-      summary: Edit past result records
+      summary: Edit past result records, requires elevated access
       description: Post results to the database as a list of list ==> [ [course_code, session, mat_no, score], [next record], ... ]
       parameters:
         - in: body
