@@ -189,6 +189,39 @@ def result_poll(mat_no, level=None):
     return ans
 
 
+def get_result_at_acad_session(acad_session, res_poll=None, mat_no=None):
+    """
+    Get results for a specific session
+    
+    :param acad_session: the session for which to fetch results
+    :param res_poll: result of result_poll() 
+    :param mat_no:  (optional) supply this only if res_poll is not given
+    :return: a tuple: (result dictionary, table fetched from)
+    """
+    if not res_poll:
+        res_poll = result_poll(mat_no)
+    for index, result in enumerate(res_poll):
+        if result and result['session'] == acad_session:
+            table = 'Result' + str((index + 1) * 100)
+            return result, table
+    return {}, ''
+
+
+def serialize_carryovers(carryover_string):
+    """
+    Serialize string containing carryover results into a list of results
+    [[course_code, score, grade], [...], ...]
+    
+    :param carryover_string: 
+    :return: 
+    """
+    if not carryover_string:
+        return []
+    carryovers = carryover_string.split(',')
+    carryovers = [x.split(' ') for x in carryovers if carryovers]
+    return carryovers
+
+
 def get_grading_rule(mat_no):
     db_name = get_DB(mat_no)
     if not db_name: return []

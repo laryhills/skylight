@@ -1,6 +1,6 @@
 import os.path
 from copy import deepcopy
-from sms import utils, results_utils, course_reg_utils
+from sms import utils, course_reg_utils
 from sms import course_details
 from sms.users import access_decorator
 # from sms.config import db, app
@@ -45,15 +45,15 @@ def get_results_for_acad_session(mat_no, acad_session):
     :return:
     """
     res_poll = utils.result_poll(mat_no)
-    results, table_to_populate = results_utils.get_result_at_acad_session(acad_session, res_poll)
+    results, table_to_populate = utils.get_result_at_acad_session(acad_session, res_poll)
     if results == {}:
         return 'No result available for entered session', 404
 
     # remove extra fields from results
     [results.pop(key) for key in ['mat_no', 'category', 'session', 'tcp']]
     result_level = results.pop('level')
-    carryovers = results_utils.serialize_carryovers(results.pop('carryovers'))
-    unusual_results = results_utils.serialize_carryovers(results.pop('unusual_results'))
+    carryovers = utils.serialize_carryovers(results.pop('carryovers'))
+    unusual_results = utils.serialize_carryovers(results.pop('unusual_results'))
 
     # flatten the result dictionary
     all_courses = [[crse_code] + results[crse_code].split(',') for crse_code in results if results[crse_code]]
@@ -79,7 +79,7 @@ def get_results_for_acad_session(mat_no, acad_session):
              'table': table_to_populate,
              'level_written': result_level,
              'session_written': acad_session,
-             'courses': results_utils.multisort(all_courses)}
+             'courses': multisort(all_courses)}
     return frame, 200
 
 
@@ -105,15 +105,19 @@ def add_result_records(list_of_results):
 
     result_errors_file.close()
     print('\n====>>  ', '{} result entries added with {} errors'.format(len(list_of_results), len(error_log)))
-    return error_log
+
+    if len(list_of_results) == len(error_log):
+        return error_log, 400
+
+    return error_log, 200
 
 
 def add_single_result_record(index, result_details, result_errors_file):
     """
 
-    :param index:
-    :param result_details:
-    :param result_errors_file:
+    :param index: position of entry in a larger list --for tracking
+    :param result_details: [course_code, session_written, mat_no, score]
+    :param result_errors_file: file object in write or append mode for logging important errors
     :return:
     """
     # todo: rewrite based on changes to db
@@ -171,7 +175,7 @@ def add_single_result_record(index, result_details, result_errors_file):
 
     result_level = course_registration['course_reg_level']
     res_poll = utils.result_poll(mat_no)
-    result_record, table_to_populate = results_utils.get_result_at_acad_session(session_taken, res_poll)
+    result_record, table_to_populate = utils.get_result_at_acad_session(session_taken, res_poll)
 
     try:
         result_xxx_schema = eval('session.{}Schema()'.format(table_to_populate))
@@ -183,7 +187,7 @@ def add_single_result_record(index, result_details, result_errors_file):
 
     if not result_record:
         # preparing the new table
-        table_to_populate = results_utils.get_table_to_populate(course_registration, res_poll)
+        table_to_populate = get_table_to_populate(course_registration, res_poll)
         result_xxx_schema = eval('session.{}Schema()'.format(table_to_populate))
         table_columns = result_xxx_schema.load_fields.keys()
         result_record = {'mat_no': mat_no, 'session': session_taken, 'level': result_level, 'category': None,
@@ -312,3 +316,26 @@ def add_single_result_record(index, result_details, result_errors_file):
         return error_log, 201
 
     return error_log, 400
+
+
+# =========================================================================================
+#                                   Utility functions
+# =========================================================================================
+
+def multisort(iters):
+    iters = sorted(iters, key=lambda x: x[0])
+    iters = sorted(iters, key=lambda x: x[0][3])
+    return sorted(iters, key=lambda x: x[3])
+
+
+def get_table_to_populate(session_course_reg, full_res_poll):
+    result_level = session_course_reg['course_reg_level']
+    # selecting Result table for a fresh input (first result entered for the student for the session)
+    if session_course_reg['courses'] and not full_res_poll[int(session_course_reg['table'][-3:]) // 100 - 1]:
+        # use table corresponding to course reg table if it is available
+        table_to_populate = 'Result' + session_course_reg['table'][-3:]
+    elif not full_res_poll[result_level // 100 - 1]:
+        table_to_populate = 'Result' + str(result_level)
+    else:
+        table_to_populate = 'Result' + str(100 * ([ind for ind, result in enumerate(full_res_poll) if not result][0] + 1))
+    return table_to_populate
