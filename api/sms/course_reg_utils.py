@@ -41,14 +41,19 @@ def get_table_to_populate(current_level, acad_session, res_poll, course_reg):
     return table_to_populate
 
 
-def get_course_reg_at_acad_session(acad_session, course_reg):
-    # get last course_reg
-    last_course_reg = {}
-    for reg in course_reg:
-        if course_reg[reg]['courses'] and course_reg[reg]['course_reg_session'] == acad_session:
-            last_course_reg = course_reg[reg]
+def get_course_reg_at_acad_session(acad_session, full_course_reg):
+    """
+
+    :param acad_session:
+    :param full_course_reg:
+    :return:
+    """
+    course_reg = {}
+    for reg in full_course_reg:
+        if full_course_reg[reg]['courses'] and full_course_reg[reg]['course_reg_session'] == acad_session:
+            course_reg = full_course_reg[reg]
             break
-    return last_course_reg
+    return course_reg
 
 
 def fetch_carryovers(mat_no, current_level):
