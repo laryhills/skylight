@@ -4,7 +4,7 @@ from sms.users import access_decorator, load_session
 
 # TODO Create endpoint for teaching departments
 # TODO Change primary key of all courses models from it's course_code to an id
-# As it stands, a course's code can't be modified
+#      As it stands, a course's code can't be modified
 
 
 def get(course_code, retJSON=True):
