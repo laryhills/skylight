@@ -269,20 +269,14 @@ def get_registered_courses(mat_no, level=None, true_levels=False):
             if courses_regd_str['carryovers'] != '0':
                 courses_registered[levs]['courses'].extend(sorted(courses_regd_str['carryovers'].split(',')))
 
+        for field in ['course_reg_level', 'probation', 'fees_status', 'others', 'tcr']:
+            courses_registered[levs][field] = courses_regd_str[field] if field in courses_regd_str else None
         courses_registered[levs]['course_reg_level'] = courses_regd_str['level'] if 'level' in courses_regd_str else None
         courses_registered[levs]['course_reg_session'] = courses_regd_str['session'] if 'session' in courses_regd_str else None
-        courses_registered[levs]['probation'] = courses_regd_str['probation'] if 'probation' in courses_regd_str else None
-        courses_registered[levs]['fees_status'] = courses_regd_str['fees_status'] if 'fees_status' in courses_regd_str else None
-        courses_registered[levs]['others'] = courses_regd_str['others'] if 'others' in courses_regd_str else None
         levs += 100
     if level:
         return courses_registered[level]
     return courses_registered
-
-
-def get_attribute_names(cls):
-    return [prop.key for prop in class_mapper(cls).iterate_properties
-        if isinstance(prop, ColumnProperty)]
 
 
 def compute_gpa(mat_no, ret_json=True):
@@ -337,7 +331,7 @@ def get_level_weightings(mod):
     else: return [0, 0, .25, .35, .4]
 
 
-def compute_grade(mat_no, score, ignore_404=False):
+def compute_grade(mat_no, score):
     if score > 100 or score < 0:
         return ''
     grading_rules = [rule.split(' ') for rule in get_grading_rule(mat_no)]
@@ -349,19 +343,24 @@ def compute_grade(mat_no, score, ignore_404=False):
     return ''
 
 
-def compute_category(mat_no, result_level, session_taken, total_credits, credits_passed):
+def compute_category(mat_no, level_written, session_taken, total_credits, credits_passed):
     entry_session = result_statement.get(mat_no, 0)['entry_session']
+    creds = get_credits(mat_no)
+    # ensure to get the right value irrespective of the size of the list (PUTME vs DE students)
+    index = (level_written // 100 - 1)
+    level_credits = creds[index + (len(creds) - 5)]
     previous_categories = [x['category'] for x in result_poll(mat_no, 0) if x and x['session'] < session_taken]
 
     if total_credits == credits_passed: return 'A'
-    if result_level == 100 and entry_session >= 2014:
+    if level_written == 100 and entry_session >= 2014:
         if credits_passed >= 36: return 'B'
         elif 23 <= credits_passed < 36: return 'C'
         else:
-            if 'C' in previous_categories: return 'E' # Handle condition for transfer
+            # todo: Handle condition for transfer
+            if 'C' in previous_categories: return 'E'
             else: return 'D'
     else:
-        percent_passed = credits_passed / total_credits * 100
+        percent_passed = credits_passed / level_credits * 100
         if percent_passed >= 50: return 'B'
         elif 25 <= percent_passed < 50: return 'C'
         else:
