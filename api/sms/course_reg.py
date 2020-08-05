@@ -46,10 +46,6 @@ def init_new(mat_no, acad_session=utils.get_current_session()):
 
 @access_decorator
 def get(mat_no, acad_session):
-    current_session = utils.get_current_session()
-    if acad_session != current_session:
-        print('Elevated access to course_reg.get_new granted')
-
     obj = get_existing_course_reg(mat_no, acad_session)
     if obj[1] != 200:
         return obj
