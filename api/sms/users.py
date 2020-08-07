@@ -78,6 +78,8 @@ def access_decorator(func):
             mat_no = params.get("mat_no") or params.get("data", {}).get("mat_no")
             if mat_no and not level:
                 level = get_level(mat_no)
+                if not level:
+                    return None, 404
             has_access = False
             levels = user_perms.get("levels", [])
             mat_nos = user_perms.get("mat_nos", [])
@@ -162,6 +164,8 @@ def get_level(mat_no, session=None):
     # if next = True, return next level else current level
     if not session:
         db_name = get_DB(mat_no)
+        if not db_name:
+            return None
         session = load_session(db_name)
     PersonalInfo = session.PersonalInfo
     student_data = PersonalInfo.query.filter_by(mat_no=mat_no).first()
