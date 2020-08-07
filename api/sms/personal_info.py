@@ -3,7 +3,7 @@ from sms import utils
 from sms.models.master import Master, MasterSchema
 
 all_fields = {"date_of_birth", "email_address", "grad_stats", "level", "mat_no", "mode_of_entry", "othernames", "phone_no", "session_admitted", "sex", "sponsor_email_address", "sponsor_phone_no", "state_of_origin", "surname"}
-required = {"session_admitted", "mat_no", "level", "mode_of_entry", "othernames", "surname", "sex"}
+required = {"session_admitted", "mat_no", "level", "mode_of_entry", "othernames", "surname", "sex", "grad_stats"}
 
 def get(mat_no):
     db_name = utils.get_DB(mat_no)
@@ -18,8 +18,6 @@ def get(mat_no):
 
 
 def post(data):
-    # TODO add patch path for modifying properties
-
     if not all([data.get(prop) for prop in required]) or (data.keys() - all_fields):
         # Empty value supplied or Invalid field supplied or Missing field present
         return "Invalid field supplied or missing a compulsory field", 400
@@ -39,3 +37,5 @@ def post(data):
     db.session.add(master_model)
     db.session.add(student_model)
     db.session.commit()
+
+# TODO add patch path for modifying properties
