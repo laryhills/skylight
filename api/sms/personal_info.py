@@ -2,8 +2,8 @@ from sms.config import db
 from sms import utils
 from sms.models.master import Master, MasterSchema
 
-all_fields = {"date_of_birth", "email_address", "grad_stats", "level", "mat_no", "mode_of_entry", "othernames", "phone_no", "session_admitted", "sex", "sponsor_email_address", "sponsor_phone_no", "state_of_origin", "surname"}
-required = {"session_admitted", "mat_no", "level", "mode_of_entry", "othernames", "surname", "sex", "grad_stats"}
+all_fields = {"date_of_birth", "email_address", "grad_stats", "level", "mat_no", "mode_of_entry", "othernames", "phone_no", "session_admitted", "sex", "sponsor_email_address", "sponsor_phone_no", "state_of_origin", "surname", "lga"}
+required = {"session_admitted", "mat_no", "level", "mode_of_entry", "othernames", "surname", "sex"}
 
 def get(mat_no):
     db_name = utils.get_DB(mat_no)
@@ -25,10 +25,10 @@ def post(data):
     session_admitted = data['session_admitted']
 
     master_schema = MasterSchema()
-    database = "{}-{}.db".format(session, session + 1)
+    database = "{}-{}.db".format(session_admitted, session_admitted + 1)
     master_model = master_schema.load({'mat_no': data['mat_no'], 'database': database})
 
-    db_name = "{}_{}".format(session, session + 1)
+    db_name = "{}_{}".format(session_admitted, session_admitted + 1)
     session = utils.load_session(db_name)
     personalinfo_schema = session.PersonalInfoSchema()
     student_model = personalinfo_schema.load(data)
