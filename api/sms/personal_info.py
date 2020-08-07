@@ -1,8 +1,9 @@
-from flask import abort
 from sms.config import db
 from sms import utils
 from sms.models.master import Master, MasterSchema
 
+all_fields = {"date_of_birth", "email_address", "grad_stats", "level", "mat_no", "mode_of_entry", "othernames", "phone_no", "session_admitted", "sex", "sponsor_email_address", "sponsor_phone_no", "state_of_origin", "surname"}
+required = {"session_admitted", "mat_no", "level", "mode_of_entry", "othernames", "surname", "sex"}
 
 def get(mat_no):
     db_name = utils.get_DB(mat_no)
@@ -18,24 +19,23 @@ def get(mat_no):
 
 def post(data):
     # TODO add patch path for modifying properties
-    # TODO add retcode 400 for bad inputs and retcode 200
-    global PersonalInfo, PersonalInfoSchema
 
-    session = int(data['session_admitted'])
-    db_name = '{}_{}.db'.format(session, session + 1)
+    if not all([data.get(prop) for prop in required]) or (data.keys() - all_fields):
+        # Empty value supplied or Invalid field supplied or Missing field present
+        return "Invalid field supplied or missing a compulsory field", 400
 
-    try:
-        exec('from sms.models._{} import PersonalInfoSchema'.format(db_name[:-3]))
-    except ImportError:
-        # create and import new database model
-        abort(400)
-    db_name = db_name.replace('_', '-')
+    session_admitted = data['session_admitted']
+
     master_schema = MasterSchema()
-    master_model = master_schema.load({'mat_no': data['mat_no'], 'database': db_name})
-    PersonalInfoSchema = locals()['PersonalInfoSchema']
-    personalinfo_schema = PersonalInfoSchema()
-    student = personalinfo_schema.load(data)
+    database = "{}-{}.db".format(session, session + 1)
+    master_model = master_schema.load({'mat_no': data['mat_no'], 'database': database})
+
+    db_name = "{}_{}".format(session, session + 1)
+    session = utils.load_session(db_name)
+    personalinfo_schema = session.PersonalInfoSchema()
+    student_model = personalinfo_schema.load(data)
     student.is_symlink = 0
+
     db.session.add(master_model)
-    db.session.add(student)
+    db.session.add(student_model)
     db.session.commit()
