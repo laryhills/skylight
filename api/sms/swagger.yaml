@@ -80,7 +80,7 @@ paths:
       tags: [Personal Information]
       operationId: sms.personal_dets.post
       parameters:
-        - name: student_data
+        - name: data
           in: body
           required: true
           schema:
@@ -636,6 +636,8 @@ definitions:
       phone_no:
         type: string
       email_address:
+        type: string
+      lga:
         type: string
       sponsor_phone_no:
         type: string
