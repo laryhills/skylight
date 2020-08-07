@@ -18,3 +18,5 @@ Also just in case of revisions, add why this is necessary
    * Max years accountable is 8 years as Results and CourseReg end at 800
 8) Scores must be over 100 (percentages)
    * Grading rule uses 100 as first grade upper bound
+9) Session pair must be session / (session+1)
+   * Session admitted in Personal Info post uses this to choose DB
