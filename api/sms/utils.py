@@ -47,7 +47,7 @@ def get_credits(mat_no, mode_of_entry=None, session=None):
     Credits, CreditsSchema = session.Credits, session.CreditsSchema
 
     if not mode_of_entry:
-        person = loads(personal_info.get(mat_no=mat_no))
+        person = personal_info.get(mat_no=mat_no)
         mode_of_entry = person['mode_of_entry']
     
     credits = CreditsSchema().dump(Credits.query.filter_by(mode_of_entry=mode_of_entry).first())
@@ -78,7 +78,7 @@ def get_courses(mat_no, mode_of_entry=None):
     Courses, CoursesSchema = session.Courses, session.CoursesSchema
 
     if not mode_of_entry:
-        person = loads(personal_info.get(mat_no=mat_no))
+        person = personal_info.get(mat_no=mat_no)
         mode_of_entry = person['mode_of_entry']
     
     courses = CoursesSchema().dump(Courses.query.filter_by(mode_of_entry=mode_of_entry).first())
@@ -116,7 +116,7 @@ def get_carryovers(mat_no, level=None, retJSON=True):
         first_sem |= set(course[0] if course else set())
         second_sem |= set(course[1] if course else set())
 
-    person = loads(personal_info.get(mat_no))
+    person = personal_info.get(mat_no)
     person_option = person['option'].split(',') if person['option'] else None
     if person_option:
         # Put in option if registered
@@ -280,7 +280,7 @@ def get_registered_courses(mat_no, level=None, true_levels=False):
 
 
 def compute_gpa(mat_no, ret_json=True):
-    person = loads(personal_info.get(mat_no=mat_no))
+    person = personal_info.get(mat_no=mat_no)
     mode_of_entry = person['mode_of_entry']
     gpas = [[0, 0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0]][mode_of_entry - 1]
     level_percent = [[10, 15, 20, 25, 30], [10, 20, 30, 40], [25, 35, 40]][mode_of_entry - 1]

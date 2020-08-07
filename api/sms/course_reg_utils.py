@@ -4,7 +4,7 @@ from sms.utils import get_carryovers, get_depat
 
 
 def process_personal_info(mat_no):
-    some_personal_info = personal_info.get(mat_no, 0)
+    some_personal_info = personal_info.get(mat_no)
     some_personal_info["mode_of_entry_numeric"] = some_personal_info["mode_of_entry"]
     some_personal_info["mode_of_entry"] = ["PUTME", "DE(200)", "DE(300)"][some_personal_info["mode_of_entry"] - 1]
     some_personal_info['department'] = get_depat('long')

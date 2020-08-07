@@ -261,7 +261,7 @@ def update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_leve
 
     gpa_credits[index] = (round(level_gpa, 4), level_credits_passed)
     cgpa = 0
-    mode_of_entry = personal_info.get(mat_no, 0)['mode_of_entry']
+    mode_of_entry = personal_info.get(mat_no)['mode_of_entry']
     weights = utils.get_level_weightings(mode_of_entry)
     while 0 in weights: weights.remove(0)
     for idx in range(1, len(weights)+1):

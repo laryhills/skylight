@@ -4,15 +4,15 @@ from sms import utils
 from sms.models.master import Master, MasterSchema
 
 
-def get(mat_no, ret_JSON=True):
+def get(mat_no):
     db_name = utils.get_DB(mat_no)
+    if not db_name:
+        return None
     session = utils.load_session(db_name)
     PersonalInfo = session.PersonalInfo
     PersonalInfoSchema = session.PersonalInfoSchema
     student_data = PersonalInfo.query.filter_by(mat_no=mat_no).first()
     personalinfo_schema = PersonalInfoSchema()
-    if ret_JSON:
-        return personalinfo_schema.dumps(student_data)
     return personalinfo_schema.dump(student_data)
 
 
