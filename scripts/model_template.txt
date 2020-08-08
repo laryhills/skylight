@@ -16,7 +16,7 @@ class PersonalInfo(Base):
     mode_of_entry = db.Column('MODE_OF_ENTRY', db.Integer, nullable=False)
     session_admitted = db.Column('SESSION_ADMIT', db.Integer, nullable=False)
     session_grad = db.Column('SESSION_GRADUATED', db.Integer, nullable=True)
-    level = db.Column('CURRENT_LEVEL', db.Integer, nullable=True)
+    level = db.Column('CURRENT_LEVEL', db.Integer, nullable=False)
     option = db.Column('OPTION', db.String(20), nullable=True)
     sex = db.Column('SEX', db.String(1), nullable=False)
     date_of_birth = db.Column('DATE_OF_BIRTH', db.String(10), nullable=False)
@@ -26,9 +26,9 @@ class PersonalInfo(Base):
     email_address = db.Column('EMAIL_ADDRESS', db.String(100), nullable=False)
     sponsor_phone_no = db.Column('SPONSOR_PHONE_NO', db.String(11), nullable=False)
     sponsor_email_address = db.Column('SPONSOR_EMAIL_ADDRESS', db.String(100), nullable=False)
-    grad_stats = db.Column('GRAD_STATUS', db.Integer, nullable=False)
+    grad_stats = db.Column('GRAD_STATUS', db.Integer, nullable=True)
     is_symlink = db.Column('IS_SYMLINK', db.Integer, nullable=False)
-    database = db.Column('DATABASE', db.String(12), nullable=False)
+    database = db.Column('DATABASE', db.String(12), nullable=True)
 
 
 class SymLink(Base):
