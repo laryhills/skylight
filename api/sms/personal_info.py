@@ -3,7 +3,7 @@ from sms.config import db
 from sms.models.master import Master, MasterSchema
 
 all_fields = {'date_of_birth', 'email_address', 'grad_stats', 'level', 'lga', 'mat_no', 'mode_of_entry', 'othernames', 'phone_no', 'session_admitted', 'sex', 'sponsor_email_address', 'sponsor_phone_no', 'state_of_origin', 'surname'}
-required = {'date_of_birth', 'email_address', 'level', 'lga', 'mat_no', 'mode_of_entry', 'othernames', 'phone_no', 'session_admitted', 'sex', 'sponsor_email_address', 'sponsor_phone_no', 'state_of_origin', 'surname'}
+required = all_fields - {'grad_stats'}
 
 def get(mat_no):
     db_name = utils.get_DB(mat_no)
@@ -18,9 +18,16 @@ def get(mat_no):
 
 
 def post(data):
-    if not all([data.get(prop) for prop in required]) or (data.keys() - all_fields):
-        # Empty value supplied or Invalid field supplied or Missing field present
-        return "Invalid field supplied or missing a compulsory field", 400
+    record_update = bool(get_DB(data.get("mat_no")))
+    
+    if record_update:
+        if not all([data.get(prop) for prop in (required & data.keys())]) or (data.keys() - all_fields):
+            # Empty value supplied or Invalid field supplied
+            return "Invalid field supplied", 400
+    else:
+        if not all([data.get(prop) for prop in required]) or (data.keys() - all_fields):
+            # Empty value supplied or Invalid field supplied or Missing field present
+            return "Invalid field supplied or missing a compulsory field", 400
 
     session_admitted = data['session_admitted']
 
