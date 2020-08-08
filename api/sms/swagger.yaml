@@ -625,6 +625,8 @@ definitions:
         type: integer
       session_admitted:
         type: integer
+      session_grad:
+        type: integer
       level:
         type: integer
       sex:

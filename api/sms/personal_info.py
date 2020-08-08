@@ -2,8 +2,8 @@ from sms import utils
 from sms.config import db
 from sms.models.master import Master, MasterSchema
 
-all_fields = {'date_of_birth', 'email_address', 'grad_stats', 'level', 'lga', 'mat_no', 'mode_of_entry', 'othernames', 'phone_no', 'session_admitted', 'sex', 'sponsor_email_address', 'sponsor_phone_no', 'state_of_origin', 'surname'}
-required = all_fields - {'grad_stats'}
+all_fields = {'date_of_birth', 'email_address', 'grad_stats', 'level', 'lga', 'mat_no', 'mode_of_entry', 'othernames', 'phone_no', 'session_admitted', 'session_grad', 'sex', 'sponsor_email_address', 'sponsor_phone_no', 'state_of_origin', 'surname'}
+required = all_fields - {'grad_stats', 'session_grad'}
 
 def get(mat_no):
     db_name = utils.get_DB(mat_no)
