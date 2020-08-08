@@ -13,10 +13,26 @@ cur=conn.cursor()
 
 perms = {"read": True, "write": True, "superuser": True, "levels": [100, 200, 300, 600], "usernames": ["personalinfo_test"]}
 
-config.add_token("TESTING_token", "personalinfo_test", perms)
-#info_keys = ("username", "password", "permissions", "title", "fullname", "email")
-#info_values = ("info_test", tokenize("somepwdhash"), "{}", "Testing", "Info Test", "accounts@te.st")
-#info_base = dict(zip(info_keys, info_values))
+#{'option', 'probation_transfer' }
+info_keys = ['mat_no', 'surname', 'othernames', 'mode_of_entry', 'session_admitted', 'session_grad', 'level', 'option', 'sex', 'date_of_birth', 'state_of_origin', 'lga', 'phone_no', 'email_address', 'sponsor_phone_no', 'sponsor_email_address', 'grad_stats', None, None, None]
+row_keys = ["MATNO", "SURNAME", "OTHERNAMES", "MODE_OF_ENTRY", "SESSION_ADMIT", "SESSION_GRADUATED", "CURRENT_LEVEL", "OPTION", "SEX", "DATE_OF_BIRTH", "STATE_OF_ORIGIN", "LGA_OF_ORIGIN", "PHONE_NO", "EMAIL_ADDRESS", "SPONSOR_PHONE_NO", "SPONSOR_EMAIL_ADDRESS", "GRAD_STATUS", "PROBATED_TRANSFERRED", "IS_SYMLINK", "DATABASE"]
+row_values = ["ENGTESTING", "Banks", "Ian", 1, 2015, None, 100, None, "M", "8/12/12", "Edo", "Oredo", "08033104028", "email@gmail.com", "08033104028", "dad@dadmail.com", None, 0, 0, None]
+info_base = dict(zip(info_keys, row_values))
+info_base.pop(None)
+
+
+def get_student(mat_no):
+    return cur.execute("SELECT * FROM PersonalInfo WHERE matno=?",(mat_no,)).fetchone()
+
+
+def insert_student(dummy_info):
+    cur.execute("INSERT INTO PersonalInfo VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", dummy_info)
+    conn.commit()
+
+
+def delete_student(mat_no):
+    cur.execute("DELETE FROM PersonalInfo WHERE matno=?",(mat_no,))
+    conn.commit()
 
 
 def test_get_invaid_info():
@@ -54,3 +70,6 @@ def test_get_valid_dets():
     for prop in student_data:
         assert student_data[prop] == info_row[prop]
 
+
+def test_post_new_info():
+    config.add_token("TESTING_token", "personalinfo_test", perms)
