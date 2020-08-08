@@ -9,11 +9,9 @@ conn = sqlite3.connect("sms/database/accounts.db")
 conn.row_factory=sqlite3.Row
 cur=conn.cursor()
 perms = {"read": True, "write": True, "superuser": True, "levels": [100, 200, 300, 600], "usernames": ["accounts_test"]}
-config.add_token("TESTING_token", "accounts_test", perms)
 acct_keys = ("username", "password", "permissions", "title", "fullname", "email")
 acct_values = ("accounts_test", tokenize("somepwdhash"), "{}", "Testing", "Accounts Test", "accounts@te.st")
 acct_base = dict(zip(acct_keys, acct_values))
-#TODO add invalid password tests for post, put, manage
 
 
 def get_account(username):
@@ -31,6 +29,7 @@ def delete_account(username):
 
 
 def test_get_all_accounts():
+    config.add_token("TESTING_token", "accounts_test", perms)
     user_list, ret_code = accounts.get()
     assert ret_code == 200
     user_count = len(cur.execute("SELECT username FROM user").fetchall())
@@ -43,6 +42,7 @@ def test_get_all_accounts():
 
 
 def test_get_one_account():
+    config.add_token("TESTING_token", "accounts_test", perms)
     user_rows = cur.execute("SELECT * FROM user").fetchall()
     user_row = sample(user_rows, 1)[0]
     user, ret_code = accounts.get(user_row["username"])
@@ -53,11 +53,13 @@ def test_get_one_account():
 
 
 def test_get_invalid_username():
+    config.add_token("TESTING_token", "accounts_test", perms)
     user, ret_code = accounts.get("invalid_username_" + str(time()))
     assert ret_code == 404
 
 
 def test_post_new_account():
+    config.add_token("TESTING_token", "accounts_test", perms)
     dummy_acct = acct_base.copy()
     output, ret_code = accounts.post(data=dummy_acct)
     assert ret_code == 200
@@ -68,6 +70,7 @@ def test_post_new_account():
 
 
 def test_post_errors():
+    config.add_token("TESTING_token", "accounts_test", perms)
     dummy_acct = acct_base.copy()
     dummy_acct["extra_field"] = "extra"
     output, ret_code = accounts.post(data=dummy_acct)
@@ -100,6 +103,7 @@ def test_post_errors():
 
 
 def test_delete_account():
+    config.add_token("TESTING_token", "accounts_test", perms)
     insert_account(acct_values)
     output, ret_code = accounts.delete(username=acct_base["username"])
     assert ret_code == 200
@@ -107,11 +111,13 @@ def test_delete_account():
 
 
 def test_delete_invalid_username():
+    config.add_token("TESTING_token", "accounts_test", perms)
     user, ret_code = accounts.delete("invalid_username_" + str(time()))
     assert ret_code == 404
 
 
 def test_put_account():
+    config.add_token("TESTING_token", "accounts_test", perms)
     dummy_acct = acct_base.copy()
     insert_account((dummy_acct["username"], "somepwdhash", "{}", "Mutable Test", "TBD", "accts@te.st"))
     output, ret_code = accounts.put(data=dummy_acct)
@@ -124,6 +130,7 @@ def test_put_account():
 
 
 def test_put_errors():
+    config.add_token("TESTING_token", "accounts_test", perms)
     dummy_acct = acct_base.copy()
     insert_account((dummy_acct["username"], "somepwdhash", "{}", "Mutable Test", "TBD", "accts@te.st"))
     dummy_acct["extra_field"] = "extra"
@@ -154,6 +161,7 @@ def test_put_errors():
 
 
 def test_manage_account():
+    config.add_token("TESTING_token", "accounts_test", perms)
     dummy_acct = acct_base.copy()
     old_props = (dummy_acct["username"], "somepwdhash", "{}", "Mutable Test", "TBD", "accts@te.st")
     insert_account(old_props)
@@ -169,6 +177,7 @@ def test_manage_account():
 
 
 def test_manage_errors():
+    config.add_token("TESTING_token", "accounts_test", perms)
     dummy_acct = acct_base.copy()
     insert_account((dummy_acct["username"], "somepwdhash", "{}", "Mutable Test", "TBD", "accts@te.st"))
     dummy_acct["extra_field"] = "extra"
