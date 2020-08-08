@@ -1,9 +1,9 @@
-from sms.config import db
 from sms import utils
+from sms.config import db
 from sms.models.master import Master, MasterSchema
 
-all_fields = {"date_of_birth", "email_address", "grad_stats", "level", "mat_no", "mode_of_entry", "othernames", "phone_no", "session_admitted", "sex", "sponsor_email_address", "sponsor_phone_no", "state_of_origin", "surname", "lga"}
-required = {"session_admitted", "mat_no", "level", "mode_of_entry", "othernames", "surname", "sex"}
+all_fields = {'date_of_birth', 'email_address', 'grad_stats', 'level', 'lga', 'mat_no', 'mode_of_entry', 'othernames', 'phone_no', 'session_admitted', 'sex', 'sponsor_email_address', 'sponsor_phone_no', 'state_of_origin', 'surname'}
+required = {'date_of_birth', 'email_address', 'level', 'lga', 'mat_no', 'mode_of_entry', 'othernames', 'phone_no', 'session_admitted', 'sex', 'sponsor_email_address', 'sponsor_phone_no', 'state_of_origin', 'surname'}
 
 def get(mat_no):
     db_name = utils.get_DB(mat_no)
@@ -32,10 +32,11 @@ def post(data):
     session = utils.load_session(db_name)
     personalinfo_schema = session.PersonalInfoSchema()
     student_model = personalinfo_schema.load(data)
-    student.is_symlink = 0
+    student_model.is_symlink = 0
 
     db.session.add(master_model)
-    db.session.add(student_model)
     db.session.commit()
 
-# TODO add patch path for modifying properties
+    db_session = personalinfo_schema.Meta.sqla_session
+    db_session.add(student_model)
+    db_session.commit()
