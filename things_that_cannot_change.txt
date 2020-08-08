@@ -20,3 +20,5 @@ Also just in case of revisions, add why this is necessary
    * Grading rule uses 100 as first grade upper bound
 9) Session pair must be session / (session+1)
    * Session admitted in Personal Info post uses this to choose DB
+10) Mat nos must be of length 10
+   * DB Model file limited to 10 max chars mat_no in Personal Info
