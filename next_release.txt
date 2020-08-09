@@ -31,3 +31,13 @@
         --- util funcs      :  to select table, to get credits registered (from db even), others
 25) An asterisk next to level GPAs in reports when the courses for that level are not all passed
 26) Add table in sessional dbs for logging result errors
+27) Keep list of sessional dbs (and perhaps their URIs) in master db,
+        --- iterate through this list instead of using counting sessions
+28) Function in results (or somewhere similar) that goes through all students in a level (under a course adviser)
+        --- and calculates probation status,
+        --- add symlink status and associated db if necessary,
+        --- re(calculates) gpa and cgpa (it would be prudent to remove this from results)
+        --- maps to a button on the frontend which course advisers click when they're done with result entry
+        --- admin calls this function during create_session if the course adviser has not
+              (after first failing and showing on the frontend that this is the cause)
+29) restructure project
