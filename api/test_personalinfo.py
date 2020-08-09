@@ -1,11 +1,11 @@
 import sqlite3
+from time import time
+from sms import config
+from json import loads
+from random import sample
 from sms import personal_info
 from sms import personal_dets
-from random import sample
-from sms import config
-from time import time
-from sms.users import tokenize
-from json import loads
+
 
 conn = sqlite3.connect("sms/database/2015-2016.db")
 conn.row_factory = sqlite3.Row
