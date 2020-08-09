@@ -30,7 +30,7 @@ def get_student(mat_no):
 
 def insert_student(dummy_info):
     cur.execute("INSERT INTO PersonalInfo VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", dummy_info)
-    cur_2.execute("INSERT INTO Main VALUES(?,?)", (dummy_info["mat_no"], "2015-2016.db"))
+    cur_2.execute("INSERT INTO Main VALUES(?,?)", (dummy_info[0], "2015-2016.db"))
     conn.commit()
     conn_2.commit()
 
@@ -46,9 +46,11 @@ def test_get_invaid_info():
     mat_no = "INV"+str(time())[-7:]
     assert personal_info.get(mat_no) == None
 
+
 def test_get_invalid_dets():
     mat_no = "INV"+str(time())[-7:]
     assert personal_dets.get(mat_no) == (None, 404)
+
 
 def test_get_valid_info():
     info_rows = cur.execute("SELECT * FROM PersonalInfo").fetchall()
@@ -71,17 +73,6 @@ def test_get_valid_dets():
             assert student_data[prop_data] == info_row[prop_row]
 
 
-def test_post_new_info():
-    config.add_token("TESTING_token", "personalinfo_test", perms)
-    dummy_info = info_base.copy()
-    assert personal_info.post(dummy_info) == None
-    info_row = get_student(dummy_info["mat_no"])
-    for prop_data, prop_row, in zip(info_keys, row_keys):
-        if prop_data:
-            assert dummy_info[prop_data] == info_row[prop_row]
-    delete_student(dummy_info["mat_no"])
-
-
 def test_post_dets_info():
     config.add_token("TESTING_token", "personalinfo_test", perms)
     dummy_info = info_base.copy()
@@ -92,3 +83,38 @@ def test_post_dets_info():
         if prop_data:
             assert dummy_info[prop_data] == info_row[prop_row]
     delete_student(dummy_info["mat_no"])
+
+
+def test_post_dets_update_errors():
+    config.add_token("TESTING_token", "personalinfo_test", perms)
+    insert_student(row_values)
+    dummy_info = info_base.copy()
+    # Inserting an extra field
+    dummy_info["extra"] = "extra"
+    output, ret_code = personal_dets.post(dummy_info)
+    assert (output, ret_code) == ("Invalid field supplied", 400)
+    dummy_info.pop("extra")
+    # Set a required field to empty/None/zero
+    dummy_info["level"] = 0
+    output, ret_code = personal_dets.post(dummy_info)
+    assert (output, ret_code) == ("Invalid field supplied", 400)
+    delete_student(dummy_info["mat_no"])
+
+
+def test_post_dets_new_errors():
+    config.add_token("TESTING_token", "personalinfo_test", perms)
+    dummy_info = info_base.copy()
+    dummy_info["mat_no"] = "ENGTESTENG"
+    # Inserting an extra field
+    dummy_info["extra"] = "extra"
+    output, ret_code = personal_dets.post(dummy_info)
+    assert (output, ret_code) == ("Invalid field supplied or missing a compulsory field", 400)
+    dummy_info.pop("extra")
+    # Set a required field to empty/None/zero
+    dummy_info["mode_of_entry"] = 0
+    output, ret_code = personal_dets.post(dummy_info)
+    assert (output, ret_code) == ("Invalid field supplied or missing a compulsory field", 400)
+    # Remove a required field
+    dummy_info.pop("mode_of_entry")
+    output, ret_code = personal_dets.post(dummy_info)
+    assert (output, ret_code) == ("Invalid field supplied or missing a compulsory field", 400)
