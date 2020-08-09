@@ -10,4 +10,7 @@ def get(mat_no):
 
 @access_decorator
 def post(data):
-    return personal_info.post(data), 200
+    output = personal_info.post(data)
+    if output:
+        return output, 400
+    return None, 200

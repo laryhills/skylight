@@ -18,16 +18,16 @@ def get(mat_no):
 
 
 def post(data):
-    record_update = bool(get_DB(data.get("mat_no")))
+    record_update = bool(utils.get_DB(data.get("mat_no")))
     
     if record_update:
         if not all([data.get(prop) for prop in (required & data.keys())]) or (data.keys() - all_fields):
             # Empty value supplied or Invalid field supplied
-            return "Invalid field supplied", 400
+            return "Invalid field supplied"
     else:
         if not all([data.get(prop) for prop in required]) or (data.keys() - all_fields):
             # Empty value supplied or Invalid field supplied or Missing field present
-            return "Invalid field supplied or missing a compulsory field", 400
+            return "Invalid field supplied or missing a compulsory field"
 
     session_admitted = data['session_admitted']
 
