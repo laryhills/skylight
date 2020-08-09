@@ -8,8 +8,12 @@ from sms.users import tokenize
 from json import loads
 
 conn = sqlite3.connect("sms/database/2015-2016.db")
-conn.row_factory=sqlite3.Row
-cur=conn.cursor()
+conn.row_factory = sqlite3.Row
+cur = conn.cursor()
+
+conn_2 = sqlite3.connect("sms/database/master.db")
+conn_2.row_factory = sqlite3.Row
+cur_2 = conn_2.cursor()
 
 perms = {"read": True, "write": True, "superuser": True, "levels": [100, 200, 300, 600], "usernames": ["personalinfo_test"]}
 
@@ -26,12 +30,16 @@ def get_student(mat_no):
 
 def insert_student(dummy_info):
     cur.execute("INSERT INTO PersonalInfo VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)", dummy_info)
+    cur_2.execute("INSERT INTO Main VALUES(?,?)", (dummy_info["mat_no"], "2015-2016.db"))
     conn.commit()
+    conn_2.commit()
 
 
 def delete_student(mat_no):
-    cur.execute("DELETE FROM PersonalInfo WHERE matno=?",(mat_no,))
+    cur.execute("DELETE FROM PersonalInfo WHERE matno=?", (mat_no,))
+    cur_2.execute("DELETE FROM Main WHERE matno=?", (mat_no,))
     conn.commit()
+    conn_2.commit()
 
 
 def test_get_invaid_info():
@@ -65,3 +73,22 @@ def test_get_valid_dets():
 
 def test_post_new_info():
     config.add_token("TESTING_token", "personalinfo_test", perms)
+    dummy_info = info_base.copy()
+    assert personal_info.post(dummy_info) == None
+    info_row = get_student(dummy_info["mat_no"])
+    for prop_data, prop_row, in zip(info_keys, row_keys):
+        if prop_data:
+            assert dummy_info[prop_data] == info_row[prop_row]
+    delete_student(dummy_info["mat_no"])
+
+
+def test_post_dets_info():
+    config.add_token("TESTING_token", "personalinfo_test", perms)
+    dummy_info = info_base.copy()
+    output, ret_code = personal_dets.post(dummy_info)
+    assert (output, ret_code) == (None, 200)
+    info_row = get_student(dummy_info["mat_no"])
+    for prop_data, prop_row, in zip(info_keys, row_keys):
+        if prop_data:
+            assert dummy_info[prop_data] == info_row[prop_row]
+    delete_student(dummy_info["mat_no"])
