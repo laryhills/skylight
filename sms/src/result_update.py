@@ -9,11 +9,11 @@ from string import capwords
 from zipfile import ZipFile, ZIP_DEFLATED
 from flask import render_template, send_from_directory
 
-from sms.resources import result_statement
+from sms.src import result_statement
 from sms.config import app, cache_base_dir
-from sms.resources.users import access_decorator
-from sms.common.html_parser import split_html
-from sms.common.utils import get_gpa_credits, get_level_weightings
+from sms.src.users import access_decorator
+from sms.src.ext.html_parser import split_html
+from sms.src.utils import get_gpa_credits, get_level_weightings
 
 
 base_dir = os.path.dirname(__file__)

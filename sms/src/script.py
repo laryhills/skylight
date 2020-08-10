@@ -2,8 +2,8 @@
     Utility script much like utils.py for handling frequently called or single use simple utility functions
 """
 
-from sms.resources.users import get_level
-from sms.common.utils import load_session, get_depat, get_credits, get_gpa_credits, get_category
+from sms.src.users import get_level
+from sms.src.utils import load_session, get_depat, get_credits, get_gpa_credits, get_category
 from sms.models.master import Category, Category500
 
 class_mapping = {

@@ -1,8 +1,7 @@
 import os.path
 from copy import deepcopy
-from sms.resources import course_reg_utils, personal_info, course_details
-from sms.common import utils
-from sms.resources.users import access_decorator
+from sms.src import course_reg_utils, personal_info, course_details, utils
+from sms.src.users import access_decorator
 
 
 @access_decorator
@@ -34,6 +33,10 @@ def put(list_of_results):
         return 'No result record supplied', 400
     return add_result_records(list_of_results)
 
+
+# ==============================================================================================
+#                                  Core functions
+# ==============================================================================================
 
 def get_results_for_acad_session(mat_no, acad_session):
     """

@@ -6,11 +6,11 @@ from num2words import num2words
 from jinja2 import Template
 from flask import render_template, send_from_directory
 
-from sms.resources.users import access_decorator
-from sms.resources.script import get_students_details_by_category, get_final_year_students_by_category
+from sms.src.users import access_decorator
+from sms.src.script import get_students_details_by_category, get_final_year_students_by_category
 from sms.models.master import Category, Category500
 from sms.config import app, cache_base_dir
-from sms.common.utils import get_depat, get_num_of_prize_winners
+from sms.src.utils import get_depat, get_num_of_prize_winners
 
 base_dir = os.path.dirname(__file__)
 categories = Category.query.all()

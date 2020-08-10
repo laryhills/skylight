@@ -1,6 +1,6 @@
 import os
 import sqlite3
-from sms.common import utils
+from sms.src import utils
 
 
 def create(session=utils.get_current_session()):

@@ -1,7 +1,6 @@
 import os
 import sqlite3
-from sms.resources import course_reg, result_statement
-from sms.common import utils
+from sms.src import course_reg, result_statement, utils
 
 db_base_dir = os.path.join(os.path.dirname(__file__), '', '../database')
 print ("DB path",os.path.join(db_base_dir, 'master.db'))

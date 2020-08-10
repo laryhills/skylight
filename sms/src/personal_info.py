@@ -1,9 +1,31 @@
-from sms.common import utils
+from json import dumps
 from sms.config import db
+from sms.src import utils
+from sms.src.users import access_decorator
 from sms.models.master import MasterSchema
 
-all_fields = {'date_of_birth', 'email_address', 'grad_stats', 'level', 'lga', 'mat_no', 'mode_of_entry', 'othernames', 'phone_no', 'session_admitted', 'session_grad', 'sex', 'sponsor_email_address', 'sponsor_phone_no', 'state_of_origin', 'surname'}
+all_fields = {'date_of_birth', 'email_address', 'grad_stats', 'level', 'lga', 'mat_no', 'mode_of_entry', 'othernames',
+              'phone_no', 'session_admitted', 'session_grad', 'sex', 'sponsor_email_address', 'sponsor_phone_no',
+              'state_of_origin', 'surname'}
 required = all_fields - {'grad_stats', 'session_grad'}
+
+
+@access_decorator
+def get_exp(mat_no):
+    return dumps(get(mat_no)), 200
+
+
+@access_decorator
+def post_exp(data):
+    output = post(data)
+    if output:
+        return output, 400
+    return None, 200
+
+
+# ==============================================================================================
+#                                  Core functions
+# ==============================================================================================
 
 def get(mat_no):
     db_name = utils.get_DB(mat_no)
@@ -19,7 +41,7 @@ def get(mat_no):
 
 def post(data):
     record_update = bool(utils.get_DB(data.get("mat_no")))
-    
+
     if record_update:
         if not all([data.get(prop) for prop in (required & data.keys())]) or (data.keys() - all_fields):
             # Empty value supplied or Invalid field supplied

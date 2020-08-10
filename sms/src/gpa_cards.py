@@ -1,7 +1,7 @@
-from sms.resources.script import get_students_by_level
+from sms.src.script import get_students_by_level
 from sms.config import get_current_session
-from sms.resources.users import load_session, access_decorator
-from sms.common.utils import get_gpa_credits
+from sms.src.users import load_session, access_decorator
+from sms.src.utils import get_gpa_credits
 
 
 def get_students_details(students, entry_session):

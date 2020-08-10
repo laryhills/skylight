@@ -23,15 +23,15 @@
 example...
 c_reg = {'mat_no': 'ENG1503886', personal_info: {}, 'table_to_populate': 'CourseReg500', 'course_reg_session': 2019, 'course_reg_level': 500, 'max_credits': 50, 'courses': {'first_sem': ['MEE521', 'MEE451', 'MEE561', 'MEE571', 'EMA481', 'MEE502'], 'second_sem': []}, 'probation_status': 0, 'fees_status': None, 'others': None}
 """
-from sms.common import utils
-from sms.resources import course_reg_utils, results
-from sms.resources.users import access_decorator
+from sms.src import course_reg_utils, results, utils
+from sms.src.users import access_decorator
 
 
 @access_decorator
-def init_new(mat_no, acad_session=utils.get_current_session()):
+def init_new(mat_no):
     # perform some checks
-    check = check_registration_eligibility(mat_no, acad_session)
+    current_session = utils.get_current_session()
+    check = check_registration_eligibility(mat_no, current_session)
     if check[1] != 200:
         return check
     else:
@@ -67,6 +67,7 @@ def put(data):
 # ==============================================================================================
 
 def check_registration_eligibility(mat_no, acad_session):
+    # does this check for the supplied mat_no in the academic session: acad_session
     current_level = utils.get_level(mat_no)
     res_poll = utils.result_poll(mat_no)
     course_reg = utils.get_registered_courses(mat_no, level=None, true_levels=False)

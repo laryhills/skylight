@@ -222,10 +222,10 @@ login(my_token)
 
 ## Function mapping to perms and logs
 fn_props = {
-    "personal_dets.get": {"perms": {"levels", "read"},
+    "personal_info.get_exp": {"perms": {"levels", "read"},
                           "logs": lambda user, params: "{} requested personal details of {}".format(user, params.get("mat_no"))
                         },
-    "personal_dets.post": {"perms": {"levels", "write"},
+    "personal_info.post_exp": {"perms": {"levels", "write"},
                            "logs": lambda user, params: "{} added personal details for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
                         },
     "course_details.post": {"perms": {"superuser", "write"},

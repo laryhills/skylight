@@ -1,6 +1,6 @@
 from collections import defaultdict
 from json import loads, dumps
-from sms.resources import personal_info, course_details, result_statement, users
+from sms.src import personal_info, course_details, result_statement, users
 from sms import config
 from sms.models.courses import Options, OptionsSchema
 from sms.models.master import Category, Category500

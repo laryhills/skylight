@@ -6,8 +6,8 @@ from zipfile import ZipFile, ZIP_DEFLATED
 from concurrent.futures import ProcessPoolExecutor
 from flask import render_template, send_from_directory, url_for
 
-from sms.common.utils import get_current_session, get_registered_courses, get_level
-from sms.resources.script import get_students_by_level
+from sms.src.utils import get_current_session, get_registered_courses, get_level
+from sms.src.script import get_students_by_level
 from sms.config import cache_base_dir
 
 base_dir = os.path.dirname(__file__)

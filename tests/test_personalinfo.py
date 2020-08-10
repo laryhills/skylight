@@ -4,7 +4,7 @@ from time import time
 from sms import config
 from json import loads
 from random import sample
-from sms.resources import personal_info, personal_dets
+from sms.src import personal_info
 from tests import db_path
 
 conn = sqlite3.connect(os.path.join(db_path, "2015-2016.db"))
@@ -49,7 +49,7 @@ def test_get_invaid_info():
 
 def test_get_invalid_dets():
     mat_no = "INV"+str(time())[-7:]
-    assert personal_dets.get(mat_no) == (None, 404)
+    assert personal_info.get_exp(mat_no) == (None, 404)
 
 
 def test_get_valid_info():
@@ -65,7 +65,7 @@ def test_get_valid_dets():
     config.add_token("TESTING_token", "personalinfo_test", perms)
     info_rows = cur.execute("SELECT * FROM PersonalInfo").fetchall()
     info_row = sample(info_rows, 1)[0]
-    output, ret_code = personal_dets.get(info_row["matno"])
+    output, ret_code = personal_info.get_exp(info_row["matno"])
     assert ret_code == 200
     student_data = loads(output)
     for prop_data, prop_row in zip(info_keys, row_keys):
@@ -76,7 +76,7 @@ def test_get_valid_dets():
 def test_post_dets_info():
     config.add_token("TESTING_token", "personalinfo_test", perms)
     dummy_info = info_base.copy()
-    output, ret_code = personal_dets.post(dummy_info)
+    output, ret_code = personal_info.post_exp(dummy_info)
     assert (output, ret_code) == (None, 200)
     info_row = get_student(dummy_info["mat_no"])
     for prop_data, prop_row, in zip(info_keys, row_keys):
@@ -91,12 +91,12 @@ def test_post_dets_update_errors():
     dummy_info = info_base.copy()
     # Inserting an extra field
     dummy_info["extra"] = "extra"
-    output, ret_code = personal_dets.post(dummy_info)
+    output, ret_code = personal_info.post_exp(dummy_info)
     assert (output, ret_code) == ("Invalid field supplied", 400)
     dummy_info.pop("extra")
     # Set a required field to empty/None/zero
     dummy_info["level"] = 0
-    output, ret_code = personal_dets.post(dummy_info)
+    output, ret_code = personal_info.post_exp(dummy_info)
     assert (output, ret_code) == ("Invalid field supplied", 400)
     delete_student(dummy_info["mat_no"])
 
@@ -107,14 +107,14 @@ def test_post_dets_new_errors():
     dummy_info["mat_no"] = "ENGTESTENG"
     # Inserting an extra field
     dummy_info["extra"] = "extra"
-    output, ret_code = personal_dets.post(dummy_info)
+    output, ret_code = personal_info.post_exp(dummy_info)
     assert (output, ret_code) == ("Invalid field supplied or missing a compulsory field", 400)
     dummy_info.pop("extra")
     # Set a required field to empty/None/zero
     dummy_info["mode_of_entry"] = 0
-    output, ret_code = personal_dets.post(dummy_info)
+    output, ret_code = personal_info.post_exp(dummy_info)
     assert (output, ret_code) == ("Invalid field supplied or missing a compulsory field", 400)
     # Remove a required field
     dummy_info.pop("mode_of_entry")
-    output, ret_code = personal_dets.post(dummy_info)
+    output, ret_code = personal_info.post_exp(dummy_info)
     assert (output, ret_code) == ("Invalid field supplied or missing a compulsory field", 400)

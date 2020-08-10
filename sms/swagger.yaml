@@ -15,7 +15,7 @@ paths:
   /login:
     post:
       tags: [Login]
-      operationId: sms.resources.users.login
+      operationId: sms.src.users.login
       summary: User authentication
       description: Logs in a user using supplied token
       parameters:
@@ -44,7 +44,7 @@ paths:
   /session_key:
     get:
       tags: [Login]
-      operationId: sms.resources.users.session_key
+      operationId: sms.src.users.session_key
       summary: Session key
       description: Get session key for use in generating token on client
       responses:
@@ -56,7 +56,7 @@ paths:
   /personal_info:
     get:
       tags: [Personal Information]
-      operationId: sms.resources.personal_dets.get
+      operationId: sms.src.personal_info.get_exp
       summary: Personal_info query
       description: Gets a student or a group of students bio data
       parameters:
@@ -78,7 +78,7 @@ paths:
 
     post:
       tags: [Personal Information]
-      operationId: sms.resources.personal_dets.post
+      operationId: sms.src.personal_info.post_exp
       parameters:
         - name: data
           in: body
@@ -98,7 +98,7 @@ paths:
       tags: [Course Details]
       summary: Course details query
       description: Gets the details a course by it's code or of all courses by their level
-      operationId: sms.resources.course_details.get_course_details
+      operationId: sms.src.course_details.get_course_details
       parameters:
         - in: query
           name: course_code
@@ -123,7 +123,7 @@ paths:
     post:
       tags: [Course Details]
       description: Adds a new course
-      operationId: sms.resources.course_details.post
+      operationId: sms.src.course_details.post
       parameters:
         - in: body
           name: course
@@ -141,7 +141,7 @@ paths:
       tags: [Course Details]
       summary: Course details update
       description: Modifies existing courses
-      operationId: sms.resources.course_details.put
+      operationId: sms.src.course_details.put
       parameters:
         - in: body
           name: data
@@ -163,7 +163,7 @@ paths:
       tags: [Course Details]
       summary: Course details deletion
       description: Deletes a course
-      operationId: sms.resources.course_details.delete
+      operationId: sms.src.course_details.delete
       parameters:
         - in: query
           name: course_code
@@ -184,7 +184,7 @@ paths:
   /course_form:
     get:
       tags: [Sheets]
-      operationId: sms.resources.course_form.get
+      operationId: sms.src.course_form.get
       summary: Course form generation
       description: Generates course form of a student as a png (for preview) or as a png (for printing)
       produces:
@@ -214,7 +214,7 @@ paths:
   /result_update:
     get:
       tags: [Sheets]
-      operationId: sms.resources.result_update.get
+      operationId: sms.src.result_update.get
       produces:
         - application/octet-stream
         - application/pdf
@@ -243,7 +243,7 @@ paths:
   /level_gpa_cards:
     get:
       tags: [Sheets]
-      operationId: sms.resources.gpa_cards.get
+      operationId: sms.src.gpa_cards.get
       parameters:
         - in: query
           name: level
@@ -258,7 +258,7 @@ paths:
   /senate_version:
     get:
       tags: [Sheets]
-      operationId: sms.resources.senate_version.get
+      operationId: sms.src.senate_version.get
       produces:
         - application/pdf
       parameters:
@@ -283,7 +283,7 @@ paths:
   /broad_sheet:
     get:
       tags: [Sheets]
-      operationId: sms.resources.broad_sheet.get
+      operationId: sms.src.broad_sheet.get
       produces:
         - application/octet-stream
       parameters:
@@ -308,7 +308,7 @@ paths:
   /course_reg_new:
     get:
       tags: [Course Registration]
-      operationId: sms.resources.course_reg.init_new
+      operationId: sms.src.course_reg.init_new
       summary: Get course registration
       parameters:
         - in: query
@@ -334,7 +334,7 @@ paths:
   /course_reg:
     get:
       tags: [Course Registration]
-      operationId: sms.resources.course_reg.get
+      operationId: sms.src.course_reg.get
       summary: Get old course registration
       parameters:
         - in: query
@@ -359,7 +359,7 @@ paths:
 
     post:
       tags: [Course Registration]
-      operationId: sms.resources.course_reg.post
+      operationId: sms.src.course_reg.post
       summary: Create/edit course registration
       parameters:
         - in: body
@@ -380,7 +380,7 @@ paths:
 
     put:
       tags: [Course Registration]
-      operationId: sms.resources.course_reg.put
+      operationId: sms.src.course_reg.put
       summary: Edit old course registration, requires elevated access
       parameters:
         - in: body
@@ -402,7 +402,7 @@ paths:
   /results:
     get:
       tags: [Results]
-      operationId: sms.resources.results.get
+      operationId: sms.src.results.get
       summary: Get results
       description: Gets the results of a particular student for the entered session
       parameters:
@@ -431,7 +431,7 @@ paths:
           description: Session expired, login again
     post:
       tags: [Results]
-      operationId: sms.resources.results.post
+      operationId: sms.src.results.post
       summary: Add result records
       description: Post results to the database as a list of list ==> [ [course_code, session, mat_no, score], [next record], ... ]
       parameters:
@@ -458,7 +458,7 @@ paths:
           description: Session expired, login again
     put:
       tags: [Results]
-      operationId: sms.resources.results.put
+      operationId: sms.src.results.put
       summary: Edit past result records, requires elevated access
       description: Post results to the database as a list of list ==> [ [course_code, session, mat_no, score], [next record], ... ]
       parameters:
@@ -487,7 +487,7 @@ paths:
   /accounts:
     get:
       tags: [Accounts]
-      operationId: sms.resources.accounts.get
+      operationId: sms.src.accounts.get
       parameters:
         - in: query
           name: username
@@ -504,7 +504,7 @@ paths:
           description: Account not found
     post:
       tags: [Accounts]
-      operationId: sms.resources.accounts.post
+      operationId: sms.src.accounts.post
       parameters:
         - in: body
           name: data
@@ -520,7 +520,7 @@ paths:
           description: Unauthorised
     patch:
       tags: [Accounts]
-      operationId: sms.resources.accounts.manage
+      operationId: sms.src.accounts.manage
       parameters:
         - in: body
           name: data
@@ -549,7 +549,7 @@ paths:
           description: Account not found
     put:
       tags: [Accounts]
-      operationId: sms.resources.accounts.put
+      operationId: sms.src.accounts.put
       parameters:
         - in: body
           name: data
@@ -567,7 +567,7 @@ paths:
           description: Account not found
     delete:
       tags: [Accounts]
-      operationId: sms.resources.accounts.delete
+      operationId: sms.src.accounts.delete
       parameters:
         - in: query
           name: username
@@ -584,7 +584,7 @@ paths:
   /logs:
     get:
       tags: [Logs]
-      operationId: sms.resources.logs.get
+      operationId: sms.src.logs.get
       parameters:
         - in: query
           name: limit

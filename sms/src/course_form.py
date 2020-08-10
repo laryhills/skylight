@@ -2,10 +2,10 @@ import os.path
 import secrets
 from flask import render_template, send_from_directory
 from weasyprint import HTML
-from sms.resources import course_reg
+from sms.src import course_reg
 from sms.config import app, cache_base_dir
-from sms.resources.users import access_decorator
-from sms.common.pdf_image_converter import pdftoimage
+from sms.src.users import access_decorator
+from sms.src.ext.pdf_image_converter import pdftoimage
 
 base_dir = os.path.dirname(__file__)
 uniben_logo_path = 'file:///' + os.path.join(os.path.split(base_dir)[0], 'static', 'Uniben_logo.png')
@@ -15,7 +15,11 @@ uniben_logo_path = 'file:///' + os.path.join(os.path.split(base_dir)[0], 'static
 def get(mat_no, session=None, to_print=False):
     # TODO: Clear the cache directory
 
-    course_registration = course_reg.get(mat_no, session)
+    course_registration = course_reg.init_new(mat_no)
+    if course_registration[1] == 200:
+        course_registration = course_registration[0]
+    else:
+        return course_registration
     session = course_registration['course_reg_session']
     person = course_registration['personal_info']
     level = list(str(course_registration['course_reg_level']))
@@ -34,10 +38,10 @@ def get(mat_no, session=None, to_print=False):
     with app.app_context():
         html = render_template('course_reg_template.htm', mat_no=mat_no, uniben_logo_path=uniben_logo_path, session='{}/{}'.format(session, session + 1),
                                surname=person['surname'], othernames=person['othernames'].upper(),
-                               depat=person['depat'], mode_of_entry=person['mode_of_entry'],
+                               depat=person['department'], mode_of_entry=person['mode_of_entry'],
                                level=level, phone_no=person['phone_no'], sex=person['sex'],
-                               email=person['email'], state=person['state_of_origin'],
-                               lga=person['lga_of_origin'],
+                               email=person['email_address'], state=person['state_of_origin'],
+                               lga=person['lga'],
                                first_sem_carryover_courses=first_sem_carryover_courses,
                                first_sem_carryover_credits=first_sem_carryover_credits,
                                second_sem_carryover_courses=second_sem_carryover_courses,

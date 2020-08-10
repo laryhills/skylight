@@ -1,10 +1,10 @@
 import sqlite3
 import os.path
-from sms.resources import accounts
+from sms.src import accounts
 from random import sample
 from sms import config
 from time import time
-from sms.resources.users import tokenize
+from sms.src.users import tokenize
 from tests import db_path
 
 conn = sqlite3.connect(os.path.join(db_path, "accounts.db"))

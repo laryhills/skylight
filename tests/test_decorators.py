@@ -1,8 +1,8 @@
 import sqlite3
 import os.path
 from sms import config
-from sms.resources.users import access_decorator
-from sms.resources.users import accounts_decorator
+from sms.src.users import access_decorator
+from sms.src.users import accounts_decorator
 from tests import db_path
 
 conn = sqlite3.connect(os.path.join(db_path, "accounts.db"))
@@ -10,7 +10,7 @@ conn.row_factory=sqlite3.Row
 cur=conn.cursor()
 
 username = "decorator_test"
-student_400 = "ENG1604295"
+student_400 = "ENG1604235"
 dummy_access_fn = lambda *args, **kwargs: (True, 200)
 dummy_accounts_fn = lambda *args, **kwargs: (True, 200)
 
@@ -46,10 +46,10 @@ perms_list = [
 ]
 
 
-def test_personal_dets_get():
+def test_personal_info_get():
     # Levels & read perms
-    dummy_access_fn.__module__ = "personal_dets"
-    dummy_access_fn.__name__ = "get"
+    dummy_access_fn.__module__ = "personal_info"
+    dummy_access_fn.__name__ = "get_exp"
     for perms in perms_list:
         config.add_token("TESTING_token", username, perms)
         if perms.get("read") and (400 in perms.get("levels", []) or perms.get("superuser")):
@@ -59,10 +59,11 @@ def test_personal_dets_get():
         output, ret_code = access_decorator(dummy_access_fn)(mat_no=student_400)
         assert has_access == ret_code
 
-def test_personal_dets_post():
+def test_personal_info_post():
     # Levels & write perms
-    dummy_access_fn.__module__ = "personal_dets"
-    dummy_access_fn.__name__ = "post"
+    dummy_access_fn.__module__ = "personal_info"
+    dummy_access_fn.__name__ = "post_exp" \
+                               ""
     student_data = {"mat_no": "ENG1603123", "level": 400}
     for perms in perms_list:
         config.add_token("TESTING_token", username, perms)

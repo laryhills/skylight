@@ -1,4 +1,4 @@
-from sms.resources.users import fn_props
+from sms.src.users import fn_props
 from sms.models.logs import Logs
 from json import loads
 

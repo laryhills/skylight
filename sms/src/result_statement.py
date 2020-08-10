@@ -1,5 +1,4 @@
-from sms.common import utils
-from sms.resources import personal_info, course_details
+from sms.src import personal_info, course_details, utils
 from json import loads, dumps
 
 
