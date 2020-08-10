@@ -1,10 +1,10 @@
 import os.path
-from weasyprint import HTML
+import pdfkit
 from time import perf_counter
 from secrets import token_hex
 from zipfile import ZipFile, ZIP_DEFLATED
 from concurrent.futures import ProcessPoolExecutor
-from flask import render_template, send_from_directory
+from flask import render_template, send_from_directory, url_for
 
 from sms.utils import get_current_session, get_registered_courses, get_level
 from sms.script import get_students_by_level
@@ -32,7 +32,8 @@ def get(acad_session, level=None):
         t1 = perf_counter()
         number_of_students = len(registered_students_for_session[level])
         html = render_template('broad_sheet.html', number_of_students=number_of_students, enumerate=enumerate,
-                               students=registered_students_for_session[level])
+                               url_for=url_for, students=registered_students_for_session[level],
+                               )
         print(f'{str(level)}: html fetched in', perf_counter() - t1)
         htmls.append((html, level))
 
@@ -63,10 +64,26 @@ def generate_pdf_wrapper(func, iterable, file_name, zf, concurrency=False):
 def generate_pdf(item, file_name, zf=None):
     html, level = item
     pdf_name = file_name + '_' + str(level) + '.pdf'
-
+    options = {
+        # 'page-size': 'A3',
+        'page-height': '1370.0pt',  # <unitreal> like margin',
+        'page-width': '936.0pt',  # <unitreal> like margin',
+        # 'margin: 36.0pt, 21.6pt, 72.0pt, 21.6pt'
+        'orientation': 'landscape',
+        'disable-smart-shrinking': None,
+        'print-media-type': None,
+        # 'margin-top': '0.6in',
+        # 'margin-right': '0.5in',
+        # 'margin-bottom': '0.6in',
+        # 'margin-left': '0.5in',
+        # 'minimum-font-size': 12,
+        # 'encoding': "UTF-8",
+        # 'no-outline': None,
+        'dpi': 100,
+    }
     t1 = perf_counter()
-    pdf = HTML(string=html).write_pdf()
-    print(f'{level} pdf generated in', perf_counter() - t1)
+    pdf = pdfkit.from_string(html, False, options=options)
+    print(f'{level} pdf generated in', perf_counter() - t1, '\n')
     if zf:
         zf.writestr(pdf_name, pdf)
     else:
