@@ -1,15 +1,13 @@
-from flask import abort, request
-from json import loads, dumps
-from sms.models.user import User
-from sms.config import app, bcrypt, add_token, get_token, db
-from base64 import b64encode
-from hashlib import md5
-from sms.models.master import Master, MasterSchema
-from sms.models.logs import LogsSchema
-from sys import modules
-from importlib import reload
 from time import time
+from hashlib import md5
+from base64 import b64encode
+from json import loads, dumps
+from flask import abort, request
+from sms.models.user import User
+from sms.models.logs import LogsSchema
 from itsdangerous.exc import BadSignature
+from sms.models.master import Master, MasterSchema
+from sms.config import app, bcrypt, add_token, get_token, db
 from itsdangerous import JSONWebSignatureSerializer as Serializer
 
 
@@ -63,11 +61,11 @@ def access_decorator(func):
             token = tokenize("ucheigbeka:testing")
             # abort(401)
         req_perms, token_dict = fn_props[qual_name]["perms"].copy(), get_token("TESTING_token") or get_token(token)
-        user_perms = token_dict["perms"]
-        print ("your perms", user_perms)
         if not token_dict:
             # Not logged in (using old session token)
             return None, 440
+        user_perms = token_dict["perms"]
+        print ("your perms", user_perms)
         has_access = True
         if "levels" in req_perms:
             params = get_kwargs(func, args, kwargs)
@@ -104,14 +102,15 @@ def accounts_decorator(func):
             token = request.headers["token"]
         except Exception:
             print ("Running from command line or swagger UI, token not supplied!")
+            print ("func", func, "args", args, "kwargs", kwargs)
             token = tokenize("ucheigbeka:testing")
             # abort(401)
         req_perms, token_dict = fn_props[qual_name]["perms"].copy(), get_token("TESTING_token") or get_token(token)
-        user_perms = token_dict["perms"]
-        print ("your perms", user_perms)
         if not token_dict:
             # Not logged in (using old session token)
             return None, 440
+        user_perms = token_dict["perms"]
+        print ("your perms", user_perms)
         has_access = True
         if "usernames" in req_perms:
             params = get_kwargs(func, args, kwargs)
@@ -136,8 +135,11 @@ def accounts_decorator(func):
 def log(user, qual_name, func, args, kwargs):
     params = get_kwargs(func, args, kwargs)
     print ("log msg => " + fn_props[qual_name]["logs"](user, params))
-    log_data = {"timestamp": time(), "operation": qual_name, "user": user, "params": dumps(params)}
-    log_post(log_data)
+    log_data = {"timestamp": int(time()), "operation": qual_name, "user": user, "params": dumps(params)}
+    log_record = LogsSchema().load(log_data)
+    db.session.add(log_record)
+    db.session.commit()
+
 
 ## UTILS functions
 
@@ -188,12 +190,12 @@ def dict_render(dictionary, indent = 0):
     rendered_dict = ""
     for key in dictionary:
         if isinstance(dictionary[key], dict):
-            rendered_dict += "{} => \n".format(key.capitalize())
-            rendered_dict += dict_render(dictionary[key], indent = 4)
+            rendered_dict += "{}{} => \n".format(' ' * indent, str(key).capitalize())
+            rendered_dict += dict_render(dictionary[key], indent = indent + 4)
         else:
-            rendered_dict += "{}{} => {}\n".format(' ' * indent, key.capitalize(), dictionary[key])
+            rendered_dict += "{}{} => {}\n".format(' ' * indent, str(key).capitalize(), dictionary[key])
     if indent:
-        return rendered_dict.replace("_"," ")
+        return rendered_dict
     return rendered_dict[:-1].replace("_"," ")
 
 
@@ -204,13 +206,6 @@ def get_kwargs(func, args, kwargs):
             kw = func.__code__.co_varnames[idx]
             my_kwargs[kw] = args[idx]
     return my_kwargs
-
-
-def log_post(log_data):
-    log_record = LogsSchema().load(log_data)
-    db.session.add(log_record)
-    db.session.commit()
-
 
 # PERFORM LOGIN, REMOVE IN PROD
 my_token = {'token': tokenize("ucheigbeka:testing")}
