@@ -13,6 +13,17 @@ from itsdangerous.exc import BadSignature
 from itsdangerous import JSONWebSignatureSerializer as Serializer
 
 
+def session_key():
+    return app.config['SECRET_KEY']
+
+
+def hash_key(session_key = session_key()):
+    session_key_sum = str(sum([int(x) for x in session_key if x in "0123456789"]))
+    session_bytes = bytes(session_key_sum, "utf-8")
+    return b64encode(md5(session_bytes).digest()).decode("utf-8").strip("=")
+
+serializer = Serializer(hash_key())
+
 def login(token):
     try:
         user = detokenize(token['token'])
@@ -27,31 +38,18 @@ def login(token):
         return None, 401
 
 
-def tokenize(text):
+def tokenize(text, s=serializer):
     # Use on client side, this is just for testing
-    s = Serializer(hash_key())
     return s.dumps(text).decode('utf-8')
 
 
-def detokenize(token, parse=True):
-    s = Serializer(hash_key())
+def detokenize(token, parse=True, s=serializer):
     try:
         if parse:
             return dict(zip(*[("username","password"),s.loads(token).split(':')]))
         return s.loads(token)
     except BadSignature:
         return None
-
-
-def session_key():
-    # TODO expose this on swagger to be called by client on login
-    return app.config['SECRET_KEY']
-
-
-def hash_key(session_key = session_key()):
-    session_key_sum = str(sum([int(x) for x in session_key if x in "0123456789"]))
-    session_bytes = bytes(session_key_sum, "utf-8")
-    return b64encode(md5(session_bytes).digest()).decode("utf-8").strip("=")
 
 
 def access_decorator(func):
