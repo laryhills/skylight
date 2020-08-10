@@ -4,7 +4,6 @@ from sms.models.user import User
 from sms.config import app, bcrypt, add_token, get_token, db
 from base64 import b64encode
 from hashlib import md5
-from flask import abort
 from sms.models.master import Master, MasterSchema
 from sms.models.logs import LogsSchema
 from sys import modules
@@ -23,9 +22,9 @@ def login(token):
             add_token(token['token'], stored_user.username, loads(stored_user.permissions))
             token_dict['title'] = stored_user.title
             return token_dict, 200
-        abort(401)
+        return None, 401
     except Exception:
-        abort(401)
+        return None, 401
 
 
 def tokenize(text):
