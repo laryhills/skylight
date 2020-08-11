@@ -1,13 +1,13 @@
 import os.path
 import secrets
-from weasyprint import HTML
+import pdfkit
+import imgkit
 from collections import defaultdict
 from flask import render_template, send_from_directory
 from sms.src import course_reg
 from sms.config import app, cache_base_dir
 from sms.src.users import access_decorator
 from sms.src.utils import get_current_session
-from sms.src.ext.pdf_image_converter import pdftoimage
 
 base_dir = os.path.dirname(__file__)
 uniben_logo_path = 'file:///' + os.path.join(os.path.split(base_dir)[0], 'templates', 'static', 'Uniben_logo.png')
@@ -17,6 +17,8 @@ uniben_logo_path = 'file:///' + os.path.join(os.path.split(base_dir)[0], 'templa
 def get(mat_no=None, session=None, to_print=False):
     # TODO: Clear the cache directory
     current_session = get_current_session()
+    session = session if session else current_session
+
     if mat_no:
         if session == current_session:
             course_registration = course_reg.init_new(mat_no)
@@ -31,7 +33,7 @@ def get(mat_no=None, session=None, to_print=False):
         mat_no = ''
         course_registration = {
             'personal_info': defaultdict(str),
-            'course_reg_session': session if session else current_session,
+            'course_reg_session': session,
             'course_reg_level': '',
             'courses': {'first_sem': [], 'second_sem': []}
         }
@@ -64,12 +66,25 @@ def get(mat_no=None, session=None, to_print=False):
                                second_sem_carryover_credits=second_sem_carryover_credits)
 
         file_name = secrets.token_hex(8)
-        HTML(string=html).write_pdf(os.path.join(cache_base_dir, file_name + '.pdf'))
-
         if to_print:
+            options = {
+                'page-size': 'A4',
+                'enable-local-file-access': None,
+                'disable-smart-shrinking': None,
+                'print-media-type': None,
+                'no-outline': None,
+                'dpi': 100,
+            }
+            pdfkit.from_string(html, os.path.join(cache_base_dir, file_name + '.pdf'), options=options)
             resp = send_from_directory(cache_base_dir, file_name + '.pdf', as_attachment=True)
         else:
             img_fmt = 'png'
-            pdftoimage(os.path.join(cache_base_dir, file_name + '.pdf'), fmt=img_fmt)
+            options = {
+                'format': img_fmt,
+                'enable-local-file-access': None,
+                'disable-smart-width': None,
+                # 'quality': 100,
+            }
+            imgkit.from_string(html, os.path.join(cache_base_dir, file_name + '.' + img_fmt), options=options)
             resp = send_from_directory(cache_base_dir, file_name + '.' + img_fmt, as_attachment=True)
         return resp
