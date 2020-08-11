@@ -1,5 +1,7 @@
 import os.path
 import secrets
+from weasyprint import HTML
+from collections import defaultdict
 from flask import render_template, send_from_directory
 from sms.src import course_reg
 from sms.config import app, cache_base_dir
