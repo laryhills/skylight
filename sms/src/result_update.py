@@ -17,7 +17,7 @@ from sms.src.utils import get_gpa_credits, get_level_weightings
 
 
 base_dir = os.path.dirname(__file__)
-uniben_logo_path = 'file:///' + os.path.join(os.path.split(base_dir)[0], 'static', 'Uniben_logo.png')
+uniben_logo_path = 'file:///' + os.path.join(os.path.split(base_dir)[0], 'templates', 'static', 'Uniben_logo.png')
 
 
 @access_decorator
@@ -69,6 +69,7 @@ def get(mat_no, raw_score=True, to_print=False):
             'margin-left': '0.5in',
             #'minimum-font-size': 12,
             'encoding': "UTF-8",
+            'enable-local-file-access': None,
             'no-outline': None,
             'dpi': 100,
         }

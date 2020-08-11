@@ -8,7 +8,7 @@ from sms.src.users import access_decorator
 from sms.src.ext.pdf_image_converter import pdftoimage
 
 base_dir = os.path.dirname(__file__)
-uniben_logo_path = 'file:///' + os.path.join(os.path.split(base_dir)[0], 'static', 'Uniben_logo.png')
+uniben_logo_path = 'file:///' + os.path.join(os.path.split(base_dir)[0], 'templates', 'static', 'Uniben_logo.png')
 
 
 @access_decorator
