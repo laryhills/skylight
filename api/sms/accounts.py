@@ -11,7 +11,7 @@ required = {"username", "password", "permissions", "title", "fullname", "email"}
 @accounts_decorator
 def get(username=None):
     accounts = []
-    if username == None:
+    if username is None:
         users = User.query.all()
     else:
         users = [User.query.filter_by(username=username).first()]
@@ -28,13 +28,15 @@ def post(data):
     if not all([data.get(prop) for prop in required]) or (data.keys() - all_fields):
         # Empty value supplied or Invalid field supplied or Missing field present
         return "Invalid field supplied or missing a compulsory field", 400
-    if not detokenize(data["password"], parse=False):
+    password = detokenize(data["password"], parse=False)
+    if not password:
         return "Invalid password hash", 400
     if User.query.filter(
         (User.username == data["username"]) | (User.title == data["title"])
     ).first():
         # username or title already taken
         return "Username or title already taken", 400
+    data['password'] = bcrypt.generate_password_hash(password).decode('utf-8')
     new_user = UserSchema().load(data)
     db.session.add(new_user)
     db.session.commit()
@@ -50,8 +52,11 @@ def put(data):
     # TODO not recv password in plain text, do decode here
     if not User.query.filter_by(username=username).first():
         return "Invalid username", 404
-    if password and not detokenize(data["password"], parse=False):
-        return "Invalid password hash", 400
+    if password:
+        password = detokenize(password, parse=False)
+        if not detokenize(data["password"], parse=False):
+            return "Invalid password hash", 400
+        data['password'] = bcrypt.generate_password_hash(password).decode('utf-8')
     if "title" in data:
         user = User.query.filter_by(title=data["title"]).first()
         if user and user.username != username:
@@ -72,8 +77,11 @@ def manage(data):
     # TODO not recv password in plain text, do decode here
     if not User.query.filter_by(username=username).first():
         return "Invalid username", 404
-    if password and not detokenize(data["password"], parse=False):
-        return "Invalid password hash", 400
+    if password:
+        password = detokenize(password, parse=False)
+        if not detokenize(data["password"], parse=False):
+            return "Invalid password hash", 400
+        data['password'] = bcrypt.generate_password_hash(password).decode('utf-8')
     if "title" in data:
         user = User.query.filter_by(title=data["title"]).first()
         if user and user.username != username:
