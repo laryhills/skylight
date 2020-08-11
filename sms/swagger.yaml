@@ -187,6 +187,7 @@ paths:
       operationId: sms.src.course_form.get
       summary: Course form generation
       description: Generates course form of a student as a png (for preview) or as a png (for printing)
+                   or a blank sheet if mat_no not supplied
       produces:
         - image/png
         - application/pdf
@@ -194,7 +195,6 @@ paths:
         - in: query
           name: mat_no
           type: string
-          required: true
         - in: query
           name: session
           type: integer
