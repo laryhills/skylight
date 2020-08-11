@@ -9,11 +9,14 @@ while [ -h "$SOURCE" ]; do # resolve $SOURCE until the file is no longer a symli
 done
 DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 
+
 # change to one directory above ( skylight/ )
 cd "$DIR"/..
 SKYLIGHT_ROOT="$(pwd)"
 echo project root set as $SKYLIGHT_ROOT
 
+
+# remove existing database files
 mkdir sms/database
 cd sms/database
 for i in master.db courses.db 2*
@@ -22,6 +25,8 @@ do
     rm $i
 done
 
+
+# run the setup scripts
 cd "$SKYLIGHT_ROOT"
 pip3 install -r requirements.txt
 echo
