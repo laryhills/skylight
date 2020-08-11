@@ -71,7 +71,10 @@ def generate_pdf(item, file_name, zf=None):
         # 'margin: 36.0pt, 21.6pt, 72.0pt, 21.6pt'
         'orientation': 'landscape',
         'disable-smart-shrinking': None,
+        'enable-local-file-access': None,
         'print-media-type': None,
+        # 'footer-html': '',
+        # 'header-html': '',
         # 'margin-top': '0.6in',
         # 'margin-right': '0.5in',
         # 'margin-bottom': '0.6in',

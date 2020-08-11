@@ -67,7 +67,7 @@ def get(mat_no, raw_score=False, to_print=False):
             'margin-right': '0.5in',
             'margin-bottom': '0.6in',
             'margin-left': '0.5in',
-            #'minimum-font-size': 12,
+            # 'minimum-font-size': 12,
             'encoding': "UTF-8",
             'enable-local-file-access': None,
             'no-outline': None,
@@ -79,9 +79,11 @@ def get(mat_no, raw_score=False, to_print=False):
         print(f'pdf generated in {time.time() - start_time} seconds')
         resp = send_from_directory(cache_base_dir, file_name, as_attachment=True)
     else:
-        options = {'format': 'png',
-                   # 'quality': 100,
-                   }
+        options = {
+            'format': 'png',
+            'enable-local-file-access': None,
+            # 'quality': 100,
+        }
         file_name = secrets.token_hex(8)
         file_path = os.path.join(cache_base_dir, file_name + '.zip')
         start_time = time.time()
