@@ -2,6 +2,16 @@ import pandas as pd
 import os
 import sqlite3
 
+# declare project root path
+separator = os.path.sep
+base_dir = os.path.dirname(__file__)
+project_root = separator.join(base_dir.split(separator)[:-2])
+
+# declare database path
+db_base_dir = os.path.join(project_root, 'sms', 'database')
+setup_data_dir = os.path.join(project_root, 'setup', 'data')
+
+
 def build_db(conn):
     # Stores the courses by level
     for level in range(100, 600, 100):
@@ -22,6 +32,7 @@ def build_db(conn):
         curr_frame.to_sql(tbl_name, conn, index=False, if_exists='replace')
     conn.commit()
 
+
 def build_options(conn):
     cursor = conn.cursor()
     optional_courses = ['MEE531', 'MEE541', 'MEE561', 'MEE581', 'MEE591']
@@ -31,9 +42,9 @@ def build_options(conn):
     cursor.execute('INSERT INTO Options VALUES (?, ?, ?);',[2, ','.join(optional_courses_2), optional_courses_2[0]])
     conn.commit()
 
+
 # Load the csv data
-db_base_dir = os.path.join(os.path.dirname(__file__), '../..', 'api', 'sms', 'database')
-path = os.path.join(os.path.dirname(__file__), '../..', 'data', 'Course_Details.csv')
+path = os.path.join(setup_data_dir, 'Course_Details.csv')
 frame = pd.read_csv(path)
 
 conn = sqlite3.connect(os.path.join(db_base_dir, 'courses.db'))

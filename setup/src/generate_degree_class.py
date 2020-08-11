@@ -1,9 +1,16 @@
 import os
 import sqlite3
 
+# declare project root path
+separator = os.path.sep
+base_dir = os.path.dirname(__file__)
+project_root = separator.join(base_dir.split(separator)[:-2])
+
+# declare database path
+db_base_dir = os.path.join(project_root, 'sms', 'database')
+
 start_session = 2003
 curr_session = 2019
-db_base_dir = os.path.join(os.path.dirname(__file__), '../..', 'api', 'sms', 'database')
 
 class_of_degree = {
     'First class honours': '4.50,5.00',

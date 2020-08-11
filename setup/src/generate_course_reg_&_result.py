@@ -1,9 +1,19 @@
 import os
 import sqlite3
 import pandas as pd
+from sys import exit
+
+# declare project root path
+separator = os.path.sep
+base_dir = os.path.dirname(__file__)
+project_root = separator.join(base_dir.split(separator)[:-2])
+
+# declare paths
+db_base_dir = os.path.join(project_root, 'sms', 'database')
+setup_data_dir = os.path.join(project_root, 'setup', 'data')
 
 start_session = 2003
-#start_session = 2017
+# start_session = 2017
 curr_session = 2019
 courses = []        # List of course codes
 courses_dict = []   # List of course codes and credit dictionaries
@@ -14,9 +24,8 @@ level_weightings = [
     [0, 0, .25, .35, .4]
 ]
 
-db_base_dir = os.path.join(os.path.dirname(__file__), '../..', 'api', 'sms', 'database')
 if not os.path.exists(db_base_dir) and not os.path.exists(os.path.join(db_base_dir, 'master.db')):
-    os.sys.exit('Run the personal_info.py script first')
+    exit('Run the personal_info.py script first')
 
 
 def create_table_schema():
@@ -81,7 +90,7 @@ student_frame = pd.read_sql('SELECT * FROM Main', conn)
 conn.close()
 
 # Loads the students results
-path = os.path.join(os.path.dirname(__file__), '../..', 'data', 'Score_Sheet.csv')
+path = os.path.join(setup_data_dir, 'Score_Sheet.csv')
 result_frame = pd.read_csv(path)
 result_frame = result_frame[result_frame.COURSE_CODE != 'MEE122']
 result_frame = result_frame[result_frame.COURSE_CODE != 'MEE123']

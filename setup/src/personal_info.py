@@ -1,15 +1,25 @@
-## Note: Entry Mode - 1 PUTME
-##                    2 Direct Entry(200)
-##                    3 Direct Entry(300)
+"""
+Note: Entry Mode - 1 PUTME
+                   2 Direct Entry(200)
+                   3 Direct Entry(300)
+"""
 
 import numpy as np
 import pandas as pd
 import os
 import sqlite3
 
+# declare project root path
+separator = os.path.sep
+base_dir = os.path.dirname(__file__)
+project_root = separator.join(base_dir.split(separator)[:-2])
+
+# declare paths
+db_base_dir = os.path.join(project_root, 'sms', 'database')
+setup_data_dir = os.path.join(project_root, 'setup', 'data')
+
 # Load the csv data
-db_base_dir = os.path.join(os.path.dirname(__file__), '../..', 'api', 'sms', 'database')
-path = os.path.join(os.path.dirname(__file__), '../..', 'data', 'Personal_Data.csv')
+path = os.path.join(setup_data_dir, 'Personal_Data.csv')
 frame = pd.read_csv(path, dtype={'PHONE_NO': np.str})
 
 start_session = 2003
@@ -44,7 +54,7 @@ def populate_db(conn, session):
     curr_frame['LGA_OF_ORIGIN'] = ''
     curr_frame.to_sql('PersonalInfo', conn, index=False, if_exists='append')
     conn.commit()
-    
+
     # # Symbolic link
     #     # Regular students
     # sym_links_frame = curr_frame[curr_frame.IS_SYMLINK == 1]
@@ -64,11 +74,12 @@ def populate_db(conn, session):
     # #de_frame.DATABASE.where(de_frame.CURRENT_LEVEL == ((curr_session + 1 - session) * 100), '{0}-{1}.db'.format(curr_session - (de_frame.CURRENT_LEVEL / 100), curr_session - (int(curr_frame.CURRENT_LEVEL) / 100) + 1), inplace=True)
     # sym_de_frame = de_frame[['MATNO', 'DATABASE']].drop_duplicates(subset='MATNO')
     # sym_de_frame.to_sql('SymLink', conn, index=False, if_exists='append')
-    
+
     master_frame = curr_frame.MATNO.to_frame()
     master_frame['DATABASE'] = curr_db
     master_frame.to_sql('Main', master, index=False, if_exists='append')
     master.commit()
+
 
 # master database
 master = sqlite3.connect(os.path.join(db_base_dir, 'master.db'))

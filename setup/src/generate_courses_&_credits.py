@@ -2,12 +2,19 @@ import sqlite3
 import os
 import sys
 
+# declare project root path
+separator = os.path.sep
+base_dir = os.path.dirname(__file__)
+project_root = separator.join(base_dir.split(separator)[:-2])
+
+# declare database path
+db_base_dir = os.path.join(project_root, 'sms', 'database')
+
 start_session = 2003
-#start_session = 2017
+# start_session = 2017
 curr_session = 2019
 
 
-db_base_dir = os.path.join(os.path.dirname(__file__), '../..', 'api', 'sms', 'database')
 if not os.path.exists(os.path.join(db_base_dir, 'courses.db')): sys.exit('Run course_details.py first')
 conn = sqlite3.connect(os.path.join(db_base_dir, 'courses.db'))
 stmt = 'SELECT COURSE_CODE, COURSE_CREDIT, COURSE_SEMESTER, START_DATE, END_DATE, OPTIONS from courses{};'
