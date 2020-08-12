@@ -40,7 +40,7 @@ def get(mat_no, raw_score=False, to_print=False):
     weighted_gpas = list(map(lambda x, y: round(x * y, 4), gpas, level_weightings))
 
     with app.app_context():
-        html = render_template('student_update_template.htm', uniben_logo_path=uniben_logo_path,
+        html = render_template('result_update_template.htm', uniben_logo_path=uniben_logo_path,
                                no_of_pages=no_of_pages, mat_no=mat_no, name=name, depat=depat, dob=dob,
                                mode_of_entry=mod, entry_session=entry_session, grad_session=grad_session,
                                results=results, credits=credits, gpas=gpas, level_weightings=level_weightings,
