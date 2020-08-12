@@ -88,7 +88,7 @@ def get(mat_no=None, session=None, to_print=False):
                 'format': img_fmt,
                 'enable-local-file-access': None,
                 'disable-smart-width': None,
-                'quality': 100,
+                'quality': 50,
                 'log-level': 'warn',
             }
             imgkit.from_string(html, os.path.join(cache_base_dir, file_name + '.' + img_fmt), options=options)
