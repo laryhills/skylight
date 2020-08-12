@@ -83,6 +83,7 @@ def generate_pdf(item, file_name, zf=None):
         # 'encoding': "UTF-8",
         # 'no-outline': None,
         'dpi': 100,
+        'log-level': 'warn',  # error, warn, info, none
     }
     t1 = perf_counter()
     pdf = pdfkit.from_string(html, False, options=options)
@@ -112,9 +113,4 @@ def get_level_at_acad_session(mat_no, acad_session):
     for key in range(800, 0, -100):
         if c_reg[key]['course_reg_session'] and c_reg[key]['course_reg_session'] == acad_session:
             return c_reg[key]['course_reg_level']
-    return []
-
-#
-# if __name__ == '__main__':
-#     html = cProfile.run(get(2018, 400))
-#     print('yeah')
+    return ''

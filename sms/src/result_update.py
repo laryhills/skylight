@@ -71,6 +71,7 @@ def get(mat_no, raw_score=False, to_print=False):
             'encoding': "UTF-8",
             'enable-local-file-access': None,
             'no-outline': None,
+            'log-level': 'warn',
             'dpi': 100,
         }
         file_name = secrets.token_hex(8) + '.pdf'
@@ -82,6 +83,7 @@ def get(mat_no, raw_score=False, to_print=False):
         options = {
             'format': 'png',
             'enable-local-file-access': None,
+            'log-level': 'warn',
             # 'quality': 100,
         }
         file_name = secrets.token_hex(8)
