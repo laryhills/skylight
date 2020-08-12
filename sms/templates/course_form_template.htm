@@ -1,0 +1,782 @@
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=windows-1252">
+<meta name="Generator" content="Microsoft Word 15 (filtered)">
+<style>
+<!--
+ /* Font Definitions */
+ @font-face
+	{font-family:"Cambria Math";
+	panose-1:2 4 5 3 5 4 6 3 2 4;}
+@font-face
+	{font-family:"Calibri Light";
+	panose-1:2 15 3 2 2 2 4 3 2 4;}
+@font-face
+	{font-family:Calibri;
+	panose-1:2 15 5 2 2 2 4 3 2 4;}
+ /* Style Definitions */
+ p.MsoNormal, li.MsoNormal, div.MsoNormal
+	{margin-top:0in;
+	margin-right:0in;
+	margin-bottom:8.0pt;
+	margin-left:0in;
+	line-height:107%;
+	font-size:11.0pt;
+	font-family:"Calibri",sans-serif;}
+.MsoChpDefault
+	{font-family:"Calibri",sans-serif;}
+.MsoPapDefault
+	{margin-bottom:8.0pt;
+	line-height:107%;}
+@page WordSection1
+	{size:A4;
+	margin:.5in .5in .5in .3in;}
+div.WordSection1
+	{page:WordSection1;}
+-->
+</style>
+
+</head>
+
+<body lang="EN-US">
+
+<div class="WordSection1">
+
+<table class="MsoTable15Plain5" border="1" cellspacing="0" cellpadding="0" style="width:96%;border-collapse:collapse;border:none;" align="center">
+ <tbody><tr style="height:67.0pt">
+  <td style="border:none;border-bottom:solid 1.5pt" align="right">
+    <p><img src="{{ uniben_logo_path }}" style="width:48.7pt;height:48.6pt;align-content:center;"></p>
+  </td>
+  <td text-align="left" valign="top" style="border:none;border-bottom:solid 1.5pt;
+  background:white;padding:0in 5.4pt 0in 5.4pt;height:67.0pt">
+  <p class="MsoNormal" style="margin-bottom: .0001pt;
+  text-align:center;line-height:normal" align="center"><b><span style="font-size:18.0pt;
+  font-family:Calibri Light,sans-serif">DEPARTMENT OF MECHANICAL ENGINEERING</span></b></p>
+  <p class="MsoNormal" style="margin-bottom: .0001pt;
+  text-align:center;line-height:normal" align="center"><b><span style="font-size:17.0pt;
+  font-family:Calibri Light,sans-serif">UNIVERSITY OF BENIN, BENIN CITY</span></b></p>
+  <p class="MsoNormal" style="margin-bottom: .0001pt;
+  text-align:center;line-height:normal" align="center"><b><span style="font-size:14.0pt;
+  font-family:Calibri Light,sans-serif">FACULTY OF ENGINEERING</span></b></p>
+  <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;
+  text-align:center;line-height:normal"><b><span style="font-size:10.0pt;
+  font-family:Calibri Light,sans-serif">EXAMINATION COURSE REGISTRATION FORM - {{session}} SESSION</span></b></p>
+  </td>
+ </tr>
+</tbody></table>
+
+<p class="MsoNormal"></p>
+<br>
+<table class="MsoTableGrid" border="1" cellspacing="0" cellpadding="0" style="border-collapse:collapse;border:none;width:96%" align="center">
+ <tbody>
+ <tr style="height:18pt">
+  <td style="width:25%;border:solid 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal" style="margin-bottom: .0001pt;line-height:
+  normal"><b>MAT. NO. /REG NO.</b></p>
+  </td>
+  <td style="width:70%;border:solid 1.0pt;
+  border-left:none;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal" style="margin-bottom: .0001pt;line-height:
+  normal">{{ mat_no }}</p>
+  </td>
+ </tr>
+ <tr style="height:32pt">
+  <td style="width:25%;border:solid 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal" style="margin-bottom: .0001pt;line-height:
+  normal"><b>SURNAME:</b></p>
+  <p class="MsoNormal" style="margin-bottom: .0001pt;line-height:
+  normal"><b><span style="font-size:10.0pt">(Block Letters)</span></b></p>
+  </td>
+  <td style="width:70%;border-top:none;border-left:
+  none;border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal" style="margin-bottom: .0001pt;line-height:
+  normal">{{ surname }}</p>
+  </td>
+ </tr>
+ <tr style="height:32pt">
+  <td style="width:25%;border:solid 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal" style="margin-bottom: .0001pt;line-height:
+  normal"><b>OTHER NAMES</b></p>
+  <p class="MsoNormal" style="margin-bottom: .0001pt;line-height:
+  normal"><b><span style="font-size:10.0pt">(Block Letters)</span></b></p>
+  </td>
+  <td style="width:70%;border-top:none;border-left:
+  none;border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal" style="margin-bottom: .0001pt;line-height:
+  normal">{{ othernames }}</p>
+  </td>
+ </tr>
+ <tr style="height:18pt">
+  <td style="width:25%;border:solid 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal" style="margin-bottom: .0001pt;line-height:
+  normal"><b>DEPARTMENT</b></p>
+  </td>
+  <td style="width:70%;border-top:none;border-left:
+  none;border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal" style="margin-bottom: .0001pt;line-height:
+  normal">{{ depat }}</p>
+  </td>
+ </tr>
+ <tr style="height:18pt">
+  <td style="width:25%;border:solid 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal" style="margin-bottom: .0001pt;line-height:
+  normal"><b>MODE OF ENTRY</b></p>
+  </td>
+  <td style="width:70%;border-top:none;border-left:
+  none;border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal" style="margin-bottom: .0001pt;line-height:
+  normal">{{ mode_of_entry }}</p>
+  </td>
+ </tr>
+ <tr style="height:18pt">
+  <td style="width:25%;border:solid 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal" style="margin-bottom: .0001pt;line-height:
+  normal"><b>LEVEL</b></p>
+  </td>
+  <td style="width:70%;border:solid 1.0pt;
+  border-top:none">
+    <table style="width:100%" class="MsoTable15Plain5"><tbody><tr>
+      <td style="width:33%;border-top:none;border-left:
+      none;border-right:solid 1.0pt">
+      <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;
+      text-align:center;line-height:normal">{{ level[0] }}</p>
+      </td>
+      <td style="width:33%;border-top:none;border-left:
+      none;border-right:solid 1.0pt">
+      <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;
+      text-align:center;line-height:normal">{{ level[1] }}</p>
+      </td>
+      <td style="width:33%;border-top:none;border-left:none">
+      <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;
+      text-align:center;line-height:normal">{{ level[2] }}</p>
+      </td>
+    </tr></tbody></table>
+ </td></tr>
+ <tr style="height:18pt">
+  <td style="width:25%;border:solid 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal" style="margin-bottom: .0001pt;line-height:
+  normal"><b>PHONE NO.</b></p>
+  </td>
+  <td style="width:70%;border:solid 1.0pt;
+  border-top:none;">
+    <table style="width:100%">
+      <tbody><tr>
+      <td style="width:6.3%;border-right:solid 1.0pt;">
+      <p class="MsoNormal" align="center" style="margin-bottom:.0001pt;
+      text-align:center;line-height:normal">{{ phone_no[0] }}</p>
+      </td>
+      <td style="width:6.3%;border-right:solid 1.0pt;">
+      <p class="MsoNormal" align="center" style="margin-bottom:.0001pt;
+      text-align:center;line-height:normal">{{ phone_no[1] }}</p>
+      </td>
+      <td style="width:6.3%;border-right:solid 1.0pt;">
+      <p class="MsoNormal" align="center" style="margin-bottom:.0001pt;
+      text-align:center;line-height:normal">{{ phone_no[2] }}</p>
+      </td>
+      <td style="width:6.3%;border-right:solid 1.0pt;">
+      <p class="MsoNormal" align="center" style="margin-bottom:.0001pt;
+      text-align:center;line-height:normal">{{ phone_no[3] }}</p>
+      </td>
+      <td style="width:6.3%;border-right:solid 1.0pt;">
+      <p class="MsoNormal" align="center" style="margin-bottom:.0001pt;
+      text-align:center;line-height:normal">{{ phone_no[4] }}</p>
+      </td>
+      <td style="width:6.3%;border-right:solid 1.0pt;">
+      <p class="MsoNormal" align="center" style="margin-bottom:.0001pt;
+      text-align:center;line-height:normal">{{ phone_no[5] }}</p>
+      </td>
+      <td style="width:6.3%;border-right:solid 1.0pt;">
+      <p class="MsoNormal" align="center" style="margin-bottom:.0001pt;
+      text-align:center;line-height:normal">{{ phone_no[6] }}</p>
+      </td>
+      <td style="width:6.3%;border-right:solid 1.0pt;">
+      <p class="MsoNormal" align="center" style="margin-bottom:.0001pt;
+      text-align:center;line-height:normal">{{ phone_no[7] }}</p>
+      </td>
+      <td style="width:6.3%;border-right:solid 1.0pt;">
+      <p class="MsoNormal" align="center" style="margin-bottom:.0001pt;
+      text-align:center;line-height:normal">{{ phone_no[8] }}</p>
+      </td>
+      <td style="width:6.3%;border-right:solid 1.0pt;">
+      <p class="MsoNormal" align="center" style="margin-bottom:.0001pt;
+      text-align:center;line-height:normal">{{ phone_no[9] }}</p>
+      </td>
+      <td style="width:6.3%">
+      <p class="MsoNormal" align="center" style="margin-bottom:.0001pt;
+      text-align:center;line-height:normal">{{ phone_no[10] }}</p>
+      </td>
+      </tr>
+    </tbody></table>
+  </td>
+ </tr>
+ <tr style="height:18pt">
+  <td style="width:25%;border:solid 1.0pt;
+  border-top:none;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal" style="margin-bottom: .0001pt;line-height:
+  normal"><b>EMAIL ADDRESS</b></p>
+  </td>
+  <td style="width:70%;border-top:none;border-left:
+  none;border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+  padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal" style="margin-bottom: .0001pt;line-height:
+  normal">{{ email }}</p>
+  </td>
+ </tr>
+ <tr style="height:18pt">
+  <td style="width:25%;border:solid 1.0pt;border-top:
+  none;padding:0in 5.4pt 0in 5.4pt">
+  <p class="MsoNormal" style="margin-bottom: .0001pt;line-height:
+  normal"><b>GENDER</b></p>
+  </td>
+
+  <td style="width:70%;border:solid 1.0pt;border-top:
+  none">
+  <table style="width:100%"><tbody>
+    <tr>
+      <td style="width:8%;border-right:solid 1.0pt;text-align:center">
+      <p class="MsoNormal" style="margin-bottom: .0001pt;line-height:
+      normal">{{ sex }}</p>
+      </td>
+      <td valign="top" style="width:30%;border-right:solid 1.0pt;text-align:center">
+      <p class="MsoNormal" style="margin-bottom: .0001pt;line-height:
+      normal"><b>STATE OF ORIGIN</b></p>
+      </td>
+      <td valign="top" style="width:20%;border-right:solid 1.0pt;text-align:center">
+      <p class="MsoNormal" style="margin-bottom: .0001pt;line-height:
+      normal">{{ state }}</p>
+      </td>
+      <td valign="top" style="width:12%;border-right:solid 1.0pt;text-align:center">
+      <p class="MsoNormal" style="margin-bottom: .0001pt;line-height:
+      normal"><b>L.G.A</b></p>
+      </td>
+      <td colspan="6" valign="top" style="width:30%;text-align:center">
+      <p class="MsoNormal" style="margin-bottom: .0001pt;line-height:
+      normal">{{ lga }}</p>
+      </td>
+    </tr>
+  </tbody></table></td>
+
+ </tr>
+</tbody></table>
+
+<p style="height:3pt"></p>
+<p class="MsoNormal" align="center" style="width:96%;text-align:center"><b><span style="font-size:14.0pt;line-height:107%">REGISTER CARRY-OVER COURSES FIRST</span></b></p>
+
+<table class="MsoTableGrid" border="0" cellspacing="0" cellpadding="0" style="width:96%;border-collapse:collapse;border:none" align="center">
+ <tbody><tr style="height:252.85pt">
+  <td valign="top" style="width:45%;padding:0in 5.4pt 0in 5.4pt;
+  height:252.85pt" align="center">
+      <table class="MsoTableGrid" border="1" cellspacing="0" cellpadding="0" style="border-collapse:collapse;border:none">
+       <tbody><tr style="height:.25in">
+        <td colspan="3" style="border:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal"><b>FIRST SEMESTER</b></p>
+        </td>
+       </tr>
+       <tr style="height:.25in">
+        <td colspan="2" style="width:76%;border:solid 1.0pt;
+        border-top:none;padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">COURSE CODE</p>
+        </td>
+        <td style="width:24%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">CREDIT</p>
+        </td>
+       </tr>
+       <tr style="height:.25in">
+        <td style="width:16%;border:solid 1.0pt;border-top:
+        none;padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">1</p>
+        </td>
+        <td style="width:60%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ first_sem_carryover_courses[0] }}</p>
+        </td>
+        <td style="width:24%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ first_sem_carryover_credits[0] }}</p>
+        </td>
+       </tr>
+       <tr style="height:.25in">
+        <td style="width:16%;border:solid 1.0pt;border-top:
+        none;padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">2</p>
+        </td>
+        <td style="width:60%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ first_sem_carryover_courses[1] }}</p>
+        </td>
+        <td style="width:24%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ first_sem_carryover_credits[1] }}</p>
+        </td>
+       </tr>
+       <tr style="height:.25in">
+        <td style="width:16%;border:solid 1.0pt;border-top:
+        none;padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">3</p>
+        </td>
+        <td style="width:60%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ first_sem_carryover_courses[2] }}</p>
+        </td>
+        <td style="width:24%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ first_sem_carryover_credits[2] }}</p>
+        </td>
+       </tr>
+       <tr style="height:.25in">
+        <td style="width:16%;border:solid 1.0pt;border-top:
+        none;padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">4</p>
+        </td>
+        <td style="width:60%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ first_sem_carryover_courses[3] }}</p>
+        </td>
+        <td style="width:24%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ first_sem_carryover_credits[3] }}</p>
+        </td>
+       </tr>
+       <tr style="height:.25in">
+        <td style="width:16%;border:solid 1.0pt;border-top:
+        none;padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">5</p>
+        </td>
+        <td style="width:60%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ first_sem_carryover_courses[4] }}</p>
+        </td>
+        <td style="width:24%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ first_sem_carryover_credits[4] }}</p>
+        </td>
+       </tr>
+       <tr style="height:.25in">
+        <td style="width:16%;border:solid 1.0pt;border-top:
+        none;padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">6</p>
+        </td>
+        <td style="width:60%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ first_sem_carryover_courses[5] }}</p>
+        </td>
+        <td style="width:24%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ first_sem_carryover_credits[5] }}</p>
+        </td>
+       </tr>
+       <tr style="height:.25in">
+        <td style="width:16%;border:solid 1.0pt;border-top:
+        none;padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">7</p>
+        </td>
+        <td style="width:60%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ first_sem_carryover_courses[6] }}</p>
+        </td>
+        <td style="width:24%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ first_sem_carryover_credits[6] }}</p>
+        </td>
+       </tr>
+       <tr style="height:.25in">
+        <td style="width:16%;border:solid 1.0pt;border-top:
+        none;padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">8</p>
+        </td>
+        <td style="width:60%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ first_sem_carryover_courses[7] }}</p>
+        </td>
+        <td style="width:24%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ first_sem_carryover_credits[7] }}</p>
+        </td>
+       </tr>
+       <tr style="height:.25in">
+        <td style="width:16%;border:solid 1.0pt;border-top:
+        none;padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">9</p>
+        </td>
+        <td style="width:60%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ first_sem_carryover_courses[8] }}</p>
+        </td>
+        <td style="width:24%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ first_sem_carryover_credits[8] }}</p>
+        </td>
+       </tr>
+       <tr style="height:.25in">
+        <td style="width:16%;border:solid 1.0pt;border-top:
+        none;padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">10</p>
+        </td>
+        <td style="width:60%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ first_sem_carryover_courses[9] }}</p>
+        </td>
+        <td style="width:24%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ first_sem_carryover_credits[9] }}</p>
+        </td>
+       </tr>
+       <tr style="height:.25in">
+        <td style="width:16%;border:solid 1.0pt;border-top:
+        none;padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">11</p>
+        </td>
+        <td style="width:60%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ first_sem_carryover_courses[10] }}</p>
+        </td>
+        <td style="width:24%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ first_sem_carryover_credits[10] }}</p>
+        </td>
+       </tr>
+       <tr style="height:.25in">
+        <td style="width:16%;border:solid 1.0pt;border-top:
+        none;padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">12</p>
+        </td>
+        <td style="width:60%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ first_sem_carryover_courses[11] }}</p>
+        </td>
+        <td style="width:24%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ first_sem_carryover_credits[11] }}</p>
+        </td>
+       </tr>
+       <tr style="height:.25in">
+        <td colspan="2" style="width:76%;border:solid 1.0pt;
+        border-top:none;padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal"><b>TOTAL</b></p>
+        </td>
+        <td style="width:24%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal"></p>
+        </td>
+       </tr>
+      </tbody></table>
+      <p class="MsoNormal" style="margin-bottom: .0001pt;line-height:
+  normal"></p>
+  </td>
+  <td valign="top" style="width:45%;padding:0in 5.4pt 0in 5.4pt;
+  height:252.85pt" align="center">
+      <table class="MsoTableGrid" border="1" cellspacing="0" cellpadding="0" style="border-collapse:collapse;border:none">
+       <tbody><tr style="height:.25in">
+        <td colspan="3" style="border:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal"><b>SECOND SEMESTER</b></p>
+        </td>
+       </tr>
+       <tr style="height:.25in">
+        <td colspan="2" style="width:76%;border:solid 1.0pt;
+        border-top:none;padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">COURSE CODE</p>
+        </td>
+        <td style="width:24%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">CREDIT</p>
+        </td>
+       </tr>
+       <tr style="height:.25in">
+        <td style="width:16%;border:solid 1.0pt;border-top:
+        none;padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">1</p>
+        </td>
+        <td style="width:60%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ second_sem_carryover_courses[0] }}</p>
+        </td>
+        <td style="width:24%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ second_sem_carryover_credits[0] }}</p>
+        </td>
+       </tr>
+       <tr style="height:.25in">
+        <td style="width:16%;border:solid 1.0pt;border-top:
+        none;padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">2</p>
+        </td>
+        <td style="width:60%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ second_sem_carryover_courses[1] }}</p>
+        </td>
+        <td style="width:24%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ second_sem_carryover_credits[1] }}</p>
+        </td>
+       </tr>
+       <tr style="height:.25in">
+        <td style="width:16%;border:solid 1.0pt;border-top:
+        none;padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">3</p>
+        </td>
+        <td style="width:60%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ second_sem_carryover_courses[2] }}</p>
+        </td>
+        <td style="width:24%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ second_sem_carryover_credits[2] }}</p>
+        </td>
+       </tr>
+       <tr style="height:.25in">
+        <td style="width:16%;border:solid 1.0pt;border-top:
+        none;padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">4</p>
+        </td>
+        <td style="width:60%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ second_sem_carryover_courses[3] }}</p>
+        </td>
+        <td style="width:24%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ second_sem_carryover_credits[3] }}</p>
+        </td>
+       </tr>
+       <tr style="height:.25in">
+        <td style="width:16%;border:solid 1.0pt;border-top:
+        none;padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">5</p>
+        </td>
+        <td style="width:60%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ second_sem_carryover_courses[4] }}</p>
+        </td>
+        <td style="width:24%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ second_sem_carryover_credits[4] }}</p>
+        </td>
+       </tr>
+       <tr style="height:.25in">
+        <td style="width:16%;border:solid 1.0pt;border-top:
+        none;padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">6</p>
+        </td>
+        <td style="width:60%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ second_sem_carryover_courses[5] }}</p>
+        </td>
+        <td style="width:24%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ second_sem_carryover_credits[5] }}</p>
+        </td>
+       </tr>
+       <tr style="height:.25in">
+        <td style="width:16%;border:solid 1.0pt;border-top:
+        none;padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">7</p>
+        </td>
+        <td style="width:60%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ second_sem_carryover_courses[6] }}</p>
+        </td>
+        <td style="width:24%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ second_sem_carryover_credits[6] }}</p>
+        </td>
+       </tr>
+       <tr style="height:.25in">
+        <td style="width:16%;border:solid 1.0pt;border-top:
+        none;padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">8</p>
+        </td>
+        <td style="width:60%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ second_sem_carryover_courses[7] }}</p>
+        </td>
+        <td style="width:24%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ second_sem_carryover_credits[7] }}</p>
+        </td>
+       </tr>
+       <tr style="height:.25in">
+        <td style="width:16%;border:solid 1.0pt;border-top:
+        none;padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">9</p>
+        </td>
+        <td style="width:60%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ second_sem_carryover_courses[8] }}</p>
+        </td>
+        <td style="width:24%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ second_sem_carryover_credits[8] }}</p>
+        </td>
+       </tr>
+       <tr style="height:.25in">
+        <td style="width:16%;border:solid 1.0pt;border-top:
+        none;padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">10</p>
+        </td>
+        <td style="width:60%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ second_sem_carryover_courses[9] }}</p>
+        </td>
+        <td style="width:24%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ second_sem_carryover_credits[9] }}</p>
+        </td>
+       </tr>
+       <tr style="height:.25in">
+        <td style="width:16%;border:solid 1.0pt;border-top:
+        none;padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">11</p>
+        </td>
+        <td style="width:60%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ second_sem_carryover_courses[10] }}</p>
+        </td>
+        <td style="width:24%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ second_sem_carryover_credits[10] }}</p>
+        </td>
+       </tr>
+       <tr style="height:.25in">
+        <td style="width:16%;border:solid 1.0pt;border-top:
+        none;padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">12</p>
+        </td>
+        <td style="width:60%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ second_sem_carryover_courses[11] }}</p>
+        </td>
+        <td style="width:24%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">{{ second_sem_carryover_credits[11] }}</p>
+        </td>
+       </tr>
+       <tr style="height:.25in">
+        <td colspan="2" style="width:76%;border:solid 1.0pt;
+        border-top:none;padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal"><b>TOTAL</b></p>
+        </td>
+        <td style="width:24%;border-top:none;border-left:none;
+        border-bottom:solid 1.0pt;border-right:solid 1.0pt;
+        padding:0in 5.4pt 0in 5.4pt;height:.25in">
+        <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal"></p>
+        </td>
+       </tr>
+      </tbody></table>
+      <p class="MsoNormal" style="margin-bottom: .0001pt;line-height:
+  normal"></p>
+  </td>
+ </tr>
+</tbody></table>
+
+<p class="MsoNormal" style="height:20pt"></p>
+
+
+<table class="MsoTableGrid" border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse;border:none" align="center">
+ <tbody><tr style="height:20pt"><td><br></td></tr>
+
+<tr style="height:41.25pt">
+  <td style="width:300pt;padding:0in 5.4pt 0in 5.4pt;height:.3in">
+  <div class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">
+  <p></p>
+  <hr size="0" align="center" style="width:150pt">
+  </div>
+  <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;
+  text-align:center;line-height:normal">Student's Signature</p>
+  </td>
+  <td style="width:300pt;padding:0in 5.4pt 0in 5.4pt;height:.3in">
+  <div class="MsoNormal" align="center" style="margin-bottom: .0001pt;text-align:center;line-height:normal">
+  <p></p>
+  <hr size="0" align="center" style="width:150pt">
+  </div>
+  <p class="MsoNormal" align="center" style="margin-bottom: .0001pt;
+  text-align:center;line-height:normal">Course Adviser's Signature</p>
+  </td>
+ </tr>
+ <tr style="height:20pt"><td></td></tr>
+
+
+
+<tr style="height:41.25pt">
+  <td colspan="2" style="width:467.5pt;padding:0in 5.4pt 0in 5.4pt;
+  height:41.25pt">
+  <div class="MsoNormal" align="center" style="margin-bottom:.0001pt;text-align:center;line-height:normal">
+  <p></p>
+  <hr size="0" align="center" style="width:150pt">
+  </div>
+  <p class="MsoNormal" align="center" style="margin-bottom:.0001pt;
+  text-align:center;line-height:normal">HOD's Signature</p>
+  </td>
+ </tr>
+</tbody><p> </p></table>
+
+<p class="MsoNormal"></p>
+
+</div>
+
+
+</body></html>

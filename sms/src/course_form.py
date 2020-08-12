@@ -53,7 +53,7 @@ def get(mat_no=None, session=None, to_print=False):
         second_sem_carryover_courses, second_sem_carryover_credits = [], []
 
     with app.app_context():
-        html = render_template('course_reg_template.htm', mat_no=mat_no, uniben_logo_path=uniben_logo_path,
+        html = render_template('course_form_template.htm', mat_no=mat_no, uniben_logo_path=uniben_logo_path,
                                session='{}/{}'.format(session, session + 1),
                                surname=person['surname'], othernames=person['othernames'].upper(),
                                depat=person['department'], mode_of_entry=person['mode_of_entry'],
@@ -73,7 +73,12 @@ def get(mat_no=None, session=None, to_print=False):
                 'disable-smart-shrinking': None,
                 'print-media-type': None,
                 'no-outline': None,
+                'margin-left': '0.5in',
+                'margin-right': '0.5in',
+                'margin-top': '0.5in',
+                'margin-bottom': '0.5in',
                 'dpi': 100,
+                'log-level': 'warn',
             }
             pdfkit.from_string(html, os.path.join(cache_base_dir, file_name + '.pdf'), options=options)
             resp = send_from_directory(cache_base_dir, file_name + '.pdf', as_attachment=True)
@@ -83,7 +88,8 @@ def get(mat_no=None, session=None, to_print=False):
                 'format': img_fmt,
                 'enable-local-file-access': None,
                 'disable-smart-width': None,
-                # 'quality': 100,
+                'quality': 100,
+                'log-level': 'warn',
             }
             imgkit.from_string(html, os.path.join(cache_base_dir, file_name + '.' + img_fmt), options=options)
             resp = send_from_directory(cache_base_dir, file_name + '.' + img_fmt, as_attachment=True)
