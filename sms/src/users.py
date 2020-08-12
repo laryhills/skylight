@@ -158,14 +158,12 @@ def get_DB(mat_no):
     return db_name.replace('-', '_')[:-3]
 
 
-def get_level(mat_no, session=None):
+def get_level(mat_no):
     # 600-800 - is spill, 100-500 spill not inc, grad_status - graduated
-    # if next = True, return next level else current level
-    if not session:
-        db_name = get_DB(mat_no)
-        if not db_name:
-            return None
-        session = load_session(db_name)
+    db_name = get_DB(mat_no)
+    if not db_name:
+        return None
+    session = load_session(db_name)
     PersonalInfo = session.PersonalInfo
     student_data = PersonalInfo.query.filter_by(mat_no=mat_no).first()
     current_level = student_data.level
