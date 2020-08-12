@@ -84,7 +84,7 @@ def get(mat_no, raw_score=False, to_print=False):
             'format': 'png',
             'enable-local-file-access': None,
             'log-level': 'warn',
-            # 'quality': 100,
+            'quality': 50,
         }
         file_name = secrets.token_hex(8)
         file_path = os.path.join(cache_base_dir, file_name + '.zip')
