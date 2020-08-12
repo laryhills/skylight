@@ -643,6 +643,10 @@ definitions:
         type: string
       grad_stats:
         type: integer
+      is_symlink:
+        type: integer
+      database:
+        type: string
 
   CourseDetails:
     type: object

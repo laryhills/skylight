@@ -60,8 +60,8 @@ def post(data):
     db_name = "{}_{}".format(session_admitted, session_admitted + 1)
     session = utils.load_session(db_name)
     personalinfo_schema = session.PersonalInfoSchema()
+    data["is_symlink"] = 0
     student_model = personalinfo_schema.load(data)
-    student_model.is_symlink = 0
 
     db.session.add(master_model)
     db.session.commit()
