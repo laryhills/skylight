@@ -1,13 +1,5 @@
 import os
-
-# declare project root path
-separator = os.path.sep
-base_dir = os.path.dirname(__file__)
-project_root = separator.join(base_dir.split(separator)[:-2])
-
-# declare other paths
-model_template_path = os.path.join(project_root, 'setup', 'src', 'common', 'model_template.txt')
-models_dir = os.path.join(project_root, 'sms', 'models')
+from __init__ import project_root, model_template_path, models_dir
 
 sessions = range(2003, 2020)
 for session in sessions:
