@@ -144,6 +144,9 @@ def log(user, qual_name, func, args, kwargs):
 ## UTILS functions
 
 def load_session(session):
+    # Valid inputs, 2015, "2015", "2015-2016", "2015_2016", "2015-2016.db", "2015_2016.db"
+    session = str(session)[:4]
+    session = "{}_{}".format(session, int(session) + 1)
     exec('from sms.models import _{}'.format(session))
     return eval('_{}'.format(session))
 
