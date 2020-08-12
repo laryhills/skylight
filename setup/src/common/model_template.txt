@@ -462,7 +462,6 @@ class CourseReg800(Base):
 class PersonalInfoSchema(ma.ModelSchema):
     class Meta:
         model = PersonalInfo
-        exclude = ('is_symlink', 'database')
         sqla_session = session
 
 
