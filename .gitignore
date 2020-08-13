@@ -2,5 +2,5 @@
 __pycache__/
 .idea/
 *.db
-.pytest_cache/
-api/sms/models/_2*.py
+*.pytest_cache/
+sms/models/_2*.py

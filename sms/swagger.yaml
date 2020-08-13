@@ -1,0 +1,774 @@
+swagger: "2.0"
+info:
+  title: Student Management System Api
+  description: A REST api that manages the student's database
+  version: 1.0.0
+
+basePath: /api
+
+consumes:
+  - application/json
+produces:
+  - application/json
+
+paths:
+  /login:
+    post:
+      tags: [Login]
+      operationId: sms.src.users.login
+      summary: User authentication
+      description: Logs in a user using supplied token
+      parameters:
+        - in: body
+          name: token
+          schema:
+            type: object
+            required:
+              - token
+            properties:
+              token:
+                type: string
+      responses:
+        200:
+          description: Returns the user specific token
+          schema:
+            type: object
+            properties:
+              token:
+                type: string
+              title:
+                type: string
+        401:
+          description: Authentication failed
+
+  /session_key:
+    get:
+      tags: [Login]
+      operationId: sms.src.users.session_key
+      summary: Session key
+      description: Get session key for use in generating token on client
+      responses:
+        200:
+          description: Returns the current session key for use by client
+          schema:
+            type: string
+
+  /personal_info:
+    get:
+      tags: [Personal Information]
+      operationId: sms.src.personal_info.get_exp
+      summary: Personal_info query
+      description: Gets a student or a group of students bio data
+      parameters:
+        - name: mat_no
+          in: query
+          type: string
+          required: true
+      responses:
+        200:
+          description: Returns the bio data for the student or group of students
+          schema:
+            $ref: '#/definitions/PersonalInfo'
+        404:
+          description: Mat no does not exist
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+
+    post:
+      tags: [Personal Information]
+      operationId: sms.src.personal_info.post_exp
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/PersonalInfo'
+      responses:
+        200:
+          description: Record successfully added
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+
+  /course_details:
+    get:
+      tags: [Course Details]
+      summary: Course details query
+      description: Gets the details a course by it's code or of all courses by their level
+      operationId: sms.src.course_details.get_course_details
+      parameters:
+        - in: query
+          name: course_code
+          type: string
+          required: false
+        - in: query
+          name: level
+          type: integer
+          required: false
+        - in: query
+          name: use_curr_session
+          type: boolean
+          required: false
+      responses:
+        200:
+          description: success
+          schema:
+            type: array
+            items: {}
+        404:
+          description: Course not found
+    post:
+      tags: [Course Details]
+      description: Adds a new course
+      operationId: sms.src.course_details.post
+      parameters:
+        - in: body
+          name: course
+          required: true
+          schema:
+            $ref: '#/definitions/CourseDetails'
+      responses:
+        200:
+          description: Success
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+    put:
+      tags: [Course Details]
+      summary: Course details update
+      description: Modifies existing courses
+      operationId: sms.src.course_details.put
+      parameters:
+        - in: body
+          name: data
+          schema:
+            type: array
+            items: {}
+      responses:
+        200:
+          description: Success
+          schema:
+            type: array
+            items:
+              type: string
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+    delete:
+      tags: [Course Details]
+      summary: Course details deletion
+      description: Deletes a course
+      operationId: sms.src.course_details.delete
+      parameters:
+        - in: query
+          name: course_code
+          type: string
+          required: true
+        - in: query
+          name: course_level
+          type: integer
+          required: true
+      responses:
+        200:
+          description: Success
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+
+  /course_form:
+    get:
+      tags: [Sheets]
+      operationId: sms.src.course_form.get
+      summary: Course form generation
+      description: Generates course form of a student as a png (for preview) or as a png (for printing)
+                   or a blank sheet if mat_no not supplied
+      produces:
+        - image/png
+        - application/pdf
+      parameters:
+        - in: query
+          name: mat_no
+          type: string
+        - in: query
+          name: session
+          type: integer
+        - in: query
+          name: to_print
+          type: boolean
+      responses:
+        200:
+          description: Success
+          schema:
+            type: file
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+
+  /result_update:
+    get:
+      tags: [Sheets]
+      operationId: sms.src.result_update.get
+      produces:
+        - application/octet-stream
+        - application/pdf
+      parameters:
+        - in: query
+          name: mat_no
+          type: string
+          required: true
+        - in: query
+          name: raw_score
+          type: boolean
+        - in: query
+          name: to_print
+          type: boolean
+      responses:
+        200:
+          description: Success
+          schema:
+            type: file
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+
+
+  /level_gpa_cards:
+    get:
+      tags: [Sheets]
+      operationId: sms.src.gpa_cards.get
+      parameters:
+        - in: query
+          name: level
+          type: integer
+          required: true
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Level_Gpa_Cards_get'
+
+  /senate_version:
+    get:
+      tags: [Sheets]
+      operationId: sms.src.senate_version.get
+      produces:
+        - application/pdf
+      parameters:
+        - in: query
+          name: acad_session
+          type: integer
+          required: true
+        - in: query
+          name: level
+          type: integer
+          required: true
+      responses:
+        200:
+          description: Success
+          schema:
+            type: file
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+
+  /broad_sheet:
+    get:
+      tags: [Sheets]
+      operationId: sms.src.broad_sheet.get
+      produces:
+        - application/octet-stream
+      parameters:
+        - in: query
+          name: acad_session
+          type: integer
+          required: true
+        - in: query
+          name: level
+          type: integer
+          required: false
+      responses:
+        200:
+          description: Success
+          schema:
+            type: file
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+
+  /course_reg_new:
+    get:
+      tags: [Course Registration]
+      operationId: sms.src.course_reg.init_new
+      summary: Get course registration
+      parameters:
+        - in: query
+          name: mat_no
+          type: string
+          required: true
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/CourseRegistration'
+        400:
+          description: Bad Request
+        401:
+          description: Authentication failed
+        403:
+          description: Forbidden
+          schema:
+            type: string
+        440:
+          description: Session expired, login again
+
+  /course_reg:
+    get:
+      tags: [Course Registration]
+      operationId: sms.src.course_reg.get
+      summary: Get old course registration
+      parameters:
+        - in: query
+          name: mat_no
+          type: string
+          required: true
+        - in: query
+          name: acad_session
+          type: integer
+          required: true
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/CourseRegistration'
+        401:
+          description: Authentication failed
+        404:
+          description: No course registration for entered session
+        440:
+          description: Session expired, login again
+
+    post:
+      tags: [Course Registration]
+      operationId: sms.src.course_reg.post
+      summary: Create/edit course registration
+      parameters:
+        - in: body
+          name: data
+          schema:
+            $ref: '#/definitions/CourseRegistration'
+      responses:
+        200:
+          description: Success
+        401:
+          description: Authentication failed
+        403:
+          description: Forbidden
+          schema:
+            type: string
+        440:
+          description: Session expired, login again
+
+    put:
+      tags: [Course Registration]
+      operationId: sms.src.course_reg.put
+      summary: Edit old course registration, requires elevated access
+      parameters:
+        - in: body
+          name: data
+          schema:
+            $ref: '#/definitions/CourseRegistration'
+      responses:
+        200:
+          description: Success
+        401:
+          description: Authentication failed
+        403:
+          description: Forbidden
+          schema:
+            type: string
+        440:
+          description: Session expired, login again
+
+  /results:
+    get:
+      tags: [Results]
+      operationId: sms.src.results.get
+      summary: Get results
+      description: Gets the results of a particular student for the entered session
+      parameters:
+        - in: query
+          name: mat_no
+          type: string
+          required: true
+        - in: query
+          name: acad_session
+          type: integer
+          required: true
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Results_get'
+        400:
+          description: Bad request
+        401:
+          description: Unauthorised
+        403:
+          description: Forbidden
+        404:
+          description: No results found
+        440:
+          description: Session expired, login again
+    post:
+      tags: [Results]
+      operationId: sms.src.results.post
+      summary: Add result records
+      description: Post results to the database as a list of list ==> [ [course_code, session, mat_no, score], [next record], ... ]
+      parameters:
+        - in: body
+          name: list_of_results
+          schema:
+            $ref: '#/definitions/Results_post'
+      responses:
+        201:
+          description: Success
+          schema:
+            type: array
+            items:
+              type: string
+        400:
+          description: Bad request
+        401:
+          description: Unauthorised
+        403:
+          description: Forbidden
+        404:
+          description: Not found
+        440:
+          description: Session expired, login again
+    put:
+      tags: [Results]
+      operationId: sms.src.results.put
+      summary: Edit past result records, requires elevated access
+      description: Post results to the database as a list of list ==> [ [course_code, session, mat_no, score], [next record], ... ]
+      parameters:
+        - in: body
+          name: list_of_results
+          schema:
+            $ref: '#/definitions/Results_post'
+      responses:
+        201:
+          description: Success
+          schema:
+            type: array
+            items:
+              type: string
+        400:
+          description: Bad request
+        401:
+          description: Unauthorised
+        403:
+          description: Forbidden
+        404:
+          description: Not found
+        440:
+          description: Session expired, login again
+
+  /accounts:
+    get:
+      tags: [Accounts]
+      operationId: sms.src.accounts.get
+      parameters:
+        - in: query
+          name: username
+          type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            type: array
+            items: {}
+        401:
+          description: Unauthorised
+        404:
+          description: Account not found
+    post:
+      tags: [Accounts]
+      operationId: sms.src.accounts.post
+      parameters:
+        - in: body
+          name: data
+          required: true
+          schema:
+            $ref: '#/definitions/Accounts_post'
+      responses:
+        200:
+          description: Account successfully created
+        400:
+          description: Account creation failed. Invalid, missing, empty or duplicate field present
+        401:
+          description: Unauthorised
+    patch:
+      tags: [Accounts]
+      operationId: sms.src.accounts.manage
+      parameters:
+        - in: body
+          name: data
+          required: true
+          schema:
+            type: object
+            properties:
+              username:
+                type: string
+              password:
+                type: string
+              title:
+                type: string
+              fullname:
+                type: string
+              email:
+                type: string
+      responses:
+        200:
+          description: Account successfully updated
+        400:
+          description: Account modification failed. Empty, invalid or duplicate field supplied
+        401:
+          description: Unauthorised
+        404:
+          description: Account not found
+    put:
+      tags: [Accounts]
+      operationId: sms.src.accounts.put
+      parameters:
+        - in: body
+          name: data
+          required: true
+          schema:
+            $ref: '#/definitions/Accounts_post'
+      responses:
+        200:
+          description: Account successfully updated
+        400:
+          description: Account modification failed. Empty, invalid or duplicate field supplied
+        401:
+          description: Unauthorised
+        404:
+          description: Account not found
+    delete:
+      tags: [Accounts]
+      operationId: sms.src.accounts.delete
+      parameters:
+        - in: query
+          name: username
+          type: string
+          required: true
+      responses:
+        200:
+          description: Account successfully deleted
+        401:
+          description: Unauthorised
+        404:
+          description: Account not found
+
+  /logs:
+    get:
+      tags: [Logs]
+      operationId: sms.src.logs.get
+      parameters:
+        - in: query
+          name: limit
+          type: integer
+          required: false
+        - in: query
+          name: offset
+          type: integer
+          required: false
+      responses:
+        200:
+          description: Successfully retrieved logs
+          schema:
+            type: array
+            items:
+                type: array
+                items: {}
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+
+definitions:
+  PersonalInfo:
+    type: object
+    properties:
+      mat_no:
+        type: string
+      surname:
+        type: string
+      othernames:
+        type: string
+      mode_of_entry:
+        type: integer
+      session_admitted:
+        type: integer
+      session_grad:
+        type: integer
+      level:
+        type: integer
+      sex:
+        type: string
+      date_of_birth:
+        type: string
+      state_of_origin:
+        type: string
+      phone_no:
+        type: string
+      email_address:
+        type: string
+      lga:
+        type: string
+      sponsor_phone_no:
+        type: string
+      sponsor_email_address:
+        type: string
+      grad_stats:
+        type: integer
+      is_symlink:
+        type: integer
+      database:
+        type: string
+
+  CourseDetails:
+    type: object
+    properties:
+      course_code:
+        type: string
+      course_title:
+        type: string
+      course_credit:
+        type: integer
+      course_semester:
+        type: integer
+      course_level:
+        type: integer
+      teaching_dept:
+        type: string
+      start_date:
+        type: integer
+      end_date:
+        type: integer
+      options:
+        type: integer
+
+  CourseRegistration:
+    type: object
+    properties:
+      mat_no:
+        type: string
+      personal_info:
+        type: object
+        properties:
+          items: {}
+      table_to_populate:
+        type: string
+      course_reg_session:
+        type: integer
+      course_reg_level:
+        type: integer
+      max_credits:
+        type: integer
+      courses:
+        type: object
+        properties:
+          first_sem:
+            type: array
+            items:
+              type: array
+              items: {}
+          second_sem:
+            type: array
+            items:
+              type: array
+              items: {}
+      choices:
+        type: object
+        properties:
+          first_sem:
+            type: array
+            items:
+              type: array
+              items: {}
+          second_sem:
+            type: array
+            items:
+              type: array
+              items: {}
+      probation_status:
+        type: integer
+      fees_status:
+        type: integer
+      others:
+        type: string
+
+  Results_get:
+    type: object
+    properties:
+      mat_no:
+        type: string
+      courses:
+        type: array
+        items:
+          type: array
+          items: {}
+      table_to_populate:
+        type: string
+      session_written:
+        type: integer
+      level_written:
+        type: integer
+
+  Results_post:
+    type: array
+    items:
+      type: array
+      items: {}
+
+  Accounts_post:
+    type: object
+    properties:
+      username:
+        type: string
+      password:
+        type: string
+      permissions:
+        type: string
+      title:
+        type: string
+      fullname:
+        type: string
+      email:
+        type: string
+
+  Level_Gpa_Cards_get:
+    type: array
+    items:
+      type: object
+      properties:
+        mat_no:
+          type: string
+        name:
+          type: string
+        gpas:
+          type: array
+        cgpa:
+          type: number
