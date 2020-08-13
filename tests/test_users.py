@@ -35,7 +35,7 @@ def test_login():
     output, ret_code = users.login(my_token)
     my_token["title"] = title
     assert (output, ret_code) == (my_token, 200)
-    
+
 
 def test_login_errors():
     # Attempt wrong username
