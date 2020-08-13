@@ -1,4 +1,4 @@
-from sms.config import db
+from sms.config import db, bcrypt
 from sms.src.users import accounts_decorator, detokenize
 from sms.models.user import User, UserSchema
 
