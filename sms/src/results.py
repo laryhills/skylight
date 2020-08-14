@@ -55,6 +55,7 @@ def get_results_for_acad_session(mat_no, acad_session, return_empty=False):
 
     :param mat_no:
     :param acad_session:
+    :param return_empty: return object with empty fields instead of 404
     :return:
     """
     res_poll = utils.result_poll(mat_no)
@@ -321,7 +322,8 @@ def update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_leve
 def multisort(iters):
     iters = sorted(iters, key=lambda x: x[0])
     iters = sorted(iters, key=lambda x: x[0][3])
-    return sorted(iters, key=lambda x: x[4])  # this last sorting may no longer be needed as I'm splitting the semesters
+    # iters = sorted(iters, key=lambda x: x[4])  # no longer be needed as I'm splitting the semesters later on
+    return iters
 
 
 def get_table_to_populate(session_course_reg, full_res_poll):
