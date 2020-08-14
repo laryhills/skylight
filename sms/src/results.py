@@ -152,7 +152,7 @@ def add_single_result_record(index, result_details, result_errors_file):
     """
     course_code, session_taken, mat_no, score = result_details
     session_taken, score = map(int, [session_taken, score])
-    grade = utils.compute_grade(mat_no, score)
+    grade = utils.compute_grade(score, utils.get_DB(mat_no))
     error_log = []
 
     # Error check on grade and score
@@ -288,7 +288,7 @@ def update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_leve
         creds = utils.get_credits(mat_no)
         # ensure to get the right value irrespective of the size of the list (PUTME vs DE students)
         level_credits = creds[index + (len(creds) - 5)]
-        grading_point_rule = utils.get_grading_point(mat_no)
+        grading_point_rule = utils.get_grading_point(utils.get_DB(mat_no))
         grading_point = int(grading_point_rule[grade])
         grading_point_old = int(grading_point_rule[previous_grade]) if previous_grade else 0
 
