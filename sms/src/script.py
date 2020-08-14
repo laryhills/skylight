@@ -294,8 +294,8 @@ def get_students_by_level(entry_session, level, retDB=False):
     for stud in symlink_students:
         if stud.database != curr_db_name:
             curr_db_name = stud.database
-            session = load_session(curr_db_name.replace('-', '_')[:-3])
-        curr_level = get_level(stud.mat_no, session=session)
+            # session = load_session(curr_db_name.replace('-', '_')[:-3])
+        curr_level = get_level(stud.mat_no)
         curr_level = curr_level if curr_level < 500 else 500
         if curr_level == level:
             other_students.append(stud)

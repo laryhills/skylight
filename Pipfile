@@ -20,6 +20,7 @@ pdfkit = "==0.6.1"
 num2words = "==0.5.10"
 itsdangerous = "==1.1.0"
 pytest = "*"
+colorama = "*"
 
 [requires]
 python_version = "3.8"

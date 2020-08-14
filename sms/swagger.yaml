@@ -725,17 +725,28 @@ definitions:
     properties:
       mat_no:
         type: string
-      courses:
-        type: array
-        items:
-          type: array
-          items: {}
-      table_to_populate:
+      table:
         type: string
       session_written:
         type: integer
       level_written:
         type: integer
+      regular_courses:
+        type: object
+        properties:
+          items: {}
+      carryovers:
+        type: object
+        properties:
+          items: {}
+      unusual_results:
+        type: object
+        properties:
+          items: {}
+      tcp:
+        type: integer
+      category:
+        type: string
 
   Results_post:
     type: array
