@@ -13,7 +13,7 @@ DIR="$( cd -P "$( dirname "$SOURCE" )" >/dev/null 2>&1 && pwd )"
 # change to one directory above ( skylight/ )
 cd "$DIR"/..
 SKYLIGHT_ROOT="$(pwd)"
-echo project root set as $SKYLIGHT_ROOT
+echo project root set as "$SKYLIGHT_ROOT"
 
 
 # remove existing database files
@@ -21,8 +21,8 @@ mkdir sms/database
 cd sms/database
 for i in master.db courses.db 2*
 do
-    echo removing old $i
-    rm $i
+    echo removing old "$i"
+    rm "$i"
 done
 
 
