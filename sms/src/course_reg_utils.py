@@ -40,13 +40,18 @@ def get_table_to_populate(current_level, acad_session, res_poll, course_reg):
     return table_to_populate
 
 
-def get_course_reg_at_acad_session(acad_session, full_course_reg):
+def get_course_reg_at_acad_session(acad_session, full_course_reg=None, mat_no=None):
     """
 
     :param acad_session:
     :param full_course_reg:
+    :param mat_no:
     :return:
     """
+    if not full_course_reg:
+        from utils import get_registered_courses
+        full_course_reg = get_registered_courses(mat_no)
+
     course_reg = {}
     for reg in full_course_reg:
         if full_course_reg[reg]['courses'] and full_course_reg[reg]['course_reg_session'] == acad_session:
@@ -135,4 +140,3 @@ def sum_credits_many(*args, index_for_credits=None):
 def multisort(iters):
     iters = sorted(iters, key=lambda x: x[0])
     return sorted(iters, key=lambda x: x[0][3])
-
