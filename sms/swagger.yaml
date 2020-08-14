@@ -295,6 +295,10 @@ paths:
           name: level
           type: integer
           required: false
+        - in: query
+          name: raw_score
+          type: boolean
+          required: false
       responses:
         200:
           description: Success
