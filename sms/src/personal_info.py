@@ -36,7 +36,10 @@ def get(mat_no):
     PersonalInfoSchema = session.PersonalInfoSchema
     student_data = PersonalInfo.query.filter_by(mat_no=mat_no).first()
     personalinfo_schema = PersonalInfoSchema()
-    return personalinfo_schema.dump(student_data)
+    personalinfo_obj = personalinfo_schema.dump(student_data)
+    personalinfo_obj['level'] = abs(personalinfo_obj['level'])
+    personalinfo_obj.update({'grad_stats': student_data.grad_status})
+    return personalinfo_obj
 
 
 def post(data):
@@ -61,7 +64,9 @@ def post(data):
     session = utils.load_session(db_name)
     personalinfo_schema = session.PersonalInfoSchema()
     data["is_symlink"] = 0
+    grad_status = data.pop('grad_stats')
     student_model = personalinfo_schema.load(data)
+    student_model.level *= 1 if not grad_status else -1
 
     db.session.add(master_model)
     db.session.commit()
