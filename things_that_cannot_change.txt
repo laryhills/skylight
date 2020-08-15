@@ -22,3 +22,5 @@ Also just in case of revisions, add why this is necessary
    * Session admitted in Personal Info post uses this to choose DB, session loading depends on this uniformity
 10) Mat nos must be of length 10
    * DB Model file limited to 10 max chars mat_no in Personal Info
+11) The precision for gpas and cgpas is 4dp
+   * The DegreeClass table stores a tuple of the range for each class of degree as a float with a precision of 4dp
