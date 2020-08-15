@@ -10,7 +10,6 @@ class User(db.Model):
     email = db.Column(db.Text, nullable=False)
 
 
-
 class UserSchema(ma.ModelSchema):
     class Meta:
         model = User
