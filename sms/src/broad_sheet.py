@@ -41,28 +41,35 @@ def get(acad_session, level=None, raw_score=False):
         students, len_first_sem_carryovers, len_second_sem_carryovers = enrich_mat_no_list(mat_nos, acad_session)
 
         level_courses = course_details.get_all(level)[0]
-        first_sem_courses = [(x['course_code'], x['course_credit']) for x in level_courses if x['course_semester'] == 1]
-        second_sem_courses = [(x['course_code'], x['course_credit']) for x in level_courses if x['course_semester'] == 2]
+        first_sem_courses = [(x['course_code'], x['course_credit'], x['options']) for x in level_courses if x['course_semester'] == 1]
+        second_sem_courses = [(x['course_code'], x['course_credit'], x['options']) for x in level_courses if x['course_semester'] == 2]
         first_sem_courses = multisort(first_sem_courses)
         second_sem_courses = multisort(second_sem_courses)
 
-        number_of_students = len(students)
-        len_first_sem_carryovers = max(len_first_sem_carryovers, 2)
-        len_second_sem_carryovers = max(len_second_sem_carryovers, 2)
+        # just for now, later this condition should be "if option > 0 for course in level courses"
+        if level == 500:
+            options = [
+                [('MEE531', 7, 1), ('MEE541', 7, 1), ('MEE561', 7, 1), ('MEE581', 7, 1)],
+                [('MEE532', 8, 2), ('MEE542', 8, 2), ('MEE562', 8, 2), ('MEE582', 8, 2)]
+            ]
+        else:
+            options = [[], []]
+
+        len_first_sem_carryovers = max(len_first_sem_carryovers, 3)
+        len_second_sem_carryovers = max(len_second_sem_carryovers, 3)
 
         # len_first_sem_regulars, len_second_sem_regulars
         empty_value = ' '
         min_score = 40
         index_to_display = 0 if raw_score else 1
-        # todo add red color to scores below 40 on the raw score sheet
 
-        html = render_template('broad_sheet.html', enumerate=enumerate,  sum=sum, url_for=url_for,
-                               len_first_sem_carryovers=len_first_sem_carryovers, empty_value=empty_value,
-                               len_second_sem_carryovers=len_second_sem_carryovers,
-                               first_sem_courses=first_sem_courses, second_sem_courses=second_sem_courses,
-                               min_score=min_score, index_to_display=index_to_display,
-                               number_of_students=number_of_students, students=students,
-                               )
+        html = render_template(
+            'broad_sheet.html', enumerate=enumerate,  sum=sum, int=int, url_for=url_for,
+            len_first_sem_carryovers=len_first_sem_carryovers, len_second_sem_carryovers=len_second_sem_carryovers,
+            first_sem_courses=first_sem_courses, second_sem_courses=second_sem_courses, options=options,
+            index_to_display=index_to_display, empty_value=empty_value, min_score=min_score,
+            students=students, session=acad_session, level=level,
+        )
         print(f'{str(level)}: html prepared in', perf_counter() - t1)
         htmls.append((html, level))
 
@@ -112,7 +119,7 @@ def generate_pdf(item, file_name, zf=None):
         # 'header-html': '',
         # 'minimum-font-size': 12,
         # 'encoding': "UTF-8",
-        'disable-smart-shrinking': None,
+        # 'disable-smart-shrinking': None,
         'enable-local-file-access': None,
         'print-media-type': None,
         'no-outline': None,
