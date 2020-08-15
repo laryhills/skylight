@@ -3,17 +3,9 @@ import sqlite3
 import pandas as pd
 from sys import exit
 
-# declare project root path
-separator = os.path.sep
-base_dir = os.path.dirname(__file__)
-project_root = separator.join(base_dir.split(separator)[:-2])
-
-# declare paths
-db_base_dir = os.path.join(project_root, 'sms', 'database')
-setup_data_dir = os.path.join(project_root, 'setup', 'data')
+from imports import db_base_dir, setup_data_dir
 
 start_session = 2003
-# start_session = 2017
 curr_session = 2019
 courses = []        # List of course codes
 courses_dict = []   # List of course codes and credit dictionaries
@@ -37,52 +29,69 @@ def create_table_schema():
     courses_dict = [dict(x) for x in courses]
     courses = [list(x.keys()) for x in courses_dict]
     conn.close()
-    
+
     for course_list in courses:
         course_list.append('CARRYOVERS')
 
     sessions = range(start_session, curr_session)
     for session in sessions:
         curr_db = '{}-{}.db'.format(session, session + 1)
-        result_stmt = 'CREATE TABLE Result{}(MATNO TEXT PRIMARY KEY, {}, LEVEL INTEGER, SESSION INTEGER, CATEGORY TEXT, TCP INTEGER, UNUSUAL_RESULTS TEXT)'
-        course_reg_stmt = 'CREATE TABLE CourseReg{}(MATNO TEXT PRIMARY KEY, {}, LEVEL INTEGER, SESSION INTEGER, TCR INTEGER, FEES_STATUS INTEGER, PROBATION INTEGER, OTHERS TEXT)'
+        result_stmt = 'CREATE TABLE Result{}(MATNO TEXT PRIMARY KEY, {}, LEVEL INTEGER, SESSION INTEGER, CATEGORY ' \
+                      'TEXT, TCP INTEGER, UNUSUAL_RESULTS TEXT) '
+        course_reg_stmt = 'CREATE TABLE CourseReg{}(MATNO TEXT PRIMARY KEY, {}, LEVEL INTEGER, SESSION INTEGER, ' \
+                          'TCR INTEGER, FEES_STATUS INTEGER, PROBATION INTEGER, OTHERS TEXT) '
         conn = sqlite3.connect(os.path.join(db_base_dir, curr_db))
         for result_session in range(session, session + 8):
             if result_session - session > 4:
                 # spill over students
-                arg = 'CARRYOVERS TEXT'
+                arg_course_reg = 'CARRYOVERS TEXT'
+                arg_res = 'CARRYOVERS TEXT'
             else:
                 course_list = [str(x) for x in courses[result_session - session]]
-                arg = ' TEXT, '.join(course_list[:]) + ' TEXT'
+                arg_course_reg = ' INTEGER, '.join(course_list[:]) + ' INTEGER'
+                arg_res = ' TEXT, '.join(course_list[:]) + ' TEXT'
             try:
-                conn.execute(result_stmt.format(((result_session - session + 1) * 100), arg))
-                conn.execute(course_reg_stmt.format(((result_session - session + 1) * 100), arg))
+                conn.execute(result_stmt.format(((result_session - session + 1) * 100), arg_res))
+                conn.execute(course_reg_stmt.format(((result_session - session + 1) * 100), arg_course_reg))
             except sqlite3.OperationalError: pass
         conn.close()
     print('Result and course reg tables created')
 
 
-def generate_table_dtype():    
+def generate_table_dtype():
     result_dtype = []
     course_reg_dtype = []
-    
+
     for num in range(8):
         if num > 4:
-            result_dtype.append({'MATNO': 'TEXT', 'LEVEL': 'INTEGER', 'SESSION': 'INTEGER', 'CARRYOVERS': 'TEXT', 'CATEGORY': 'TEXT'})
+            result_dtype.append({
+                'MATNO': 'TEXT', 'LEVEL': 'INTEGER', 'SESSION': 'INTEGER', 'CARRYOVERS': 'TEXT', 'CATEGORY': 'TEXT'
+            })
             course_reg_dtype.append({'MATNO': 'TEXT', 'CARRYOVERS': 'TEXT', 'PROBATION': 'INTEGER', 'OTHERS': 'TEXT'})
         else:
             course_list = courses[num]
+
+            reg_dtype = ['INTEGER'] * len(course_list)
+            reg_tbl_dtype = dict(list(zip(course_list, reg_dtype)))
+            reg_tbl_dtype['MATNO'] = 'TEXT'
+            reg_tbl_dtype['PROBATION'] = 'INTEGER'
+            reg_tbl_dtype['OTHERS'] = 'TEXT'
+            course_reg_dtype.append(reg_tbl_dtype)
+
             dtype = ['TEXT'] * len(course_list)
             tbl_dtype = dict(list(zip(course_list, dtype)))
             tbl_dtype['MATNO'] = 'TEXT'
             tbl_dtype['CATEGORY'] = 'TEXT'
-            result_dtype.append(tbl_dtype.copy())
-            del tbl_dtype['CATEGORY']
-            tbl_dtype['PROBATION'] = 'INTEGER'
-            tbl_dtype['OTHERS'] = 'TEXT'
-            course_reg_dtype.append(tbl_dtype)
-    
+            result_dtype.append(tbl_dtype)
+
+            # result_dtype.append(tbl_dtype.copy())
+            # del tbl_dtype['CATEGORY']
+            # tbl_dtype['PROBATION'] = 'INTEGER'
+            # tbl_dtype['OTHERS'] = 'TEXT'
+            # course_reg_dtype.append(tbl_dtype)
+
     return result_dtype, course_reg_dtype
+
 
 # Master database
 conn = sqlite3.connect(os.path.join(db_base_dir, 'master.db'))
@@ -117,7 +126,7 @@ def total_registered_credits(level, course_reg_df):
             if not course_code: break
             course_level = int(course_code[3] if course_code[:3] != 'CED' else 4)
             total_credit += courses_dict[course_level - 1][course_code]
-    
+
     return total_credit
 
 
@@ -150,7 +159,7 @@ def get_passed_credits(entry_session, level, result_df):
         passed_courses_df.dropna(axis=1, inplace=True)
         for course_code in passed_courses_df.columns:
             total_credits_passed += course_credit_dict[course_code]
-    
+
     if level > 1:
         carryovers_courses_scores = result_df['CARRYOVERS'].tolist()[0].split(',')
         for course_score in carryovers_courses_scores:
@@ -164,7 +173,7 @@ def get_passed_credits(entry_session, level, result_df):
                 if float(score) > 44:
                     course_level = int(course_code[3] if course_code[:3] != 'CED' else 4)
                     total_credits_passed += courses_dict[course_level - 1][course_code]
-    
+
     return total_credits_passed
 
 
@@ -182,7 +191,7 @@ def failed_credits(entry_session, level, result_df):
         failed_courses_df.dropna(axis=1, inplace=True)
         for course_code in failed_courses_df.columns:
             total_credits_failed += course_credit_dict[course_code]
-    
+
     if level > 1:
         carryovers_courses_scores = result_df['CARRYOVERS'].tolist()[0].split(',')
         for course_score in carryovers_courses_scores:
@@ -196,15 +205,11 @@ def failed_credits(entry_session, level, result_df):
                 if float(score) <= 44:
                     course_level = int(course_code[3] if course_code[:3] != 'CED' else 4)
                     total_credits_failed += courses_dict[course_level - 1][course_code]
-    
+
     return total_credits_failed
 
 
-#def get_category(conn, entry_session, level, mod, result_df, course_reg_df):
 def get_category(entry_session, level, mod, on_probation, total_credits, total_credits_passed):
-    #total_credits_failed = failed_credits(entry_session, level, result_df)
-    #total_credits = get_total_credits(conn, level, mod, course_reg_df)
-    #total_credits_passed = get_passed_credits(entry_session, level, result_df)
     if total_credits == total_credits_passed: return 'A'
     if level == 1 and entry_session >= 2014:
         if total_credits_passed >= 36: return 'B'
@@ -243,7 +248,8 @@ def get_grade(score, entry_session):
 
 def create_gpa_schema():
     try:
-        stmt = 'CREATE TABLE GPA_CREDITS(MATNO TEXT PRIMARY KEY, LEVEL100 TEXT, LEVEL200 TEXT, LEVEL300 TEXT, LEVEL400 TEXT, LEVEL500 TEXT, CGPA REAL);'
+        stmt = 'CREATE TABLE GPA_CREDITS(MATNO TEXT PRIMARY KEY, LEVEL100 TEXT, LEVEL200 TEXT, LEVEL300 TEXT, ' \
+               'LEVEL400 TEXT, LEVEL500 TEXT, CGPA REAL); '
         for session in range(start_session, curr_session + 1):
             db_name = '{}-{}.db'.format(session, session + 1)
             conn = sqlite3.connect(os.path.join(db_base_dir, db_name))
@@ -267,7 +273,7 @@ def store_gpa(conn, mat_no, level, result_frame, on_probation, mod):
     prod_sum, total_passed_level_credits = 0, 0
     prev_cgpa = conn.execute('SELECT CGPA FROM GPA_CREDITS WHERE MATNO = "{}"'.format(mat_no)).fetchone()
     prev_cgpa = prev_cgpa[0] if prev_cgpa else 0
-    
+
     if on_probation and level in [1, 5]:
         gpa_credits = conn.execute('SELECT LEVEL{} FROM GPA_CREDITS WHERE MATNO = "{}"'.format(level * 100, mat_no)).fetchone()[0]
         gpa_credits = gpa_credits if gpa_credits else '0,0'
@@ -297,12 +303,12 @@ def store_gpa(conn, mat_no, level, result_frame, on_probation, mod):
         level_gpa = prod_sum / total_credits
         cgpa = prev_cgpa + (level_gpa * level_weightings[mod - 1][level - 1])
         level_gpa = round(level_gpa, 4)
-    
+
     try:
         conn.execute('INSERT INTO GPA_CREDITS (MATNO, LEVEL{}, CGPA) VALUES (?, ?, ?);'.format(level * 100), (mat_no, '{},{}'.format(level_gpa, total_passed_level_credits), round(cgpa, 4)))
     except sqlite3.IntegrityError:
         conn.execute('UPDATE GPA_CREDITS SET LEVEL{} = ?, CGPA = ? WHERE MATNO = "{}"'.format(level * 100, mat_no), ('{},{}'.format(level_gpa, total_passed_level_credits), round(cgpa, 4)))
-    
+
     conn.commit()
 
     if carryovers[0]:
@@ -322,7 +328,7 @@ def store_gpa(conn, mat_no, level, result_frame, on_probation, mod):
                 conn.execute('INSERT INTO GPA_CREDITS (MATNO, LEVEL{}, CGPA) VALUES (?, ?, ?);'.format(course_level_index * 100), (mat_no, '{},{}'.format(round(gpa, 4), passed_level_credits), round(cgpa, 4)))
             except sqlite3.IntegrityError:
                 conn.execute('UPDATE GPA_CREDITS SET LEVEL{} = ?, CGPA = ? WHERE MATNO = "{}"'.format(course_level_index * 100, mat_no), ('{},{}'.format(round(gpa, 4), passed_level_credits), round(cgpa, 4)))
-            conn.commit()            
+            conn.commit()
 
 
 def store_unusual_students(mat_no, entry_session):
@@ -333,10 +339,13 @@ def store_unusual_students(mat_no, entry_session):
 
 def set_student_stat(conn, mat_no, entry_session, stat):
     is_symlink, database = stat[-2:]
-    stmt = 'UPDATE PersonalInfo SET SESSION_GRADUATED = ?, CURRENT_LEVEL = ?, GRAD_STATUS = ?, IS_SYMLINK = ?, DATABASE = ? WHERE MATNO = ?;'
+    # stmt = 'UPDATE PersonalInfo SET SESSION_GRADUATED = ?, CURRENT_LEVEL = ?, GRAD_STATUS = ?, IS_SYMLINK = ?, ' \
+    #        'DATABASE = ? WHERE MATNO = ?; '
+    stmt = 'UPDATE PersonalInfo SET SESSION_GRADUATED = ?, CURRENT_LEVEL = ?, IS_SYMLINK = ?, DATABASE = ? WHERE ' \
+           'MATNO = ?; '
     conn.execute(stmt, (*stat, mat_no))
     conn.commit()
-    
+
     if is_symlink:
         db_name = os.path.join(db_base_dir, database)
         db = '{}-{}.db'.format(entry_session, entry_session + 1)
@@ -369,7 +378,7 @@ def populate_db(conn, mat_no, entry_session, mod):
         count += 1
         group.drop_duplicates(subset='COURSE_CODE', inplace=True)
         result_dtype, course_reg_dtype = result_dtype_glob[count - 1], course_reg_dtype_glob[count - 1]
-        
+
         if count == 4:
             group['COURSE_CODE'].replace('CED300', 'CED400', inplace=True)
         level_result = group[group.COURSE_CODE.str.match(r'\w{3}%d\d{2}'%count)]
@@ -384,7 +393,7 @@ def populate_db(conn, mat_no, entry_session, mod):
             carryovers = pd.concat([group, level_result]).drop_duplicates(subset='COURSE_CODE', keep=False)
             carryover_list = carryovers[['COURSE_CODE', 'SCORE']].values.tolist()
             student_result['CARRYOVERS'] = ','.join(list(['{} {}'.format(*x) for x in carryover_list]))
-        
+
         course_reg_dtype_keys = list(course_reg_dtype.keys())
         if count > 1: course_reg_dtype_keys.remove('CARRYOVERS')
         course_reg_dtype_keys.remove('MATNO')
@@ -397,19 +406,18 @@ def populate_db(conn, mat_no, entry_session, mod):
                 course_reg_df[course_code] = 0
         if count > 1:
             course_reg_df['CARRYOVERS'] = ','.join(carryovers['COURSE_CODE'].tolist())
-        
+
         probation_stat = on_probation
-        
+
         course_reg_df['PROBATION'] = on_probation
         num_probation += on_probation
         total_credits_registered = total_registered_credits(count, course_reg_df)
         total_credits_passed = get_passed_credits(entry_session, count, student_result)
-        # student_result['CATEGORY'] = get_category(conn, entry_session, count, mod, student_result, course_reg_df)
         category = get_category(entry_session, count, mod, on_probation, total_credits_registered, total_credits_passed)
         student_result['CATEGORY'] = category
         if category == 'C' : on_probation = 1
         else: on_probation = 0
-        
+
         for col_name, series in student_result.iteritems():
             if col_name in ['MATNO', 'CATEGORY']: continue
             if col_name == 'CARRYOVERS':
@@ -436,14 +444,14 @@ def populate_db(conn, mat_no, entry_session, mod):
                     series.replace(series[0], '-1,ABS', inplace=True)
                 else:
                     series.replace(series[0], str(score) + ',' + grade, inplace=True)
-        
+
         # compute gpa
         store_gpa(conn, mat_no, count, student_result, probation_stat, mod)
-        
+
         student_result['SESSION'] = group.SESSION.iloc[0]
         course_reg_df['SESSION'] = group.SESSION.iloc[0]
         course_reg_dtype['SESSION'] = 'INTEGER'
-        
+
         student_result['LEVEL'] = (count - num_probation) * 100
         course_reg_df['LEVEL'] = (count - num_probation) * 100
         course_reg_df['FEES_STATUS'] = 1
@@ -451,19 +459,20 @@ def populate_db(conn, mat_no, entry_session, mod):
         course_reg_dtype['FEES_STATUS'] = 'INTEGER'
         student_result['UNUSUAL_RESULTS'] = ''
         result_dtype['UNUSUAL_RESULTS'] = 'TEXT'
-        
+
         course_reg_df['TCR'] = total_credits_registered
         course_reg_dtype['TCR'] = 'INTEGER'
         student_result['TCP'] = total_credits_passed
         result_dtype['TCP'] = 'INTEGER'
-        
+
         # correct PersonalInfo data
         if count == (len(groups) + mod - 1):
             exam_level = (count - num_probation) * 100
             exam_session, session_grad = int(group.SESSION.iloc[0]), None
             if exam_level >= 500 and category == 'A':
                 # successful students
-                session_grad, current_level, grad_stat = exam_session, 500, 1
+                # session_grad, current_level, grad_stat = exam_session, 500, 1
+                session_grad, current_level = exam_session, -1 * exam_level
                 if exam_level > 500:
                     is_symlink = 1
                     if gap_in_sessions:
@@ -475,7 +484,8 @@ def populate_db(conn, mat_no, entry_session, mod):
                     is_symlink, database = 0, ''
             elif exam_level >= 500:
                 # spillover students
-                current_level, grad_stat, is_symlink = 500, 0, 1
+                # current_level, grad_stat, is_symlink = 500, 0, 1
+                current_level, is_symlink = exam_level + 100, 1
                 if gap_in_sessions:
                     new_session = exam_session - 3
                 else:
@@ -484,22 +494,24 @@ def populate_db(conn, mat_no, entry_session, mod):
             else:
                 # 100 to 400 students
                 current_level = exam_level + 100 if category in ['A', 'B'] else exam_level
-                grad_stat = 0
-                if on_probation or num_probation:
-                    is_symlink = 1
-                    if gap_in_sessions:
-                        # entry_session = exam_session - int(exam_level / 100) + 1
-                        new_session = exam_session - int(exam_level / 100) + 2
-                    else:
-                        new_session = entry_session - (mod - 1) + num_probation + 1
-                    if num_probation:
-                        new_session -= num_probation
-                    database = '{}-{}.db'.format(new_session, new_session + 1)
-                elif entry_session - (mod - 1) < curr_session - 4:
-                    # students who are supposed to have either graduated or spilling but for some reason are still around
-                    # probably should limit to curr_session - 7
+                # grad_stat = 0
+                if entry_session - (mod - 1) < curr_session - 4:
+                    # students who are supposed to have either graduated or be spilling but for some reason are still
+                    # within the 100 to 400 level range. Probably should limit to curr_session - 7
                     is_symlink = 1
                     new_session = curr_session - int(current_level / 100) + 1
+                    database = '{}-{}.db'.format(new_session, new_session + 1)
+                elif on_probation or num_probation:
+                    is_symlink = 1
+                    if gap_in_sessions:
+                        # apparent_entry_session = exam_session - int(exam_level / 100) + 1
+                        new_session = exam_session - int(exam_level / 100) + 1
+                        # new_session = exam_session - int(exam_level / 100) + 2
+                        # if num_probation:
+                        #     new_session -= num_probation
+                    else:
+                        # new_session = entry_session - (mod - 1) + num_probation + 1
+                        new_session = entry_session - (mod - 1) + num_probation + on_probation
                     database = '{}-{}.db'.format(new_session, new_session + 1)
                 else:
                     is_symlink = 0
@@ -510,10 +522,11 @@ def populate_db(conn, mat_no, entry_session, mod):
                     new_session = entry_session - (mod - 1)
                     database = '{}-{}.db'.format(new_session, new_session + 1)
 
-            stat = (session_grad, current_level, grad_stat, is_symlink, database)
+            # stat = (session_grad, current_level, grad_stat, is_symlink, database)
+            stat = (session_grad, current_level, is_symlink, database)
             set_student_stat(conn, mat_no, entry_session, stat)
-        
-         # store result and course_reg in the database
+
+        # store result and course_reg in the database
         try:
             result_tbl_name = 'Result{}'.format(count * 100)
             course_reg_tbl_name = 'CourseReg{}'.format(count * 100)
@@ -521,7 +534,7 @@ def populate_db(conn, mat_no, entry_session, mod):
             course_reg_df.to_sql(course_reg_tbl_name, conn, index=False, if_exists='append', dtype=course_reg_dtype)
         except sqlite3.OperationalError:
             pass
-    
+
     conn.commit()
 
 
