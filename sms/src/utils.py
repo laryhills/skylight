@@ -218,18 +218,18 @@ def serialize_carryovers(carryover_string):
     return carryovers
 
 
-def get_grading_rule(mat_no):
-    db_name = get_DB(mat_no)
-    if not db_name: return []
-    session = load_session(db_name)
-    grading_rule = session.GradingRule.query.all()[0].rule
-    grading_rule = grading_rule.split(',')
-    return grading_rule
+def compute_grade(score, session):
+    if not 0 <= score <= 100:
+        return None
+    grading_rules = load_session(session).GradingRule.query.first().rule.split(",")
+    for grade, weight, cutoff in [x.split() for x in grading_rules]:
+        if score >= int(cutoff):
+            return grade
 
 
-def get_grading_point(mat_no):
-    grading_rule = get_grading_rule(mat_no)
-    return dict(map(lambda x: x.split()[:-1], grading_rule))
+def get_grading_point(session):
+    grading_rules = load_session(session).GradingRule.query.first().rule.split(",")
+    return dict(map(lambda x: x.split()[:-1], grading_rules))
 
 
 def get_registered_courses(mat_no, level=None, true_levels=False):
@@ -281,7 +281,7 @@ def compute_gpa(mat_no, ret_json=True):
     gpas = [[0, 0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0]][mode_of_entry - 1]
     level_percent = [[10, 15, 20, 25, 30], [10, 20, 30, 40], [25, 35, 40]][mode_of_entry - 1]
     level_credits = get_credits(mat_no, mode_of_entry)
-    grade_weight = get_grading_point(mat_no)
+    grade_weight = get_grading_point(get_DB(mat_no))
 
     for result in loads(result_statement.get(mat_no))["results"]:
         for record in (result["first_sem"] + result["second_sem"]):
@@ -325,18 +325,6 @@ def get_level_weightings(mod):
     if mod == 1: return [.1, .15, .2, .25, .3]
     elif mod == 2: return [0, .1, .2, .3, .4]
     else: return [0, 0, .25, .35, .4]
-
-
-def compute_grade(mat_no, score):
-    if score > 100 or score < 0:
-        return ''
-    grading_rules = [rule.split(' ') for rule in get_grading_rule(mat_no)]
-    if not grading_rules: return ''
-    grading_rules = sorted(grading_rules, key=lambda x: int(x[2]), reverse=True)
-    for index in range(len(grading_rules)):
-        if score >= int(grading_rules[index][2]):
-            return grading_rules[index][0]
-    return ''
 
 
 def compute_category(mat_no, level_written, session_taken, total_credits, credits_passed):

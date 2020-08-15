@@ -1,3 +1,15 @@
+"""
+This module facilitates entry of results to the students' databases as
+well as updating gpa record of the student
+
+
+******** IMPORTANT NOTICE ********
+
+* Unusual results are results for courses written but not registered
+     by the student for the session
+* Roses are red!
+
+"""
 import os.path
 from copy import deepcopy
 from sms.src import course_reg_utils, personal_info, course_details, utils
@@ -38,41 +50,62 @@ def put(list_of_results):
 #                                  Core functions
 # ==============================================================================================
 
-def get_results_for_acad_session(mat_no, acad_session):
+def get_results_for_acad_session(mat_no, acad_session, return_empty=False):
     """
 
     :param mat_no:
     :param acad_session:
+    :param return_empty: return object with empty fields instead of 404
     :return:
     """
     res_poll = utils.result_poll(mat_no)
     results, table_to_populate = utils.get_result_at_acad_session(acad_session, res_poll)
-    if results == {}:
+
+    if results:
+        # remove extra fields from results
+        [results.pop(key) for key in ['mat_no', 'session']]
+        category = results.pop('category')
+        tcp = results.pop('tcp')
+        level_written = results.pop('level')
+        carryovers = utils.serialize_carryovers(results.pop('carryovers'))
+        unusual_results = utils.serialize_carryovers(results.pop('unusual_results'))
+
+        # flatten the result dictionary
+        regular_courses = [[crse_code] + results[crse_code].split(',') for crse_code in results if results[crse_code]]
+        regular_courses.extend(carryovers)
+
+        # enrich the course lists
+        fields = ('course_credit', 'course_semester', 'course_level')
+        regular_courses = course_reg_utils.enrich_course_list(regular_courses, fields=fields)
+        unusual_results = course_reg_utils.enrich_course_list(unusual_results, fields=fields)
+
+        # get the actual carryovers
+        carryovers = list(filter(lambda x: x[5] < level_written, regular_courses))
+        regular_courses = list(filter(lambda x: x[5] == level_written, regular_courses))
+
+        [unusual_results[index].append('Course not registered') for index in range(len(unusual_results))]
+        [regular_courses[index].append('') for index in range(len(regular_courses))]
+
+    elif return_empty:
+        regular_courses, carryovers, unusual_results = [], [], []
+        level_written, tcp, category = '', 0, ''
+    else:
         return 'No result available for entered session', 404
 
-    # remove extra fields from results
-    [results.pop(key) for key in ['mat_no', 'category', 'session', 'tcp']]
-    level_written = results.pop('level')
-    carryovers = utils.serialize_carryovers(results.pop('carryovers'))
-    unusual_results = utils.serialize_carryovers(results.pop('unusual_results'))
+    regular_courses = split_courses_by_semester(multisort(regular_courses), 4)
+    carryovers = split_courses_by_semester(multisort(carryovers), 4)
+    unusual_results = split_courses_by_semester(multisort(unusual_results), 4)
 
-    # flatten the result dictionary
-    all_courses = [[crse_code] + results[crse_code].split(',') for crse_code in results if results[crse_code]]
-    all_courses.extend(carryovers)
-
-    # enrich the course lists
-    all_courses = course_reg_utils.enrich_course_list(all_courses, fields=('course_credit', 'course_semester'))
-    unusual_results = course_reg_utils.enrich_course_list(unusual_results, fields=('course_credit', 'course_semester'))
-
-    [unusual_results[index].append('Course not registered') for index in range(len(unusual_results))]
-    [all_courses[index].append('') for index in range(len(all_courses))]
-
-    all_courses.extend(unusual_results)
     frame = {'mat_no': mat_no,
              'table': table_to_populate,
              'level_written': level_written,
              'session_written': acad_session,
-             'courses': multisort(all_courses)}
+             'tcp': tcp,
+             'regular_courses': regular_courses,
+             'carryovers': carryovers,
+             'unusual_results': unusual_results,
+             'category': category,
+             }
     return frame, 200
 
 
@@ -112,14 +145,14 @@ def add_result_records(list_of_results):
 def add_single_result_record(index, result_details, result_errors_file):
     """
 
-    :param index: position of entry in a larger list --for tracking
+    :param index: position of entry in the larger list --for tracking
     :param result_details: [course_code, session_written, mat_no, score]
     :param result_errors_file: file object in write or append mode for logging important errors
     :return:
     """
     course_code, session_taken, mat_no, score = result_details
     session_taken, score = map(int, [session_taken, score])
-    grade = utils.compute_grade(mat_no, score)
+    grade = utils.compute_grade(score, utils.get_DB(mat_no))
     error_log = []
 
     # Error check on grade and score
@@ -255,7 +288,7 @@ def update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_leve
         creds = utils.get_credits(mat_no)
         # ensure to get the right value irrespective of the size of the list (PUTME vs DE students)
         level_credits = creds[index + (len(creds) - 5)]
-        grading_point_rule = utils.get_grading_point(mat_no)
+        grading_point_rule = utils.get_grading_point(utils.get_DB(mat_no))
         grading_point = int(grading_point_rule[grade])
         grading_point_old = int(grading_point_rule[previous_grade]) if previous_grade else 0
 
@@ -289,7 +322,8 @@ def update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_leve
 def multisort(iters):
     iters = sorted(iters, key=lambda x: x[0])
     iters = sorted(iters, key=lambda x: x[0][3])
-    return sorted(iters, key=lambda x: x[3])
+    # iters = sorted(iters, key=lambda x: x[4])  # no longer be needed as I'm splitting the semesters later on
+    return iters
 
 
 def get_table_to_populate(session_course_reg, full_res_poll):
@@ -387,5 +421,33 @@ def calculate_category_deprecated(result_record, courses_registered):
     category = utils.compute_category(mat_no, level_written, session_taken, total_credits, credits_passed)
     return category
 
+
+def split_courses_by_semester(course_list, semester_value_index):
+    """
+
+    :param course_list: [ ('course_code', 'some_other_detail', ...), (..), ... ]
+    :param semester_index: the index of each course where the semester value can be found
+    :return:
+    """
+    split_course_list = [list(filter(lambda x: x[semester_value_index] == sem, course_list)) for sem in (1, 2)]
+    dic = {
+        'first_sem': dictify(split_course_list[0], key_index=0),
+        'second_sem': dictify(split_course_list[1], key_index=0),
+    }
+    return dic
+
+
+def dictify(flat_list, key_index=0):
+    """
+    convert a flat list of lists (or tuples) to a dictionary, with the value at key_index as key
+    :param flat_list:
+    :param key_index:
+    :return:
+    """
+    dic = {}
+    for lis in flat_list:
+        lis = list(lis)
+        dic[lis.pop(key_index)] = lis
+    return dic
 
 # todo: write function to recalculate category, gpa-credits and cgpa

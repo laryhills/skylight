@@ -199,6 +199,18 @@ def get_level(mat_no):
 
     return current_level if abs(current_level) == current_level else current_level * -1
 
+
+def get_level_new(mat_no):
+    # 600-800 - is spill, 100-500 spill not inc, grad_status - graduated
+    db_name = get_DB(mat_no)
+    if not db_name:
+        return None
+    session = load_session(db_name)
+    PersonalInfo = session.PersonalInfo
+    student_data = PersonalInfo.query.filter_by(mat_no=mat_no).first()
+    current_level = student_data.level
+    return current_level
+
   
 ## USER-specific functions
 
