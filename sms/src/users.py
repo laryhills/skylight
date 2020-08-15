@@ -20,7 +20,9 @@ def hash_key(session_key = session_key()):
     session_bytes = bytes(session_key_sum, "utf-8")
     return b64encode(md5(session_bytes).digest()).decode("utf-8").strip("=")
 
+
 serializer = Serializer(hash_key())
+
 
 def login(token):
     try:
@@ -101,8 +103,8 @@ def accounts_decorator(func):
             # IN PROD replace with `.get("token") and rm try and exc block`
             token = request.headers["token"]
         except Exception:
-            print ("Running from command line or swagger UI, token not supplied!")
-            print ("func", func, "args", args, "kwargs", kwargs)
+            print("Running from command line or swagger UI, token not supplied!")
+            print("func", func, "args", args, "kwargs", kwargs)
             token = tokenize("ucheigbeka:testing")
             # abort(401)
         req_perms, token_dict = fn_props[qual_name]["perms"].copy(), get_token("TESTING_token") or get_token(token)
@@ -161,6 +163,30 @@ def get_DB(mat_no):
     return db_name.replace('-', '_')[:-3]
 
 
+# def get_level(mat_no):
+#     # 600-800 - is spill, 100-500 spill not inc, grad_status - graduated
+#     db_name = get_DB(mat_no)
+#     if not db_name:
+#         return None
+#     session = load_session(db_name)
+#     PersonalInfo = session.PersonalInfo
+#     student_data = PersonalInfo.query.filter_by(mat_no=mat_no).first()
+#     current_level = student_data.level
+#     if current_level == 500:
+#         if student_data.is_symlink and student_data.grad_stats == 0:
+#             # Spillover students
+#             for level in [800, 700, 600]:
+#                 course_reg_obj = eval('session.CourseReg{}'.format(level)).query.filter_by(mat_no=mat_no).first()
+#                 if course_reg_obj:
+#                     current_level = course_reg_obj.level
+#                     break
+#             else:
+#                 # Just a backup
+#                 affiliated_session = int(student_data.database.split('-')[0])
+#                 current_level += (affiliated_session - student_data.session_admitted + student_data.mode_of_entry - 1) * 100
+#     return current_level
+
+
 def get_level(mat_no):
     # 600-800 - is spill, 100-500 spill not inc, grad_status - graduated
     db_name = get_DB(mat_no)
@@ -170,19 +196,8 @@ def get_level(mat_no):
     PersonalInfo = session.PersonalInfo
     student_data = PersonalInfo.query.filter_by(mat_no=mat_no).first()
     current_level = student_data.level
-    if current_level == 500:
-        if student_data.is_symlink and student_data.grad_stats == 0:
-            # Spillover students
-            for level in [800, 700, 600]:
-                course_reg_obj = eval('session.CourseReg{}'.format(level)).query.filter_by(mat_no=mat_no).first()
-                if course_reg_obj:
-                    current_level = course_reg_obj.level
-                    break
-            else:
-                # Just a backup
-                affiliated_session = int(student_data.database.split('-')[0])
-                current_level += (affiliated_session - student_data.session_admitted + student_data.mode_of_entry - 1) * 100
-    return current_level
+
+    return current_level if abs(current_level) == current_level else current_level * -1
 
   
 ## USER-specific functions
