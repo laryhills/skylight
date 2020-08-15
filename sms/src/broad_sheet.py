@@ -35,6 +35,18 @@ def get(acad_session, level=None, raw_score=False):
     htmls = []
     start = perf_counter()
     # todo: refactor generate_pdf_wrapper, use ProcessPoolExecutor for the whole generation: html, pdf, et al
+    #       handle spillovers (get passed 500l courses - asterisked - alongside the new ones), don't worry about length of carryovers
+    #       change orientation of columns
+    #       refactor "min_score", just check for "F" --(as it's 40 for some and 45 for others)
+    #
+
+    # todo: rotate column headers
+    # -webkit - transform: rotate(270deg);
+    # -moz - transform: rotate(270deg);
+    # -o - transform: rotate(270deg);
+    # -ms - transform: rotate(270deg);
+
+
     for level in sorted(registered_students_for_session.keys()):
         t1 = perf_counter()
         mat_nos = registered_students_for_session[level]
