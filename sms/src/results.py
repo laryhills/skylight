@@ -265,6 +265,7 @@ def add_single_result_record(index, result_details, result_errors_file):
     db_session.close()
 
     if not is_unusual:
+        # update GPA - Credits table
         error, status = update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_level)
         if status != 200:
             return error, status
