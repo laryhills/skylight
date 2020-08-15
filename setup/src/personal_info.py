@@ -9,14 +9,7 @@ import pandas as pd
 import os
 import sqlite3
 
-# declare project root path
-separator = os.path.sep
-base_dir = os.path.dirname(__file__)
-project_root = separator.join(base_dir.split(separator)[:-2])
-
-# declare paths
-db_base_dir = os.path.join(project_root, 'sms', 'database')
-setup_data_dir = os.path.join(project_root, 'setup', 'data')
+from imports import db_base_dir, setup_data_dir
 
 # Load the csv data
 path = os.path.join(setup_data_dir, 'Personal_Data.csv')
@@ -26,12 +19,23 @@ start_session = 2003
 #start_session = 2017
 curr_session = 2019
 
+
 def format_options(data):
     if isinstance(data, float): return np.nan
     return '{},{}2'.format(data, data[:-1])
 
+
 def create_table_schema():
-    p_info_stmt = 'CREATE TABLE PersonalInfo(MATNO TEXT PRIMARY KEY, SURNAME TEXT, OTHERNAMES TEXT, MODE_OF_ENTRY INTEGER, SESSION_ADMIT INTEGER, SESSION_GRADUATED REAL, CURRENT_LEVEL INTEGER, OPTION REAL, SEX TEXT, DATE_OF_BIRTH REAL, STATE_OF_ORIGIN TEXT, LGA_OF_ORIGIN TEXT, PHONE_NO TEXT, EMAIL_ADDRESS TEXT, SPONSOR_PHONE_NO TEXT, SPONSOR_EMAIL_ADDRESS TEXT, GRAD_STATUS INTEGER, PROBATED_TRANSFERRED INTEGER, IS_SYMLINK INTEGER, DATABASE TEXT);'
+    # p_info_stmt = 'CREATE TABLE PersonalInfo(MATNO TEXT PRIMARY KEY, SURNAME TEXT, OTHERNAMES TEXT, MODE_OF_ENTRY ' \
+    #               'INTEGER, SESSION_ADMIT INTEGER, SESSION_GRADUATED REAL, CURRENT_LEVEL INTEGER, OPTION REAL, ' \
+    #               'SEX TEXT, DATE_OF_BIRTH REAL, STATE_OF_ORIGIN TEXT, LGA_OF_ORIGIN TEXT, PHONE_NO TEXT, ' \
+    #               'EMAIL_ADDRESS TEXT, SPONSOR_PHONE_NO TEXT, SPONSOR_EMAIL_ADDRESS TEXT, GRAD_STATUS INTEGER, ' \
+    #               'PROBATED_TRANSFERRED INTEGER, IS_SYMLINK INTEGER, DATABASE TEXT); '
+    p_info_stmt = 'CREATE TABLE PersonalInfo(MATNO TEXT PRIMARY KEY, SURNAME TEXT, OTHERNAMES TEXT, MODE_OF_ENTRY ' \
+                  'INTEGER, SESSION_ADMIT INTEGER, SESSION_GRADUATED INTEGER, CURRENT_LEVEL INTEGER, OPTION REAL, ' \
+                  'SEX TEXT, DATE_OF_BIRTH REAL, STATE_OF_ORIGIN TEXT, LGA_OF_ORIGIN TEXT, PHONE_NO TEXT, ' \
+                  'EMAIL_ADDRESS TEXT, SPONSOR_PHONE_NO TEXT, SPONSOR_EMAIL_ADDRESS TEXT, PROBATED_TRANSFERRED ' \
+                  'INTEGER, IS_SYMLINK INTEGER, DATABASE TEXT);'
     sym_link_stmt = '''CREATE TABLE SymLink(MATNO TEXT PRIMARY KEY, DATABASE TEXT); '''
     for session in range(start_session, curr_session + 1):
         curr_db = '{}-{}.db'.format(session, session + 1)
@@ -41,10 +45,11 @@ def create_table_schema():
         conn.close()
     print('PersonalInfo and SymLink table created')
 
+
 def populate_db(conn, session):
     curr_frame = frame[frame.SESSION_ADMIT == session]
     curr_frame.drop_duplicates(subset='MATNO', inplace=True)
-    del curr_frame['PASSPORT']
+    del curr_frame['PASSPORT'], curr_frame['GRAD_STATUS']
     curr_frame['IS_SYMLINK'], curr_frame['DATABASE'] = 0, ''
     # other = curr_session - (curr_frame.CURRENT_LEVEL / 100)
     # other = other.map(lambda x: '%d-%d.db'%(x, x + 1))
