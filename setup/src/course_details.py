@@ -2,14 +2,7 @@ import pandas as pd
 import os
 import sqlite3
 
-# declare project root path
-separator = os.path.sep
-base_dir = os.path.dirname(__file__)
-project_root = separator.join(base_dir.split(separator)[:-2])
-
-# declare database path
-db_base_dir = os.path.join(project_root, 'sms', 'database')
-setup_data_dir = os.path.join(project_root, 'setup', 'data')
+from imports import db_base_dir, setup_data_dir
 
 
 def build_db(conn):

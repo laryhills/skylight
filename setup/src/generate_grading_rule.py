@@ -1,6 +1,7 @@
 import os
 import sqlite3
-from __init__ import project_root, db_base_dir
+
+from imports import db_base_dir
 
 start_session = 2003
 curr_session = 2019

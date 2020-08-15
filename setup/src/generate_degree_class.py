@@ -1,24 +1,18 @@
 import os
 import sqlite3
 
-# declare project root path
-separator = os.path.sep
-base_dir = os.path.dirname(__file__)
-project_root = separator.join(base_dir.split(separator)[:-2])
-
-# declare database path
-db_base_dir = os.path.join(project_root, 'sms', 'database')
+from imports import db_base_dir
 
 start_session = 2003
 curr_session = 2019
 
 class_of_degree = {
     'First class honours': '4.50,5.00',
-    'Second class honours (upper)': '3.50,4.49',
-    'Second class honours (lower)': '2.40,3.49',
-    'Third class honours': '1.50,2.39',
-    'Pass': '1.00,1.49',
-    'Fail': '0,0.99'
+    'Second class honours (upper)': '3.50,4.4999',
+    'Second class honours (lower)': '2.40,3.4999',
+    'Third class honours': '1.50,2.3999',
+    'Pass': '1.00,1.4999',
+    'Fail': '0,0.9999'
 }
 
 

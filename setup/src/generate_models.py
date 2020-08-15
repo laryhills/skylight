@@ -1,5 +1,5 @@
 import os
-from __init__ import project_root, model_template_path, models_dir
+from imports import model_template_path, models_dir
 
 sessions = range(2003, 2020)
 for session in sessions:
