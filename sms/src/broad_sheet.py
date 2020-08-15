@@ -105,10 +105,10 @@ def generate_pdf(item, file_name, zf=None):
     html, level = item
     pdf_name = file_name + '_' + str(level) + '.pdf'
     options = {
-        # 'page-size': 'A3',
+        'page-size': 'A3',
         'orientation': 'landscape',
-        'page-height': '1370.0pt',  # <unitreal> like margin',
-        'page-width': '936.0pt',  # <unitreal> like margin',
+        # 'page-height': '420mm',  # <unitreal> like margin',
+        # 'page-width': '297mm',  # <unitreal> like margin',
         # 'margin: 36.0pt, 21.6pt, 72.0pt, 21.6pt'
         # 'margin-top': '0.6in',
         # 'margin-right': '0.5in',
@@ -165,8 +165,6 @@ def enrich_mat_no_list(mat_nos, acad_session):
     first = True
 
     for mat_no in mat_nos:
-        # todo check the cost of this call
-        t0 = perf_counter()
         course_reg = get_course_reg_at_acad_session(acad_session, mat_no=mat_no)
         if not course_reg:
             # print(mat_no, 'has no course_reg')
