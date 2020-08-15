@@ -2,8 +2,10 @@
     Utility script much like utils.py for handling frequently called or single use simple utility functions
 """
 
+from sms.config import get_current_session
 from sms.src.users import get_level
 from sms.src.utils import load_session, get_depat, get_credits, get_gpa_credits, get_category
+from sms.models import courses
 from sms.models.master import Category, Category500
 
 class_mapping = {
@@ -209,7 +211,7 @@ def get_details_for_ref_students(mat_no, session):
     student = session.PersonalInfo.query.filter_by(mat_no=mat_no).first()
     name = student.othernames + ' ' + '<b>{}</b>'.format(student.surname)
     name += ' (Miss)' if student.sex == 'F' else ''
-    level = get_level(mat_no, session=session)
+    level = get_level(mat_no)
     try:
         session_failed_courses = get_session_failed_courses(mat_no, level, session)
         credits_passed_list = get_gpa_credits(mat_no, session)[1]
@@ -283,6 +285,8 @@ def get_students_by_level(entry_session, level, retDB=False):
     entry_session_db_name = '{}_{}'.format(entry_session, entry_session + 1)
     session = load_session(entry_session_db_name)
     students = session.PersonalInfo.query.filter_by(is_symlink=0).filter_by(mode_of_entry=1).all()
+    stud_curr_level = 500 if get_current_session() - 5 <= entry_session else (get_current_session() - entry_session) * 100
+    level_offset = stud_curr_level - level
     if retDB:
         students = {entry_session_db_name: list(map(lambda stud: stud.mat_no, students))}
     else:
@@ -295,9 +299,9 @@ def get_students_by_level(entry_session, level, retDB=False):
         if stud.database != curr_db_name:
             curr_db_name = stud.database
             session = load_session(curr_db_name.replace('-', '_')[:-3])
-        curr_level = get_level(stud.mat_no, session=session)
+        curr_level = get_level(stud.mat_no)
         curr_level = curr_level if curr_level < 500 else 500
-        if curr_level == level:
+        if curr_level == level + level_offset:
             other_students.append(stud)
     if retDB:
         # groups the students by their database name
@@ -363,7 +367,7 @@ def get_students_by_category(level, entry_session, category=None, get_all=False)
             students[db_name] = cat_dict.copy()
             session = load_session(db_name)
             for mat_no in mat_no_dict[db_name]:
-                level = level if level != 500 else get_level(mat_no, session=session)  # Accounts for spillover students
+                level = level if level != 500 else get_level(mat_no)  # Accounts for spillover students
                 cat = get_category(mat_no, level, session=session)
                 if students[db_name].get(cat):
                     students[db_name][cat].append(mat_no)
