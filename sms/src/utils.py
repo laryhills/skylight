@@ -219,6 +219,8 @@ def serialize_carryovers(carryover_string):
 
 
 def compute_grade(score, session):
+    if score == -1:
+        return "ABS"
     if not 0 <= score <= 100:
         return None
     grading_rules = load_session(session).GradingRule.query.first().rule.split(",")
