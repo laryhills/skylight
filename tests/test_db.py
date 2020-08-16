@@ -46,6 +46,8 @@ def test_course_reg_table():
             course_reg_lvl = eval("session.CourseReg{}".format(level))
             course_reg = course_reg_lvl.query.filter_by(mat_no=mat_no).first()
             if course_reg:
+                # Assert level for registration not higher than present level
+                assert personal_info.get(mat_no)["level"] >= course_reg.level
                 assert table_blanks != (1, 0) # assert no blank above this table
                 table_blanks = (table_blanks[1], 1)
                 expected_TCR = 0 # For verifying Total Credits Registered
@@ -77,6 +79,8 @@ def test_results_table():
             result_lvl = eval("session.Result{}".format(level))
             result = result_lvl.query.filter_by(mat_no=mat_no).first()
             if result:
+                # Assert level for results not higher than present level
+                assert personal_info.get(mat_no)["level"] >= result.level
                 assert table_blanks != (1, 0) # assert no blank above this table
                 table_blanks = (table_blanks[1], 1)
                 expected_TCP = 0 # For verifying Total Credits Passed
