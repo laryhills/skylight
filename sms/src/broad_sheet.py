@@ -29,23 +29,18 @@ def get(acad_session, level=None, raw_score=False):
     :param raw_score:
     :return:
     """
+    # todo: * refactor generate_pdf_wrapper, use ProcessPoolExecutor for the whole generation: html, pdf, et al
+    #           handle spillovers (get passed 500l courses - asterisked - alongside the new ones),
+    #       * don't worry about length of the carryover column
+
     start = perf_counter()
     registered_students_for_session = get_filtered_student_by_level(acad_session, level)
     print('student list fetched in', perf_counter() - start)
     htmls = []
-    start = perf_counter()
-    # todo: refactor generate_pdf_wrapper, use ProcessPoolExecutor for the whole generation: html, pdf, et al
-    #       handle spillovers (get passed 500l courses - asterisked - alongside the new ones), don't worry about length of carryovers
-    #       change orientation of columns
-    #       refactor "min_score", just check for "F" --(as it's 40 for some and 45 for others)
-    #
 
-    # todo: rotate column headers
-    # -webkit - transform: rotate(270deg);
-    # -moz - transform: rotate(270deg);
-    # -o - transform: rotate(270deg);
-    # -ms - transform: rotate(270deg);
-
+    color_map = {'F': 'red', 'ABS': 'blue'}
+    empty_value = ' '
+    index_to_display = 0 if raw_score else 1
 
     for level in sorted(registered_students_for_session.keys()):
         t1 = perf_counter()
@@ -70,16 +65,11 @@ def get(acad_session, level=None, raw_score=False):
         len_first_sem_carryovers = max(len_first_sem_carryovers, 3)
         len_second_sem_carryovers = max(len_second_sem_carryovers, 3)
 
-        # len_first_sem_regulars, len_second_sem_regulars
-        empty_value = ' '
-        min_score = 40
-        index_to_display = 0 if raw_score else 1
-
         html = render_template(
             'broad_sheet.html', enumerate=enumerate,  sum=sum, int=int, url_for=url_for,
             len_first_sem_carryovers=len_first_sem_carryovers, len_second_sem_carryovers=len_second_sem_carryovers,
             first_sem_courses=first_sem_courses, second_sem_courses=second_sem_courses, options=options,
-            index_to_display=index_to_display, empty_value=empty_value, min_score=min_score,
+            index_to_display=index_to_display, empty_value=empty_value, color_map=color_map,
             students=students, session=acad_session, level=level,
         )
         print(f'{str(level)}: html prepared in', perf_counter() - t1)
@@ -155,7 +145,7 @@ def get_filtered_student_by_level(acad_session, level=None):
         associated_db = acad_session - level//100 + 1
         students = get_students_by_level(associated_db, level)
         # students = list(filter(lambda mat: get_level_at_acad_session(mat, acad_session) == level, students))
-        students_by_level[level] = students
+        students_by_level[level] = sorted(students)
     return students_by_level
 
 
