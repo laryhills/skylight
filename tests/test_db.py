@@ -80,7 +80,7 @@ def test_results_table():
             result = result_lvl.query.filter_by(mat_no=mat_no).first()
             if result:
                 # Assert level for results not higher than present level
-                assert personal_info.get(mat_no)["level"] >= result.level
+                assert personal_info.get(mat_no)["level"] >= min(500, result.level)
                 assert table_blanks != (1, 0) # assert no blank above this table
                 table_blanks = (table_blanks[1], 1)
                 expected_TCP = 0 # For verifying Total Credits Passed
