@@ -136,9 +136,6 @@ def add_result_records(list_of_results):
     result_errors_file.close()
     print('\n====>>  ', '{} result entries added with {} errors'.format(len(list_of_results), len(error_log)))
 
-    if len(list_of_results) == len(error_log):
-        return error_log, 400
-
     return error_log, 200
 
 
