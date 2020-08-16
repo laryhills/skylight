@@ -56,6 +56,7 @@ def test_course_reg_table():
                 for course in course_reg.carryovers.split(","):
                     # TODO Remove re check after carryover100 set to NULL
                     if re.match("[A-Z][A-Z][A-Z][0-9][0-9][0-9]", course):
+                        # Assert course isn't from a higher level
                         assert course_reg.level >= course_details.get(course,0)["course_level"]
                         expected_TCR += course_details.get(course,0)["course_credit"]
                 assert expected_TCR == course_reg.tcr
@@ -82,12 +83,15 @@ def test_results_table():
                 for prop in dir(result):
                     if re.match("[A-Z][A-Z][A-Z][0-9][0-9][0-9]", prop) and result.__getattribute__(prop):
                         score, grade = result.__getattribute__(prop).split(",")
+                        # Ensure score matches grade
                         assert utils.compute_grade(int(score), student.database) == grade
                         if grade not in ("F", "ABS"):
                             expected_TCP += course_details.get(prop,0)["course_credit"]
                 if result.carryovers:
                     for course, score, grade in [x.split() for x in result.carryovers.split(",")]:
+                        # Assert course isn't from a higher level
                         assert result.level >= course_details.get(course,0)["course_level"]
+                        # Ensure score matches grade
                         assert utils.compute_grade(int(score), student.database) == grade
                         if grade not in ("F", "ABS"):
                             expected_TCP += course_details.get(course,0)["course_credit"]
