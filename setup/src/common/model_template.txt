@@ -1,0 +1,589 @@
+from sms.config import db, ma, app
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import scoped_session, sessionmaker
+
+session = scoped_session(sessionmaker(bind=db.get_engine(app, '##NAME##')))
+Base = declarative_base()
+Base.query = session.query_property()
+
+
+class PersonalInfo(Base):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'PersonalInfo'
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True, unique=True)
+    surname = db.Column('SURNAME', db.Text, nullable=False)
+    othernames = db.Column('OTHERNAMES', db.Text, nullable=False)
+    mode_of_entry = db.Column('MODE_OF_ENTRY', db.Integer, nullable=False)
+    session_admitted = db.Column('SESSION_ADMIT', db.Integer, nullable=False)
+    session_grad = db.Column('SESSION_GRADUATED', db.Integer, nullable=True)
+    level = db.Column('CURRENT_LEVEL', db.Integer, nullable=False)
+    option = db.Column('OPTION', db.String(20), nullable=True)
+    sex = db.Column('SEX', db.String(1), nullable=False)
+    date_of_birth = db.Column('DATE_OF_BIRTH', db.String(10), nullable=False)
+    state_of_origin = db.Column('STATE_OF_ORIGIN', db.Text, nullable=False)
+    lga = db.Column('LGA_OF_ORIGIN', db.Text, nullable=False)
+    phone_no = db.Column('PHONE_NO', db.String(11), nullable=False)
+    email_address = db.Column('EMAIL_ADDRESS', db.String(100), nullable=False)
+    sponsor_phone_no = db.Column('SPONSOR_PHONE_NO', db.String(11), nullable=False)
+    sponsor_email_address = db.Column('SPONSOR_EMAIL_ADDRESS', db.String(100), nullable=False)
+    # grad_stats = db.Column('GRAD_STATUS', db.Integer, nullable=True)
+    is_symlink = db.Column('IS_SYMLINK', db.Integer, nullable=False)
+    database = db.Column('DATABASE', db.String(12), nullable=True)
+
+    @property
+    def grad_status(self):
+        return 0 if abs(self.level) == self.level else 1
+
+
+class SymLink(Base):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'SymLink'
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True, unique=True)
+    database = db.Column('DATABASE', db.String(12), nullable=False)
+
+
+class Result100(Base):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'Result100'
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    CHM111 = db.Column(db.Text)
+    CHM113 = db.Column(db.Text)
+    CHM122 = db.Column(db.Text)
+    CHM124 = db.Column(db.Text)
+    GST111 = db.Column(db.Text)
+    GST112 = db.Column(db.Text)
+    GST121 = db.Column(db.Text)
+    GST122 = db.Column(db.Text)
+    GST123 = db.Column(db.Text)
+    MTH110 = db.Column(db.Text)
+    MTH112 = db.Column(db.Text)
+    MTH123 = db.Column(db.Text)
+    MTH125 = db.Column(db.Text)
+    PHY109 = db.Column(db.Text)
+    PHY111 = db.Column(db.Text)
+    PHY113 = db.Column(db.Text)
+    PHY124 = db.Column(db.Text)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
+    carryovers = db.Column('CARRYOVERS', db.Text)
+    category = db.Column('CATEGORY', db.Text)
+    tcp = db.Column('TCP', db.Integer)
+    unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
+
+
+class Result200(Base):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'Result200'
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    CHE222 = db.Column(db.Text)
+    CVE211 = db.Column(db.Text)
+    ECP281 = db.Column(db.Text)
+    EEE211 = db.Column(db.Text)
+    EEE212 = db.Column(db.Text)
+    ELA201 = db.Column(db.Text)
+    ELA202 = db.Column(db.Text)
+    EMA281 = db.Column(db.Text)
+    EMA282 = db.Column(db.Text)
+    ENS211 = db.Column(db.Text)
+    MEE211 = db.Column(db.Text)
+    MEE212 = db.Column(db.Text)
+    MEE221 = db.Column(db.Text)
+    MEE222 = db.Column(db.Text)
+    PRE211 = db.Column(db.Text)
+    PRE212 = db.Column(db.Text)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
+    carryovers = db.Column('CARRYOVERS', db.Text)
+    category = db.Column('CATEGORY', db.Text)
+    tcp = db.Column('TCP', db.Integer)
+    unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
+
+
+class Result300(Base):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'Result300'
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    CVE311 = db.Column(db.Text)
+    EEE317 = db.Column(db.Text)
+    EEE318 = db.Column(db.Text)
+    ELA301 = db.Column(db.Text)
+    ELA302 = db.Column(db.Text)
+    EMA381 = db.Column(db.Text)
+    EMA382 = db.Column(db.Text)
+    MEE311 = db.Column(db.Text)
+    MEE312 = db.Column(db.Text)
+    MEE321 = db.Column(db.Text)
+    MEE322 = db.Column(db.Text)
+    MEE332 = db.Column(db.Text)
+    MEE342 = db.Column(db.Text)
+    MEE351 = db.Column(db.Text)
+    MEE352 = db.Column(db.Text)
+    MEE361 = db.Column(db.Text)
+    MEE362 = db.Column(db.Text)
+    MEE372 = db.Column(db.Text)
+    PRE311 = db.Column(db.Text)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
+    carryovers = db.Column('CARRYOVERS', db.Text)
+    category = db.Column('CATEGORY', db.Text)
+    tcp = db.Column('TCP', db.Integer)
+    unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
+
+
+class Result400(Base):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'Result400'
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    CED300 = db.Column(db.Text)
+    ELA401 = db.Column(db.Text)
+    EMA481 = db.Column(db.Text)
+    MEE411 = db.Column(db.Text)
+    MEE421 = db.Column(db.Text)
+    MEE431 = db.Column(db.Text)
+    MEE441 = db.Column(db.Text)
+    MEE451 = db.Column(db.Text)
+    MEE461 = db.Column(db.Text)
+    MEE471 = db.Column(db.Text)
+    UBT400 = db.Column(db.Text)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
+    carryovers = db.Column('CARRYOVERS', db.Text)
+    category = db.Column('CATEGORY', db.Text)
+    tcp = db.Column('TCP', db.Integer)
+    unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
+
+
+class Result500(Base):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'Result500'
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    MEE501 = db.Column(db.Text)
+    MEE502 = db.Column(db.Text)
+    MEE505 = db.Column(db.Text)
+    MEE506 = db.Column(db.Text)
+    MEE511 = db.Column(db.Text)
+    MEE512 = db.Column(db.Text)
+    MEE521 = db.Column(db.Text)
+    MEE522 = db.Column(db.Text)
+    MEE531 = db.Column(db.Text)
+    MEE532 = db.Column(db.Text)
+    MEE541 = db.Column(db.Text)
+    MEE542 = db.Column(db.Text)
+    MEE551 = db.Column(db.Text)
+    MEE552 = db.Column(db.Text)
+    MEE561 = db.Column(db.Text)
+    MEE562 = db.Column(db.Text)
+    MEE571 = db.Column(db.Text)
+    MEE572 = db.Column(db.Text)
+    MEE581 = db.Column(db.Text)
+    MEE582 = db.Column(db.Text)
+    MEE591 = db.Column(db.Text)
+    MEE592 = db.Column(db.Text)
+    PRE571 = db.Column(db.Text)
+    PRE572 = db.Column(db.Text)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
+    carryovers = db.Column('CARRYOVERS', db.Text)
+    category = db.Column('CATEGORY', db.Text)
+    tcp = db.Column('TCP', db.Integer)
+    unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
+
+
+class Result600(Base):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'Result600'
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
+    carryovers = db.Column('CARRYOVERS', db.Text)
+    category = db.Column('CATEGORY', db.Text)
+    tcp = db.Column('TCP', db.Integer)
+    unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
+
+
+class Result700(Base):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'Result700'
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
+    carryovers = db.Column('CARRYOVERS', db.Text)
+    category = db.Column('CATEGORY', db.Text)
+    tcp = db.Column('TCP', db.Integer)
+    unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
+
+
+class Result800(Base):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'Result800'
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
+    carryovers = db.Column('CARRYOVERS', db.Text)
+    category = db.Column('CATEGORY', db.Text)
+    tcp = db.Column('TCP', db.Integer)
+    unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
+
+
+class Courses(Base):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'Courses'
+    mode_of_entry = db.Column('MODE_OF_ENTRY', db.Integer, primary_key=True)
+    level100 = db.Column('LEVEL100', db.Text)
+    level200 = db.Column('LEVEL200', db.Text)
+    level300 = db.Column('LEVEL300', db.Text)
+    level400 = db.Column('LEVEL400', db.Text)
+    level500 = db.Column('LEVEL500', db.Text)
+
+
+class Credits(Base):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'Credits'
+    mode_of_entry = db.Column('MODE_OF_ENTRY', db.Integer, primary_key=True)
+    level100 = db.Column('LEVEL100', db.Integer)
+    level200 = db.Column('LEVEL200', db.Integer)
+    level300 = db.Column('LEVEL300', db.Integer)
+    level400 = db.Column('LEVEL400', db.Integer)
+    level500 = db.Column('LEVEL500', db.Integer)
+
+
+class GPA_Credits(Base):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'GPA_CREDITS'
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    level100 = db.Column('LEVEL100', db.Text)
+    level200 = db.Column('LEVEL200', db.Text)
+    level300 = db.Column('LEVEL300', db.Text)
+    level400 = db.Column('LEVEL400', db.Text)
+    level500 = db.Column('LEVEL500', db.Text)
+    cgpa = db.Column('CGPA', db.Float(precision=4, asdecimal=True))
+
+
+class GradingRule(Base):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'GradingRule'
+    rule = db.Column('Rule', db.Text, primary_key=True)
+
+
+class DegreeClass(Base):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'DegreeClass'
+    cls = db.Column('Class', db.Text, primary_key=True)
+    limits = db.Column('Limits', db.Text)
+
+
+class CourseReg100(Base):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'CourseReg100'
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    CHM111 = db.Column(db.Integer)
+    CHM113 = db.Column(db.Integer)
+    CHM122 = db.Column(db.Integer)
+    CHM124 = db.Column(db.Integer)
+    GST111 = db.Column(db.Integer)
+    GST112 = db.Column(db.Integer)
+    GST121 = db.Column(db.Integer)
+    GST122 = db.Column(db.Integer)
+    GST123 = db.Column(db.Integer)
+    MTH110 = db.Column(db.Integer)
+    MTH112 = db.Column(db.Integer)
+    MTH123 = db.Column(db.Integer)
+    MTH125 = db.Column(db.Integer)
+    PHY109 = db.Column(db.Integer)
+    PHY111 = db.Column(db.Integer)
+    PHY113 = db.Column(db.Integer)
+    PHY124 = db.Column(db.Integer)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
+    carryovers = db.Column('CARRYOVERS', db.Text)
+    tcr = db.Column('TCR', db.Integer)
+    fees_status = db.Column('FEES_STATUS', db.Integer)
+    probation = db.Column('PROBATION',db.Integer)
+    others = db.Column('OTHERS', db.Text)
+
+
+class CourseReg200(Base):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'CourseReg200'
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    CHE222 = db.Column(db.Integer)
+    CVE211 = db.Column(db.Integer)
+    ECP281 = db.Column(db.Integer)
+    EEE211 = db.Column(db.Integer)
+    EEE212 = db.Column(db.Integer)
+    ELA201 = db.Column(db.Integer)
+    ELA202 = db.Column(db.Integer)
+    EMA281 = db.Column(db.Integer)
+    EMA282 = db.Column(db.Integer)
+    ENS211 = db.Column(db.Integer)
+    MEE211 = db.Column(db.Integer)
+    MEE212 = db.Column(db.Integer)
+    MEE221 = db.Column(db.Integer)
+    MEE222 = db.Column(db.Integer)
+    PRE211 = db.Column(db.Integer)
+    PRE212 = db.Column(db.Integer)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
+    fees_status = db.Column('FEES_STATUS', db.Integer)
+    carryovers = db.Column('CARRYOVERS', db.Text)
+    tcr = db.Column('TCR', db.Integer)
+    probation = db.Column('PROBATION',db.Integer)
+    others = db.Column('OTHERS', db.Text)
+
+
+class CourseReg300(Base):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'CourseReg300'
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    CVE311 = db.Column(db.Integer)
+    EEE317 = db.Column(db.Integer)
+    EEE318 = db.Column(db.Integer)
+    ELA301 = db.Column(db.Integer)
+    ELA302 = db.Column(db.Integer)
+    EMA381 = db.Column(db.Integer)
+    EMA382 = db.Column(db.Integer)
+    MEE311 = db.Column(db.Integer)
+    MEE312 = db.Column(db.Integer)
+    MEE321 = db.Column(db.Integer)
+    MEE322 = db.Column(db.Integer)
+    MEE332 = db.Column(db.Integer)
+    MEE342 = db.Column(db.Integer)
+    MEE351 = db.Column(db.Integer)
+    MEE352 = db.Column(db.Integer)
+    MEE361 = db.Column(db.Integer)
+    MEE362 = db.Column(db.Integer)
+    MEE372 = db.Column(db.Integer)
+    PRE311 = db.Column(db.Integer)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
+    fees_status = db.Column('FEES_STATUS', db.Integer)
+    carryovers = db.Column('CARRYOVERS', db.Text)
+    tcr = db.Column('TCR', db.Integer)
+    probation = db.Column('PROBATION',db.Integer)
+    others = db.Column('OTHERS', db.Text)
+
+
+class CourseReg400(Base):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'CourseReg400'
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    CED300 = db.Column(db.Integer)
+    ELA401 = db.Column(db.Integer)
+    EMA481 = db.Column(db.Integer)
+    MEE411 = db.Column(db.Integer)
+    MEE421 = db.Column(db.Integer)
+    MEE431 = db.Column(db.Integer)
+    MEE441 = db.Column(db.Integer)
+    MEE451 = db.Column(db.Integer)
+    MEE461 = db.Column(db.Integer)
+    MEE471 = db.Column(db.Integer)
+    UBT400 = db.Column(db.Integer)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
+    fees_status = db.Column('FEES_STATUS', db.Integer)
+    carryovers = db.Column('CARRYOVERS', db.Text)
+    tcr = db.Column('TCR', db.Integer)
+    probation = db.Column('PROBATION',db.Integer)
+    others = db.Column('OTHERS', db.Text)
+
+
+class CourseReg500(Base):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'CourseReg500'
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    MEE501 = db.Column(db.Integer)
+    MEE502 = db.Column(db.Integer)
+    MEE505 = db.Column(db.Integer)
+    MEE506 = db.Column(db.Integer)
+    MEE511 = db.Column(db.Integer)
+    MEE512 = db.Column(db.Integer)
+    MEE521 = db.Column(db.Integer)
+    MEE522 = db.Column(db.Integer)
+    MEE531 = db.Column(db.Integer)
+    MEE532 = db.Column(db.Integer)
+    MEE541 = db.Column(db.Integer)
+    MEE542 = db.Column(db.Integer)
+    MEE551 = db.Column(db.Integer)
+    MEE552 = db.Column(db.Integer)
+    MEE561 = db.Column(db.Integer)
+    MEE562 = db.Column(db.Integer)
+    MEE571 = db.Column(db.Integer)
+    MEE572 = db.Column(db.Integer)
+    MEE581 = db.Column(db.Integer)
+    MEE582 = db.Column(db.Integer)
+    MEE591 = db.Column(db.Integer)
+    MEE592 = db.Column(db.Integer)
+    PRE571 = db.Column(db.Integer)
+    PRE572 = db.Column(db.Integer)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
+    fees_status = db.Column('FEES_STATUS', db.Integer)
+    carryovers = db.Column('CARRYOVERS', db.Text)
+    tcr = db.Column('TCR', db.Integer)
+    probation = db.Column('PROBATION',db.Integer)
+    others = db.Column('OTHERS', db.Text)
+
+
+class CourseReg600(Base):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'CourseReg600'
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
+    fees_status = db.Column('FEES_STATUS', db.Integer)
+    carryovers = db.Column('CARRYOVERS', db.Text)
+    tcr = db.Column('TCR', db.Integer)
+    probation = db.Column('PROBATION',db.Integer)
+    others = db.Column('OTHERS', db.Text)
+
+
+class CourseReg700(Base):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'CourseReg700'
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
+    fees_status = db.Column('FEES_STATUS', db.Integer)
+    carryovers = db.Column('CARRYOVERS', db.Text)
+    tcr = db.Column('TCR', db.Integer)
+    probation = db.Column('PROBATION',db.Integer)
+    others = db.Column('OTHERS', db.Text)
+
+
+class CourseReg800(Base):
+    __bind_key__ = '##NAME##'
+    __tablename__ = 'CourseReg800'
+    mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    level = db.Column('LEVEL', db.Integer)
+    session = db.Column('SESSION', db.Integer)
+    fees_status = db.Column('FEES_STATUS', db.Integer)
+    carryovers = db.Column('CARRYOVERS', db.Text)
+    tcr = db.Column('TCR', db.Integer)
+    probation = db.Column('PROBATION',db.Integer)
+    others = db.Column('OTHERS', db.Text)
+
+
+class PersonalInfoSchema(ma.ModelSchema):
+    class Meta:
+        model = PersonalInfo
+        sqla_session = session
+
+
+class Result100Schema(ma.ModelSchema):
+    class Meta:
+        model = Result100
+        sqla_session = session
+
+
+class Result200Schema(ma.ModelSchema):
+    class Meta:
+        model = Result200
+        sqla_session = session
+
+
+class Result300Schema(ma.ModelSchema):
+    class Meta:
+        model = Result300
+        sqla_session = session
+
+
+class Result400Schema(ma.ModelSchema):
+    class Meta:
+        model = Result400
+        sqla_session = session
+
+
+class Result500Schema(ma.ModelSchema):
+    class Meta:
+        model = Result500
+        sqla_session = session
+
+
+class Result600Schema(ma.ModelSchema):
+    class Meta:
+        model = Result600
+        sqla_session = session
+
+
+class Result700Schema(ma.ModelSchema):
+    class Meta:
+        model = Result700
+        sqla_session = session
+
+
+class Result800Schema(ma.ModelSchema):
+    class Meta:
+        model = Result800
+        sqla_session = session
+
+
+class ResultSchema(ma.ModelSchema):
+    class Meta:
+        model = Result600
+        sqla_session = session
+
+
+class CoursesSchema(ma.ModelSchema):
+    class Meta:
+        model = Courses
+        sqla_session = session
+
+
+class CreditsSchema(ma.ModelSchema):
+    class Meta:
+        model = Credits
+        sqla_session = session
+
+
+class GPACreditsSchema(ma.ModelSchema):
+    class Meta:
+        model = GPA_Credits
+        sqla_session = session
+
+
+class CourseReg100Schema(ma.ModelSchema):
+    class Meta:
+        model = CourseReg100
+        sqla_session = session
+
+
+class CourseReg200Schema(ma.ModelSchema):
+    class Meta:
+        model = CourseReg200
+        sqla_session = session
+
+
+class CourseReg300Schema(ma.ModelSchema):
+    class Meta:
+        model = CourseReg300
+        sqla_session = session
+
+
+class CourseReg400Schema(ma.ModelSchema):
+    class Meta:
+        model = CourseReg400
+        sqla_session = session
+
+
+class CourseReg500Schema(ma.ModelSchema):
+    class Meta:
+        model = CourseReg500
+        sqla_session = session
+
+
+class CourseReg600Schema(ma.ModelSchema):
+    class Meta:
+        model = CourseReg600
+        sqla_session = session
+
+
+class CourseReg700Schema(ma.ModelSchema):
+    class Meta:
+        model = CourseReg700
+        sqla_session = session
+
+
+class CourseReg800Schema(ma.ModelSchema):
+    class Meta:
+        model = CourseReg800
+        sqla_session = session
