@@ -1,4 +1,6 @@
 import os.path
+from datetime import date
+
 import pdfkit
 from time import perf_counter
 from secrets import token_hex
@@ -59,8 +61,8 @@ def get(acad_session, level=None, raw_score=False):
         # just for now, later this condition should be "if option > 0 for course in level courses"
         if level == 500:
             options = [
-                [('MEE531', 7, 1), ('MEE541', 7, 1), ('MEE561', 7, 1), ('MEE581', 7, 1)],
-                [('MEE532', 8, 2), ('MEE542', 8, 2), ('MEE562', 8, 2), ('MEE582', 8, 2)]
+                [('MEE531', 7, 1), ('MEE541', 7, 1), ('MEE561', 7, 1), ('MEE581', 7, 1), ('MEE591', 7, 1)],
+                [('MEE532', 8, 2), ('MEE542', 8, 2), ('MEE562', 8, 2), ('MEE582', 8, 2), ('MEE592', 8, 2)]
             ]
         else:
             options = [[], []]
@@ -73,12 +75,15 @@ def get(acad_session, level=None, raw_score=False):
             len_first_sem_carryovers=len_first_sem_carryovers, len_second_sem_carryovers=len_second_sem_carryovers,
             first_sem_courses=first_sem_courses, second_sem_courses=second_sem_courses, options=options,
             index_to_display=index_to_display, empty_value=empty_value, color_map=color_map,
-            students=students, session=acad_session, level=level,
+            students=students, session=acad_session, level=level, current_date=date.today().strftime("%A, %B %-d, %Y")
         )
         print(f'{str(level)}: html prepared in', perf_counter() - t1)
         htmls.append((html, level))
 
     file_name = token_hex(8)
+    with open(os.path.join(cache_base_dir, file_name + '_footer.html'), 'w') as footer:
+        footer.write(render_template('broad_sheet_footer.html', current_date=date.today().strftime("%A, %B %-d, %Y")))
+
     zip_path = os.path.join(cache_base_dir, file_name + '.zip')
     with ZipFile(zip_path, 'w', ZIP_DEFLATED) as zf:
         generate_pdf_wrapper(generate_pdf, htmls, file_name, zf, concurrency=True)
@@ -115,13 +120,12 @@ def generate_pdf(item, file_name, zf=None):
         # 'page-height': '420mm',  # <unitreal> like margin',
         # 'page-width': '297mm',  # <unitreal> like margin',
         # 'margin: 36.0pt, 21.6pt, 72.0pt, 21.6pt'
-        # 'margin-top': '0.6in',
-        # 'margin-right': '0.5in',
-        # 'margin-bottom': '0.6in',
-        # 'margin-left': '0.5in',
+        'margin-top': '0.5in',
+        'margin-right': '0.3in',
+        'margin-bottom': '1.5in',
+        'margin-left': '0.3in',
 
-        # 'footer-html': '',
-        # 'header-html': '',
+        'footer-html': os.path.join(cache_base_dir, file_name + '_footer.html'),
         # 'minimum-font-size': 12,
         # 'encoding': "UTF-8",
         # 'disable-smart-shrinking': None,
