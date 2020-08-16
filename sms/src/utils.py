@@ -234,46 +234,40 @@ def get_grading_point(session):
     return dict(map(lambda x: x.split()[:-1], grading_rules))
 
 
-def get_registered_courses(mat_no, level=None, true_levels=False):
-    # Get courses registered for all levels if level=None else for level
+def get_registered_courses(mat_no, db_level=None):
+    """
+    Get courses registered from all course reg tables if db_level=None else from "CourseReg<db_level>" table
+    :param mat_no:
+    :param db_level:
+    :return:
+    """
     db_name = get_DB(mat_no)
     session = load_session(db_name)
-    courses_registered = defaultdict(dict)
-    if level and not true_levels:
-        levels = [level]
-        levs = level
-    else:
-        levels = range(100, 900, 100)
-        levs = 100
+    levels = [db_level] if db_level else range(100, 900, 100)
+    courses_registered = {}
 
-    first_not_found = True
     for _level in levels:
-        courses_regd = eval('session.CourseReg{}.query.filter_by(mat_no=mat_no).first()'.format(_level))
-        courses_regd_str = eval('session.CourseReg{}Schema().dump(courses_regd)'.format(_level))
-        courses_registered[levs] = {'courses': [], 'table': 'CourseReg{}'.format(_level)}
+        courses_regd = eval('session.CourseReg{}'.format(_level)).query.filter_by(mat_no=mat_no).first()
+        courses_regd_str = eval('session.CourseReg{}Schema()'.format(_level)).dump(courses_regd)
+        courses_registered[_level] = {'courses': [], 'table': 'CourseReg{}'.format(_level)}
+        if not courses_regd_str:
+            continue
+
+        courses_regd_str.pop('mat_no')
+        carryovers = courses_regd_str.pop('carryovers')
+        courses_registered[_level]['course_reg_session'] = courses_regd_str.pop('session')
+        courses_registered[_level]['course_reg_level'] = courses_regd_str.pop('level')
+        for field in ['probation', 'fees_status', 'others', 'tcr']:
+            courses_registered[_level][field] = courses_regd_str.pop(field)
+
         for course in courses_regd_str:
-            if courses_regd_str[course] == '1':
-                courses_registered[levs]['courses'].append(course)
-        courses_registered[levs]['courses'] = sorted(courses_registered[levs]['courses'])
+            if courses_regd_str[course] in [1, '1']:
+                courses_registered[_level]['courses'].append(course)
 
-        if true_levels:
-            if courses_regd_str != {} and levs != 100 and len(courses_registered[levs]['courses']) == 0 and first_not_found:
-                first_not_found = False
-                del courses_registered[levs]
-                levs -= 100
-                courses_registered[levs] = {'courses': [], 'table': 'CourseReg{}'.format(_level)}
+        courses_registered[_level]['courses'] = sorted(courses_registered[_level]['courses'])
+        if carryovers and carryovers not in [0, '0', '']:
+            courses_registered[_level]['courses'].extend(sorted(carryovers.split(',')))
 
-        if 'carryovers' in courses_regd_str and courses_regd_str['carryovers']:
-            if courses_regd_str['carryovers'] != '0':
-                courses_registered[levs]['courses'].extend(sorted(courses_regd_str['carryovers'].split(',')))
-
-        for field in ['course_reg_level', 'probation', 'fees_status', 'others', 'tcr']:
-            courses_registered[levs][field] = courses_regd_str[field] if field in courses_regd_str else None
-        courses_registered[levs]['course_reg_level'] = courses_regd_str['level'] if 'level' in courses_regd_str else None
-        courses_registered[levs]['course_reg_session'] = courses_regd_str['session'] if 'session' in courses_regd_str else None
-        levs += 100
-    if level:
-        return courses_registered[level]
     return courses_registered
 
 

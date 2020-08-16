@@ -70,7 +70,7 @@ def check_registration_eligibility(mat_no, acad_session):
     # does this check for the supplied mat_no in the academic session: acad_session
     current_level = utils.get_level(mat_no)
     res_poll = utils.result_poll(mat_no)
-    course_reg = utils.get_registered_courses(mat_no, level=None, true_levels=False)
+    course_reg = utils.get_registered_courses(mat_no)
 
     course_reg_exists = course_reg_utils.get_course_reg_at_acad_session(acad_session, course_reg)
     if course_reg_exists:
@@ -147,33 +147,33 @@ def init_new_course_reg(mat_no, acad_session, table_to_populate, current_level, 
     return course_reg_frame, 200
 
 
-def get_existing_course_reg(mat_no, acad_session, old_course_reg=None, s_personal_info=None):
+def get_existing_course_reg(mat_no, acad_session, course_reg=None, s_personal_info=None):
     if not s_personal_info: s_personal_info = course_reg_utils.process_personal_info(mat_no)
-    if not old_course_reg:
-        course_reg = utils.get_registered_courses(mat_no, level=None, true_levels=False)
-        old_course_reg = course_reg_utils.get_course_reg_at_acad_session(acad_session, course_reg)
+    if not course_reg:
+        all_course_reg = utils.get_registered_courses(mat_no)
+        course_reg = course_reg_utils.get_course_reg_at_acad_session(acad_session, all_course_reg)
 
-    if old_course_reg == {}:
+    if course_reg == {}:
         return 'No course registration for entered session', 404
 
     fields = ('course_code', 'course_title', 'course_credit', 'course_semester')
-    courses_registered = course_reg_utils.enrich_course_list(old_course_reg['courses'], fields=fields)
+    courses_registered = course_reg_utils.enrich_course_list(course_reg['courses'], fields=fields)
     courses = [[], []]  # first_sem, second_sem
     [courses[course.pop(3) - 1].append(course) for course in courses_registered]
 
     course_reg_frame = {'mat_no': mat_no,
                         'personal_info': s_personal_info,
-                        'table_to_populate': old_course_reg['table'],
-                        'course_reg_session': old_course_reg['course_reg_session'],
-                        'course_reg_level': old_course_reg['course_reg_level'],
+                        'table_to_populate': course_reg['table'],
+                        'course_reg_session': course_reg['course_reg_session'],
+                        'course_reg_level': course_reg['course_reg_level'],
                         'max_credits': '',
                         'courses': {'first_sem': course_reg_utils.multisort(courses[0]),
                                     'second_sem': course_reg_utils.multisort(courses[1])},
                         'choices': {'first_sem': [],
                                     'second_sem': []},
-                        'probation_status': old_course_reg['probation'],
-                        'fees_status': old_course_reg['fees_status'],
-                        'others': old_course_reg['others']}
+                        'probation_status': course_reg['probation'],
+                        'fees_status': course_reg['fees_status'],
+                        'others': course_reg['others']}
     return course_reg_frame, 200
 
 

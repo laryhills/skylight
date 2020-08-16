@@ -183,7 +183,7 @@ def add_single_result_record(index, result_details, result_errors_file):
     course_credit = course_dets['course_credit']
     course_level = course_dets['course_level']
     is_unusual = False
-    full_course_reg = utils.get_registered_courses(mat_no, level=None, true_levels=False)
+    full_course_reg = utils.get_registered_courses(mat_no)
     course_registration = course_reg_utils.get_course_reg_at_acad_session(session_taken, full_course_reg)
 
     if course_registration == {}:
