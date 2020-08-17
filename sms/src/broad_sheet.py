@@ -31,8 +31,7 @@ def get(acad_session, level=None, raw_score=False):
     :param raw_score:
     :return:
     """
-    # todo: * refactor generate_pdf_wrapper, use ProcessPoolExecutor for the whole generation: html, pdf, et al
-    #       * handle spillovers (get passed 500l courses - asterisked - alongside the new ones),
+    # todo: * handle spillovers (get passed 500l courses - asterisked - alongside the new ones),
     #           don't worry about length of the carryover column
     #       * handle the last (2) column(s) for 500l broadsheet
     #       * experiment with wkhtmltopdf's zoom and try to predict the zoom value to use with the
