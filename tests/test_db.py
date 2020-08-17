@@ -5,7 +5,7 @@ from sms.src import course_details
 from sms.models.master import Master
 
 start = 2003
-stop = 2019
+stop = 2018
 load_session = utils.load_session
 
 def test_personal_info_to_symlink_table():
@@ -47,7 +47,7 @@ def test_course_reg_table():
             course_reg = course_reg_lvl.query.filter_by(mat_no=mat_no).first()
             if course_reg:
                 # Assert level for registration not higher than present level
-                assert personal_info.get(mat_no)["level"] >= course_reg.level
+                assert personal_info.get(mat_no)["level"] >= min(500, course_reg.level)
                 assert table_blanks != (1, 0) # assert no blank above this table
                 table_blanks = (table_blanks[1], 1)
                 expected_TCR = 0 # For verifying Total Credits Registered
@@ -105,7 +105,18 @@ def test_results_table():
 
 
 def test_credits_of_course():
-    pass #TODO
+    for year in range(start, stop+1):
+        session = load_session(year)
+        for mode in (1,2,3):
+            courses = session.Courses.query.filter_by(mode_of_entry=mode).first()
+            credits = session.Credits.query.filter_by(mode_of_entry=mode).first()
+            for lvl in range(mode * 100, 600, 100):
+                courses_sems = eval("courses.level{}".format(lvl)).split(" ")
+                courses_lvl = courses_sems[0].split(",") + courses_sems[1].split(",")
+                credits_lvl = eval("credits.level{}".format(lvl))
+                lvl_total = sum([course_details.get(course, 0)["course_credit"] for course in courses_lvl if course])
+                # verify corresponding cells in courses and credits table have same credits total
+                assert lvl_total == credits_lvl
 
 
 def test_grading_rule():
