@@ -41,63 +41,35 @@ def get(acad_session, level=None, raw_score=False):
     start = perf_counter()
     registered_students_for_session = get_filtered_student_by_level(acad_session, level)
     print('student list fetched in', perf_counter() - start)
-    htmls = []
 
-    color_map = {'F': 'red', 'ABS': 'blue'}
-    empty_value = ' '
     index_to_display = 0 if raw_score else 1
-
-    for level in sorted(registered_students_for_session.keys()):
-        t1 = perf_counter()
-        mat_nos = registered_students_for_session[level]
-        students, len_first_sem_carryovers, len_second_sem_carryovers = enrich_mat_no_list(mat_nos, acad_session, level)
-
-        level_courses = course_details.get_all(level)[0]
-        first_sem_courses = [(x['course_code'], x['course_credit'], x['options']) for x in level_courses if x['course_semester'] == 1]
-        second_sem_courses = [(x['course_code'], x['course_credit'], x['options']) for x in level_courses if x['course_semester'] == 2]
-        first_sem_courses = multisort(first_sem_courses)
-        second_sem_courses = multisort(second_sem_courses)
-
-        # just for now, later this condition should be "if option > 0 for course in level courses"
-        if level == 500:
-            options = [
-                [('MEE531', 7, 1), ('MEE541', 7, 1), ('MEE561', 7, 1), ('MEE581', 7, 1), ('MEE591', 7, 1)],
-                [('MEE532', 8, 2), ('MEE542', 8, 2), ('MEE562', 8, 2), ('MEE582', 8, 2), ('MEE592', 8, 2)]
-            ]
-        else:
-            options = [[], []]
-
-        len_first_sem_carryovers = max(len_first_sem_carryovers, 3)
-        len_second_sem_carryovers = max(len_second_sem_carryovers, 3)
-
-        html = render_template(
-            'broad_sheet.html', enumerate=enumerate,  sum=sum, int=int, url_for=url_for,
-            len_first_sem_carryovers=len_first_sem_carryovers, len_second_sem_carryovers=len_second_sem_carryovers,
-            first_sem_courses=first_sem_courses, second_sem_courses=second_sem_courses, options=options,
-            index_to_display=index_to_display, empty_value=empty_value, color_map=color_map,
-            students=students, session=acad_session, level=level, current_date=date.today().strftime("%A, %B %-d, %Y")
-        )
-        print(f'{str(level)}: html prepared in', perf_counter() - t1)
-        htmls.append((html, level))
-
     file_name = token_hex(8)
+
+    # render the broadsheet footer
     with open(os.path.join(cache_base_dir, file_name + '_footer.html'), 'w') as footer:
         footer.write(render_template('broad_sheet_footer.html', current_date=date.today().strftime("%A, %B %-d, %Y")))
 
-    zip_path = os.path.join(cache_base_dir, file_name + '.zip')
-    with ZipFile(zip_path, 'w', ZIP_DEFLATED) as zf:
-        generate_pdf_wrapper(generate_pdf, htmls, file_name, zf, concurrency=True)
+    # generate broadsheet
+    context = (acad_session, index_to_display, file_name)
+    multiprocessing_wrapper(generate_broadsheet_pdfs, registered_students_for_session.items(), context, True)
+    collect_pdfs_in_zip(file_name)
     print('===>> total generation done in', perf_counter() - start)
+
     resp = send_from_directory(cache_base_dir, file_name + '.zip', as_attachment=True)
     return resp
 
 
-def generate_pdf_wrapper(func, iterable, file_name, zf, concurrency=False):
-    if not concurrency:
-        [func(item, file_name, zf) for item in iterable]
-    else:
-        with ProcessPoolExecutor(max_workers=5) as executor:
-            [executor.submit(func, item, file_name) for item in iterable]
+def generate_broadsheet_pdfs(level, mat_nos, acad_session, index_to_display, file_name):
+    t1 = perf_counter()
+    html, level = render_html(mat_nos, acad_session, level, index_to_display)
+    print(f'{str(level)}: html rendered in', (t2 := perf_counter()) - t1)
+    generate_pdf(html, level, file_name)
+    print(f'{str(level)}: pdf generated in', perf_counter() - t2)
+
+
+def collect_pdfs_in_zip(file_name):
+    zip_path = os.path.join(cache_base_dir, file_name + '.zip')
+    with ZipFile(zip_path, 'w', ZIP_DEFLATED) as zf:
         for level in range(100, 600, 100):
             try:
                 pdf_name = file_name + '_' + str(level) + '.pdf'
@@ -107,12 +79,50 @@ def generate_pdf_wrapper(func, iterable, file_name, zf, concurrency=False):
                 pass
 
 
-# ==============================================================================================
-#                                  Utility functions
-# ==============================================================================================
+def multiprocessing_wrapper(func, iterable, context, concurrency=False):
+    if not concurrency:
+        [func(*item, *context) for item in iterable]
+    else:
+        with ProcessPoolExecutor(max_workers=5) as executor:
+            [executor.submit(func, *item, *context) for item in iterable]
 
-def generate_pdf(item, file_name, zf=None):
-    html, level = item
+
+def render_html(mat_nos, acad_session, level, index_to_display):
+    color_map = {'F': 'red', 'ABS': 'blue'}
+    empty_value = ' '
+    students, len_first_sem_carryovers, len_second_sem_carryovers = enrich_mat_no_list(mat_nos, acad_session, level)
+
+    level_courses = course_details.get_all(level)[0]
+    first_sem_courses = [(x['course_code'], x['course_credit'], x['options']) for x in level_courses if
+                         x['course_semester'] == 1]
+    second_sem_courses = [(x['course_code'], x['course_credit'], x['options']) for x in level_courses if
+                          x['course_semester'] == 2]
+    first_sem_courses = multisort(first_sem_courses)
+    second_sem_courses = multisort(second_sem_courses)
+
+    # just for now, later this condition should be "if option > 0 for course in level courses"
+    if level == 500:
+        options = [
+            [('MEE531', 7, 1), ('MEE541', 7, 1), ('MEE561', 7, 1), ('MEE581', 7, 1), ('MEE591', 7, 1)],
+            [('MEE532', 8, 2), ('MEE542', 8, 2), ('MEE562', 8, 2), ('MEE582', 8, 2), ('MEE592', 8, 2)]
+        ]
+    else:
+        options = [[], []]
+
+    len_first_sem_carryovers = max(len_first_sem_carryovers, 3)
+    len_second_sem_carryovers = max(len_second_sem_carryovers, 3)
+
+    html = render_template(
+        'broad_sheet.html', enumerate=enumerate, sum=sum, int=int, url_for=url_for,
+        len_first_sem_carryovers=len_first_sem_carryovers, len_second_sem_carryovers=len_second_sem_carryovers,
+        first_sem_courses=first_sem_courses, second_sem_courses=second_sem_courses, options=options,
+        index_to_display=index_to_display, empty_value=empty_value, color_map=color_map,
+        students=students, session=acad_session, level=level,
+    )
+    return html, level
+
+
+def generate_pdf(html, level, file_name):
     pdf_name = file_name + '_' + str(level) + '.pdf'
     options = {
         'page-size': 'A3',
@@ -135,15 +145,12 @@ def generate_pdf(item, file_name, zf=None):
         'dpi': 100,
         'log-level': 'warn',  # error, warn, info, none
     }
-    t1 = perf_counter()
-    pdf = pdfkit.from_string(html, False, options=options)
-    print(f'{level} pdf generated in', perf_counter() - t1)
-    if zf:
-        zf.writestr(pdf_name, pdf)
-    else:
-        with open(os.path.join(cache_base_dir, pdf_name), 'wb') as pdf_file:
-            pdf_file.write(pdf)
+    pdfkit.from_string(html, os.path.join(cache_base_dir, pdf_name), options=options)
 
+
+# ==============================================================================================
+#                                  Utility functions
+# ==============================================================================================
 
 def get_filtered_student_by_level(acad_session, level=None):
     levels = [level] if level else list(range(100, 600, 100))
