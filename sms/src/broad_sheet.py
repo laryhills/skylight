@@ -80,7 +80,7 @@ def multiprocessing_wrapper(func, iterable, context, concurrency=False):
     if not concurrency:
         [func(*item, *context) for item in iterable]
     else:
-        with ProcessPoolExecutor(max_workers=5) as executor:
+        with ProcessPoolExecutor(max_workers=min(len(iterable), 5)) as executor:
             [executor.submit(func, *item, *context) for item in iterable]
 
 
