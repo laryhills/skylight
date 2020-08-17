@@ -1,4 +1,5 @@
 from collections import defaultdict
+from concurrent.futures.process import ProcessPoolExecutor
 from json import loads, dumps
 from sms.src import personal_info, course_details, result_statement, users
 from sms import config
@@ -417,4 +418,12 @@ def get_num_of_prize_winners():
     """
     # TODO: Query this from the master db
     return 1
+
+
+def multiprocessing_wrapper(func, iterable, context, concurrency=False):
+    if not concurrency:
+        [func(item, *context) for item in iterable]
+    else:
+        with ProcessPoolExecutor(max_workers=min(len(iterable), 5)) as executor:
+            [executor.submit(func, item, *context) for item in iterable]
 
