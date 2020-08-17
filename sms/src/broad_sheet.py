@@ -1,7 +1,6 @@
 import os.path
-from datetime import date
-
 import pdfkit
+from datetime import date
 from time import perf_counter
 from secrets import token_hex
 from colorama import init, Fore, Style
@@ -61,9 +60,8 @@ def get(acad_session, level=None, raw_score=False):
 def generate_broadsheet_pdfs(level, mat_nos, acad_session, index_to_display, file_name):
     t1 = perf_counter()
     html, level = render_html(mat_nos, acad_session, level, index_to_display)
-    print(f'{str(level)}: html rendered in', (t2 := perf_counter()) - t1)
     generate_pdf(html, level, file_name)
-    print(f'{str(level)}: pdf generated in', perf_counter() - t2)
+    print(f'{str(level)}: pdf generated in', perf_counter() - t1)
 
 
 def collect_pdfs_in_zip(file_name):
@@ -234,8 +232,8 @@ def sum_semester_credits(result_details, grade_index, credit_index):
                 failed_courses.append(course)
             tcr[index] += courses[course][credit_index]
 
-    if sum(tcp) != result_details['tcp'] or sum(tcr) != result_details['tcr']:
-        print('{}AssertionError: {} ==> tcp: {:>2} != {:>2}; tcr: {:>2} != {:>2}'.format(Fore.RED, Style.RESET_ALL
-              + result_details['mat_no'], sum(tcp), result_details['tcp'], sum(tcr), result_details['tcr']))
+    # if sum(tcp) != result_details['tcp'] or sum(tcr) != result_details['tcr']:
+    #     print('{}AssertionError: {} ==> tcp: {:>2} != {:>2}; tcr: {:>2} != {:>2}'.format(Fore.RED, Style.RESET_ALL
+    #           + result_details['mat_no'], sum(tcp), result_details['tcp'], sum(tcr), result_details['tcr']))
 
     return tcp, tcr, tcf, failed_courses
