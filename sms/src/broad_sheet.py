@@ -5,12 +5,11 @@ from time import perf_counter
 from secrets import token_hex
 from colorama import init, Fore, Style
 from zipfile import ZipFile, ZIP_DEFLATED
-from concurrent.futures import ProcessPoolExecutor
 from flask import render_template, send_from_directory, url_for
 
 from sms.src import course_details
 from sms.src.results import get_results_for_acad_session, multisort
-from sms.src.utils import get_current_session, get_registered_courses, get_level
+from sms.src.utils import get_current_session, get_registered_courses, get_level, multiprocessing_wrapper
 from sms.src.course_reg_utils import process_personal_info, get_course_reg_at_acad_session
 from sms.src.script import get_students_by_level
 from sms.config import cache_base_dir
@@ -57,7 +56,8 @@ def get(acad_session, level=None, raw_score=False):
     return resp
 
 
-def generate_broadsheet_pdfs(level, mat_nos, acad_session, index_to_display, file_name):
+def generate_broadsheet_pdfs(item, acad_session, index_to_display, file_name):
+    level, mat_nos = item
     t1 = perf_counter()
     html, level = render_html(mat_nos, acad_session, level, index_to_display)
     generate_pdf(html, level, file_name)
@@ -74,14 +74,6 @@ def collect_pdfs_in_zip(file_name):
                 zf.writestr(pdf_name, pdf)
             except Exception as e:
                 pass
-
-
-def multiprocessing_wrapper(func, iterable, context, concurrency=False):
-    if not concurrency:
-        [func(*item, *context) for item in iterable]
-    else:
-        with ProcessPoolExecutor(max_workers=min(len(iterable), 5)) as executor:
-            [executor.submit(func, *item, *context) for item in iterable]
 
 
 def render_html(mat_nos, acad_session, level, index_to_display):
