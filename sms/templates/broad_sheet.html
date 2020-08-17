@@ -207,13 +207,13 @@ style='font-size:4.5pt'></span></p>
    lang=EN-US style='font-size:16.0pt;font-family:"Calibri",sans-serif'>{{ session }}/{{ session + 1 }} SESSION</span></b></p>
    </td>
 
-   {# reduce the semester courses length by one if optional course present there #}
+   {# reduce the semester courses length by the length of optional course present in semester course list #}
     {% set rem_first_sem, rem_second_sem = 0, 0 %}
     {% if options[0] %}
-        {% set rem_first_sem = 1 %}
+        {% set rem_first_sem = (first_sem_options | length) %}
     {% endif %}
     {% if options[1] %}
-        {% set rem_second_sem = 1 %}
+        {% set rem_second_sem = (second_sem_options | length) %}
     {% endif %}
    <td width="33%"
    colspan={{ len_first_sem_carryovers + ((first_sem_courses | length) - rem_first_sem)  + (options[0] | length) + 3 }}
