@@ -13,12 +13,14 @@ from sms.src.utils import get_current_session, get_registered_courses, get_level
 from sms.src.course_reg_utils import process_personal_info, get_course_reg_at_acad_session
 from sms.src.script import get_students_by_level
 from sms.config import cache_base_dir
+from sms.src.users import access_decorator
 
 base_dir = os.path.dirname(__file__)
 current_session = get_current_session()
 init()  # initialize colorama
 
 
+@access_decorator
 def get(acad_session, level=None, raw_score=False):
     """
     This function gets the broadsheets for the academic session 'acad_session' for level 'level' if given

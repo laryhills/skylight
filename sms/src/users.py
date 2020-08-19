@@ -302,6 +302,10 @@ fn_props = {
     "accounts.delete": {"perms": {"superuser", "write"},
                         "logs": lambda user, params: "{} deleted an account with username {}".format(user, params.get("username"))
                      },
+    "broad_sheet.get": {"perms": {"superuser", "read"},
+                        "logs": lambda user, params: "{} requested broad-sheets for the {} session".format(
+                            user, params.get('acad_session'))
+                        },
     "senate_version.get": {"perms": {"superuser", "read"},
                            "logs": lambda user, params: "{} requested for the senate version for the {} session".format(user, params.get('acad_session'))
                      },
