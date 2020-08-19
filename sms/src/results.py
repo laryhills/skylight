@@ -221,8 +221,8 @@ def add_single_result_record(index, result_details, result_errors_file):
         params = mat_no, session_taken, courses_registered, result_xxx_schema, level_written
         result_record = prepare_new_results_table(*params)
 
-    # Check if a previous entry for the course exists the session and log changes
-    # also modifies the value of "previous_grade"
+    # Check if a previous entry for the course exists in the current session and updates the value
+    # of "previous_grade" while logging the changes to be made
     previous_grade = get_previous_grade_and_log_changes(result_details, result_record, is_unusual)
 
     # add score to result object
