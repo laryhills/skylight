@@ -21,13 +21,14 @@ init()  # initialize colorama
 
 
 @access_decorator
-def get(acad_session, level=None, raw_score=False):
+def get(acad_session, level=None, first_sem_only=False, raw_score=False):
     """
     This function gets the broadsheets for the academic session 'acad_session' for level 'level' if given
     else it gets for all levels during that session
 
     :param acad_session:
     :param level:
+    :param first_sem_only:
     :param raw_score:
     :return:
     """
@@ -49,7 +50,7 @@ def get(acad_session, level=None, raw_score=False):
         footer.write(render_template('broad_sheet_footer.html', current_date=date.today().strftime("%A, %B %-d, %Y")))
 
     # generate broadsheet
-    context = (acad_session, index_to_display, file_name)
+    context = (acad_session, index_to_display, file_name, first_sem_only)
     use_workers = True if len(registered_students_for_session) > 1 else False
     multiprocessing_wrapper(generate_broadsheet_pdfs, registered_students_for_session.items(), context, use_workers)
     collect_pdfs_in_zip(file_name)
@@ -59,10 +60,10 @@ def get(acad_session, level=None, raw_score=False):
     return resp
 
 
-def generate_broadsheet_pdfs(item, acad_session, index_to_display, file_name):
+def generate_broadsheet_pdfs(item, acad_session, index_to_display, file_name, first_sem_only=False):
     level, mat_nos = item
     t1 = perf_counter()
-    html, level = render_html(mat_nos, acad_session, level, index_to_display)
+    html, level = render_html(mat_nos, acad_session, level, index_to_display, first_sem_only)
     generate_pdf(html, level, file_name)
     print(f'{str(level)}: pdf generated in', perf_counter() - t1)
 
@@ -79,7 +80,7 @@ def collect_pdfs_in_zip(file_name):
                 pass
 
 
-def render_html(mat_nos, acad_session, level, index_to_display):
+def render_html(mat_nos, acad_session, level, index_to_display, first_sem_only=False):
     color_map = {'F': 'red', 'ABS': 'blue'}
     empty_value = ' '
     students, len_first_sem_carryovers, len_second_sem_carryovers = enrich_mat_no_list(mat_nos, acad_session, level)
@@ -116,7 +117,7 @@ def render_html(mat_nos, acad_session, level, index_to_display):
         first_sem_courses=first_sem_courses, second_sem_courses=second_sem_courses, options=options,
         first_sem_options=first_sem_options, second_sem_options=second_sem_options,
         index_to_display=index_to_display, empty_value=empty_value, color_map=color_map,
-        students=students, session=acad_session, level=level,
+        students=students, session=acad_session, level=level, first_sem_only=first_sem_only,
     )
     return html, level
 

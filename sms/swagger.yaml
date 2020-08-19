@@ -296,6 +296,10 @@ paths:
           type: integer
           required: false
         - in: query
+          name: first_sem_only
+          type: boolean
+          required: false
+        - in: query
           name: raw_score
           type: boolean
           required: false
