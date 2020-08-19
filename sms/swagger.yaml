@@ -284,6 +284,8 @@ paths:
     get:
       tags: [Sheets]
       operationId: sms.src.broad_sheet.get
+      summary: Broad-Sheet generation
+      description: Generates broad-sheets for the session as pdf documents
       produces:
         - application/octet-stream
       parameters:
