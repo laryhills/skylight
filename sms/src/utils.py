@@ -421,6 +421,17 @@ def get_num_of_prize_winners():
 
 
 def multiprocessing_wrapper(func, iterable, context, concurrency=False):
+    """
+    use multiprocessing to call a function on members of an iterable
+
+    (number of workers limited to 5)
+
+    :param func: the function to call
+    :param iterable: items you want to call func on
+    :param context: params that are passed to all instances
+    :param concurrency: whether to use worker processes or not
+    :return:
+    """
     if not concurrency:
         [func(item, *context) for item in iterable]
     else:
