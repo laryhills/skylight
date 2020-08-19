@@ -1,16 +1,12 @@
-
-6) Fix child endpoint logging
-7) HOD's access permission
-
-props in MasterDB -> grading rule, current session
-Clear all logs (superuser)
-Backup and Restore DBs
-Create session expose, change session updates personal info level (big red button)
-Log user login
-Create logout endpoint
-Search student by surname
-An asterisk next to level GPAs in reports, sheets when the courses for that level are not all passed
-Periodically clear cache dir
-End user session after a period of inactivity (or heck activity)
-Make open_result_edit possible to activate for a single user
-Sheets report generation
+1)  props in MasterDB -> grading rule, current session
+2)  Clear all logs (superuser)
+3)  Backup and Restore DBs
+4)  Create session expose, change session updates personal info level (big red button)
+5)  Log user login
+6)  Create logout endpoint
+7)  Search student by surname
+8)  An asterisk next to level GPAs in reports, sheets when the courses for that level are not all passed
+9)  Periodically clear cache dir
+10) End user session after a period of inactivity (or heck activity)
+11) Make open_result_edit possible to activate for a single user
+12) Sheets report generation
