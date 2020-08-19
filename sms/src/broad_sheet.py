@@ -50,7 +50,8 @@ def get(acad_session, level=None, raw_score=False):
 
     # generate broadsheet
     context = (acad_session, index_to_display, file_name)
-    multiprocessing_wrapper(generate_broadsheet_pdfs, registered_students_for_session.items(), context, True)
+    use_workers = True if len(registered_students_for_session) > 1 else False
+    multiprocessing_wrapper(generate_broadsheet_pdfs, registered_students_for_session.items(), context, use_workers)
     collect_pdfs_in_zip(file_name)
     print('===>> total generation done in', perf_counter() - start)
 
