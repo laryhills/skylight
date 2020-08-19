@@ -54,6 +54,7 @@ def detokenize(token, parse=True, s=serializer):
 
 def access_decorator(func):
     qual_name = func.__module__.split('.')[-1] + "." + func.__name__
+
     def inner1(*args, **kwargs):
         try:
             # IN PROD replace with `.get("token") and rm try and exc block`
@@ -98,6 +99,7 @@ def access_decorator(func):
 
 def accounts_decorator(func):
     qual_name = func.__module__.split('.')[-1] + "." + func.__name__
+
     def inner1(*args, **kwargs):
         try:
             # IN PROD replace with `.get("token") and rm try and exc block`
@@ -143,7 +145,7 @@ def log(user, qual_name, func, args, kwargs):
     db.session.commit()
 
 
-## UTILS functions
+# UTILS functions
 
 def load_session(session):
     # Valid inputs, 2015, "2015", "2015-2016", "2015_2016", "2015-2016.db", "2015_2016.db"
@@ -212,8 +214,7 @@ def get_level_new(mat_no):
     return current_level
 
   
-## USER-specific functions
-
+# USER-specific functions
 def dict_render(dictionary, indent = 0):
     rendered_dict = ""
     for key in dictionary:
@@ -235,12 +236,14 @@ def get_kwargs(func, args, kwargs):
             my_kwargs[kw] = args[idx]
     return my_kwargs
 
+
 # PERFORM LOGIN, REMOVE IN PROD
 my_token = {'token': tokenize("ucheigbeka:testing")}
 print("Using token ", my_token['token'])
 login(my_token)
 
-## Function mapping to perms and logs
+
+# Function mapping to perms and logs
 fn_props = {
     "personal_info.get_exp": {"perms": {"levels", "read"},
                           "logs": lambda user, params: "{} requested personal details of {}".format(user, params.get("mat_no"))
@@ -307,9 +310,9 @@ fn_props = {
                             user, params.get('acad_session'))
                         },
     "senate_version.get": {"perms": {"superuser", "read"},
-                           "logs": lambda user, params: "{} requested for the senate version for the {} session".format(user, params.get('acad_session'))
+                           "logs": lambda user, params: "{} requested senate version for the {} session".format(user, params.get('acad_session'))
                      },
     "gpa_cards.get": {"perms": {"levels", "read"},
-                      "logs": lambda user, params: "{} requested for the {} level gpa card".format(user, params.get('level'))
+                      "logs": lambda user, params: "{} requested {} level gpa card".format(user, params.get('level'))
                      },
 }
