@@ -28,7 +28,7 @@ done
 
 # run the setup scripts
 cd "$SKYLIGHT_ROOT"
-pip3 install -r requirements.txt
+pip3 install numpy==1.17.3 pandas==0.25.2
 echo
 
 for ex in \
