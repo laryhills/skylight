@@ -179,14 +179,10 @@ def enrich_mat_no_list(mat_nos, acad_session, level):
 
     for mat_no in mat_nos:
 
-        course_reg = get_course_reg_at_acad_session(acad_session, mat_no=mat_no)
-        if not course_reg:
-            # print(mat_no, 'has no course_reg')
-            continue
-
         result_details = get_results_for_acad_session(mat_no, acad_session)
+
         if result_details[1] != 200:
-            print(Fore.RED + mat_no, 'has no results' + Style.RESET_ALL)
+            # print(Fore.RED + mat_no, 'has no results' + Style.RESET_ALL)
             continue
         elif result_details[0]['level_written'] > 500 and level == 500:
             # todo: fetch the passed 500 courses here and append ' *' to the grade and score
@@ -196,15 +192,22 @@ def enrich_mat_no_list(mat_nos, acad_session, level):
             # print(mat_no, "result level", result_details[0]['level_written'], '!=', level)
             continue
 
-        personal_info = process_personal_info(mat_no)
         result_details = result_details[0]
-        result_details['tcr'] = course_reg['tcr']  # this line must come before the sum_semester_credits() call
-        sem_tcp, sem_tcr, sem_tcf, failed_courses = sum_semester_credits(result_details, grade_index=1, credit_index=2)
 
+        # remove students with no course_reg (only has results in 'unusual_results')
+        for key in ['regular_courses', 'carryovers']:
+            if result_details[key]['first_sem'] or result_details[key]['second_sem']: break
+        else:
+            print(Fore.RED + mat_no, 'has no course_reg' + Style.RESET_ALL)
+            continue
+
+        sem_tcp, sem_tcr, sem_tcf, failed_courses = sum_semester_credits(result_details, grade_index=1, credit_index=2)
         result_details['semester_tcp'] = sem_tcp
         result_details['semester_tcr'] = sem_tcr
         result_details['semester_tcf'] = sem_tcf
         result_details['failed_courses'] = failed_courses
+
+        personal_info = process_personal_info(mat_no)
         result_details['othernames'] = personal_info['othernames']
         result_details['surname'] = personal_info['surname']
 
@@ -234,8 +237,10 @@ def sum_semester_credits(result_details, grade_index, credit_index):
                 failed_courses.append(course)
             tcr[index] += courses[course][credit_index]
 
-    # if sum(tcp) != result_details['tcp'] or sum(tcr) != result_details['tcr']:
+    # test conformity btw results and tcr, tcp columns
+    # course_reg = get_course_reg_at_acad_session(result_details['session_written'], mat_no=result_details['mat_no'])
+    # if course_reg and (sum(tcp) != result_details['tcp'] or sum(tcr) != course_reg['tcr']):
     #     print('{}AssertionError: {} ==> tcp: {:>2} != {:>2}; tcr: {:>2} != {:>2}'.format(Fore.RED, Style.RESET_ALL
-    #           + result_details['mat_no'], sum(tcp), result_details['tcp'], sum(tcr), result_details['tcr']))
+    #           + result_details['mat_no'], sum(tcp), result_details['tcp'], sum(tcr), course_reg['tcr']))
 
     return tcp, tcr, tcf, failed_courses
