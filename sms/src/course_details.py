@@ -20,7 +20,7 @@ def get_course_details(course_code=None, level=None, options=False, inactive=Fal
         output = get_all(level, use_curr_session=use_curr_session)
     if output:
         return output, 200
-    return output, 404
+    return None, 404
 
 
 def get_all(level=None, options=False, inactive=False):
@@ -34,7 +34,9 @@ def get_all(level=None, options=False, inactive=False):
     else:
         course_list = courses.filter_by(options=0).all()
         for option in Options.query.all():
-            course_list += [courses.filter_by(options=option.options_group).first()]
+            option_member = courses.filter_by(options=option.options_group).first()
+            if option_member:
+                course_list += [option_member]
     return CoursesSchema(many=True).dump(course_list)
 
 
