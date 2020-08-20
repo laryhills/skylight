@@ -91,10 +91,12 @@ def render_html(mat_nos, acad_session, level, index_to_display, first_sem_only=F
     second_sem_courses = [(x['course_code'], x['course_credit'], x['options']) for x in level_courses if
                           x['course_semester'] == 2]
 
-    first_sem_options = [(x['course_code'], x['course_credit'], x['options']) for x in level_courses if
-                         x['course_semester'] == 1 and x['options'] == 1]
-    second_sem_options = [(x['course_code'], x['course_credit'], x['options']) for x in level_courses if
-                          x['course_semester'] == 2 and x['options'] == 2]
+    # get optional courses
+    level_courses = course_details.get_all(level, False)[0]
+    first_sem_options = multisort([(x['course_code'], x['course_credit'], x['options']) for x in level_courses if
+                                   x['course_semester'] == 1 and x['options'] == 1])
+    second_sem_options = multisort([(x['course_code'], x['course_credit'], x['options']) for x in level_courses if
+                                    x['course_semester'] == 2 and x['options'] == 2])
 
     first_sem_courses = multisort(first_sem_courses)
     second_sem_courses = multisort(second_sem_courses)
@@ -114,7 +116,7 @@ def render_html(mat_nos, acad_session, level, index_to_display, first_sem_only=F
     html = render_template(
         'broad_sheet.html', enumerate=enumerate, sum=sum, int=int, url_for=url_for,
         len_first_sem_carryovers=len_first_sem_carryovers, len_second_sem_carryovers=len_second_sem_carryovers,
-        first_sem_courses=first_sem_courses, second_sem_courses=second_sem_courses, options=options,
+        first_sem_courses=first_sem_courses, second_sem_courses=second_sem_courses,
         first_sem_options=first_sem_options, second_sem_options=second_sem_options,
         index_to_display=index_to_display, empty_value=empty_value, color_map=color_map,
         students=students, session=acad_session, level=level, first_sem_only=first_sem_only,

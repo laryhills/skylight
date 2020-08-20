@@ -208,15 +208,10 @@ style='font-size:4.5pt'></span></p>
    </td>
 
    {# reduce the semester courses length by the length of optional course present in semester course list #}
-    {% set rem_first_sem, rem_second_sem = 0, 0 %}
-    {% if options[0] %}
-        {% set rem_first_sem = (first_sem_options | length) %}
-    {% endif %}
-    {% if options[1] %}
-        {% set rem_second_sem = (second_sem_options | length) %}
-    {% endif %}
+    {% set rem_first_sem = 1 if first_sem_options else 0  %}
+    {% set rem_second_sem = 1 if second_sem_options else 0 %}
    <td width="33%"
-   colspan={{ len_first_sem_carryovers + ((first_sem_courses | length) - rem_first_sem)  + (options[0] | length) + 3 }}
+   colspan={{ len_first_sem_carryovers + ((first_sem_courses | length) - rem_first_sem)  + (first_sem_options | length) + 3 }}
    style='width:33.2%;border:solid windowtext 1.0pt;border-left:none;padding:0 0 0 0;height:24.05pt'>
    <p class=MsoNormal align=center style='margin-right:152.15pt;text-align:
    center;line-height:12.0pt'><b><span lang=EN-US style='font-size:16.0pt;
@@ -226,7 +221,7 @@ style='font-size:4.5pt'></span></p>
 
   {% if not first_sem_only %}
    <td width="31%"
-   colspan={{ len_second_sem_carryovers + ((second_sem_courses | length) - rem_second_sem) + (options[1] | length) + 3 }}
+   colspan={{ len_second_sem_carryovers + ((second_sem_courses | length) - rem_second_sem) + (second_sem_options | length) + 3 }}
    style='width:31.74%;border:solid windowtext 1.0pt;border-left:none;padding:0 0 0 0;height:24.05pt'>
    <p class=MsoNormal align=center style='margin-right:154.25pt;text-align:center;line-height:12.0pt'><b>
     <span lang=EN-US style='font-size:16.0pt;font-family:"Calibri",sans-serif'>
@@ -252,7 +247,7 @@ style='font-size:4.5pt'></span></p>
    <p class=MsoNormal align=center style='text-align:center'><b>
      <span lang=EN-US style='font-size:14.0pt;font-family:"Calibri",sans-serif'>CARRYOVER COURSES</span></b></p>
    </td>
-   <td width="12%" colspan={{ ((first_sem_courses | length) - rem_first_sem) + (options[0] | length) }} style='width:12.7%;border-top:none;border-left:
+   <td width="12%" colspan={{ ((first_sem_courses | length) - rem_first_sem) + (first_sem_options | length) }} style='width:12.7%;border-top:none;border-left:
    none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
    padding:0 0 0 0;height:23.6pt'>
    <p class=MsoNormal align=center style='text-align:center;line-height:13.0pt'><b>
@@ -290,7 +285,7 @@ style='font-size:4.5pt'></span></p>
    <p class=MsoNormal align=center style='text-align:center'><b><span
    lang=EN-US style='font-size:14.0pt;font-family:"Calibri",sans-serif'>CARRYOVER COURSES</span></b></p>
    </td>
-   <td width="13%" colspan={{ ((second_sem_courses | length) - rem_second_sem) + (options[1] | length) }}
+   <td width="13%" colspan={{ ((second_sem_courses | length) - rem_second_sem) + (second_sem_options | length) }}
    style='width:13.64%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid
    windowtext 1.0pt;padding:0 0 0 0;height:23.6pt'>
    <p class=MsoNormal align=center style='text-align:center;line-height:13.0pt'><b><span
@@ -410,7 +405,7 @@ style='font-size:4.5pt'></span></p>
            </td>
        {% elif int(option) == 1 and not first_sem_option_hit%}
            {% set first_sem_option_hit = True %}
-           <td rowspan="1" colspan="{{ options[0] | length }}" width="88" style='width:6.5%;border-top:none;
+           <td rowspan="1" colspan="{{ first_sem_options | length }}" width="88" style='width:6.5%;border-top:none;
               border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0 0 0 0;
               height:23.6pt'>
               <p class=MsoNormal align=center style='text-align:center;line-height:13.0pt'><b>
@@ -433,7 +428,7 @@ style='font-size:4.5pt'></span></p>
            </td>
        {% elif int(option) == 2 and not second_sem_option_hit%}
            {% set second_sem_option_hit = True %}
-           <td rowspan="1" colspan="{{ options[1] | length }}" width="88" style='width:6.5%;border-top:none;
+           <td rowspan="1" colspan="{{ second_sem_options | length }}" width="88" style='width:6.5%;border-top:none;
               border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0 0 0 0;
               height:23.6pt'>
               <p class=MsoNormal align=center style='text-align:center;line-height:13.0pt'><b>
@@ -445,8 +440,8 @@ style='font-size:4.5pt'></span></p>
   </tr>
 
   <tr>
-  {% if options[0] %}
-      {% for course, credit, option in options[0] %}
+  {% if first_sem_options %}
+      {% for course, credit, option in first_sem_options %}
           <td width="1%" style='width:1.32%;border-top:none;border-left:none;
                border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
            padding:0 0 0 0;height:89.55pt'>
@@ -458,8 +453,8 @@ style='font-size:4.5pt'></span></p>
       {% endfor %}
   {% endif %}
 
-  {% if options[1] and not first_sem_only %}
-      {% for course, credit, option in options[1] %}
+  {% if second_sem_options and not first_sem_only %}
+      {% for course, credit, option in second_sem_options %}
           <td width="1%" style='width:1.32%;border-top:none;border-left:none;
                border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
            padding:0 0 0 0;height:89.55pt'>
@@ -511,7 +506,7 @@ style='font-size:4.5pt'></span></p>
            </td>
        {% elif option == 1 and not first_sem_option_hit %}
            {% set first_sem_option_hit = True %}
-           {% for course, credit, option in options[0] %}
+           {% for course, credit, option in first_sem_options %}
                <td width="1%" style='width:1.32%;border-top:none;border-left:none;
            border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
            padding:0 0 0 0;height:27.2pt'>
@@ -538,7 +533,7 @@ style='font-size:4.5pt'></span></p>
            </td>
        {% elif option == 2 and not second_sem_option_hit %}
            {% set second_sem_option_hit = True %}
-           {% for course, credit, option in options[1] %}
+           {% for course, credit, option in second_sem_options %}
                <td width="1%" style='width:1.32%;border-top:none;border-left:none;
            border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
            padding:0 0 0 0;height:27.2pt'>
@@ -636,7 +631,7 @@ style='font-size:4.5pt'></span></p>
 
      {% elif option == 1 and not first_sem_option_hit %}
         {% set first_sem_option_hit = True %}
-        {% for course, credit, option in options[0] %}
+        {% for course, credit, option in first_sem_options %}
 
            {% if course in students[student]['regular_courses']['first_sem'] %}
                {% set course_obj = students[student]['regular_courses']['first_sem'][course] %}
@@ -735,7 +730,7 @@ style='font-size:4.5pt'></span></p>
 
      {% elif option == 2 and not second_sem_option_hit %}
         {% set second_sem_option_hit = True %}
-        {% for course, credit, option in options[1] %}
+        {% for course, credit, option in second_sem_options  %}
 
            {% if course in students[student]['regular_courses']['second_sem'] %}
                {% set course_obj = students[student]['regular_courses']['second_sem'][course] %}
@@ -797,10 +792,14 @@ style='font-size:4.5pt'></span></p>
   </td>
   {% endif %}
 
+  {% set failed_courses = students[student]['sem_failed_courses'][0] %}
+  {% if not first_sem_only %}
+  {% set failed_courses = students[student]['sem_failed_courses'][0] + students[student]['sem_failed_courses'][1] %}
+  {% endif %}
   <td width="11%" style='width:11.18%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
       border-right:solid windowtext 1.0pt;padding:0 0 0 0;height:43.2pt'>
       <p class=MsoNormal><span lang=EN-US style='font-size:8.0pt;font-family:"Calibri",sans-serif;color:black'>
-          {{ students[student]['failed_courses'] | join(" ") }}
+          {{ failed_courses | join(" ") }}
       </span></p>
   </td>
 
