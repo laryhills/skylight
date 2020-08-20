@@ -318,6 +318,54 @@ def get_gpa_credits(mat_no, session=None):
     return gpas, credits
 
 
+def get_cgpa(mat_no):
+    """
+    fetch the current cgpa for student with mat_no from the student's entry session database
+
+    NOTE: THIS DOES NOT DO ANY CALCULATIONS
+
+    :param mat_no:
+    :return:
+    """
+    db_name = get_DB(mat_no)
+    session = load_session(db_name)
+    student = session.GPA_Credits.query.filter_by(mat_no=mat_no).first()
+    return student.cgpa
+
+
+def get_session_degree_class(acad_session):
+    """
+    Get the degree-class dictionary for an academic session with lower limits as keys
+
+    :param acad_session:
+    :return:
+    """
+    session = load_session(acad_session)
+    degree_class = session.DegreeClass.query.all()
+    degree_class = {float(deg.limits.split(',')[0]): deg.cls for deg in degree_class}
+    return degree_class
+
+
+def compute_degree_class(mat_no, cgpa=None, acad_session=None):
+    """
+    get the degree-class text for graduated students
+
+    :param mat_no:
+    :param cgpa:
+    :param acad_session:
+    :return:
+    """
+    # todo extend this for non-graduated students
+    if not cgpa: cgpa = get_cgpa(mat_no)
+    if not acad_session: acad_session = int(get_DB(mat_no)[:4])
+
+    degree_class = get_session_degree_class(acad_session)
+    for lower_limit in sorted(degree_class.keys(), reverse=True):
+        if cgpa >= lower_limit:
+            return degree_class[lower_limit]
+    return ''
+
+
 def get_level_weightings(mod):
     if mod == 1: return [.1, .15, .2, .25, .3]
     elif mod == 2: return [0, .1, .2, .3, .4]
