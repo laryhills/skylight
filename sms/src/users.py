@@ -284,6 +284,9 @@ fn_props = {
     "results.put": {"perms": {"superuser", "write"},
                     "logs": lambda user, params: "{} added {} result entries:-\n{}".format(user, len(params.get("list_of_results")), dict_render(params))
                     },
+    "results.get_result_details": {"perms": {"levels", "read"},
+                                   "logs": lambda user, params: "{} queried result details for {}".format(user, params.get("mat_no"))
+                    },
     "logs.get": {"perms": {"read"},
                  "logs": lambda user, params: "{} requested logs".format(user)
                  },
@@ -308,4 +311,7 @@ fn_props = {
     "gpa_cards.get": {"perms": {"levels", "read"},
                       "logs": lambda user, params: "{} requested for the {} level gpa card".format(user, params.get('level'))
                      },
+    "grading_rules.get": {"perms": {"levels", "read"},
+                          "logs": lambda user, params: "{} requested for the grading rules for the {} academic session".format(user, params.get('acad_session'))
+                         },
 }
