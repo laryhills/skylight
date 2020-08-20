@@ -1,4 +1,6 @@
 import os.path
+import subprocess
+
 import pdfkit
 from datetime import date
 from time import perf_counter
@@ -9,7 +11,8 @@ from flask import render_template, send_from_directory, url_for
 
 from sms.src import course_details
 from sms.src.results import get_results_for_acad_session, multisort, get_results_for_level, dictify
-from sms.src.utils import get_current_session, get_registered_courses, get_level, multiprocessing_wrapper
+from sms.src.utils import get_current_session, get_registered_courses, get_level, multiprocessing_wrapper, \
+    compute_degree_class, get_cgpa
 from sms.src.course_reg_utils import process_personal_info, get_course_reg_at_acad_session
 from sms.src.script import get_students_by_level
 from sms.config import cache_base_dir
@@ -33,9 +36,9 @@ def get(acad_session, level=None, first_sem_only=False, raw_score=False):
     :return:
     """
     # todo: * handle 100 level probation the same way as spillovers?
-    #       * handle the last (2) column(s) for 500l broadsheet
+    #       * properly size columns
     #       * experiment with wkhtmltopdf's zoom and try to predict the zoom value to use with the
-    #           len_first_sem_carryovers, <...>, len(first_sem_course), <...> and len(options[0] + options[1])
+    #           len_first_sem_carryovers, <...>, len(first_sem_course), <...> and len(first_sem_options), <...>
 
     start = perf_counter()
     registered_students_for_session = get_filtered_student_by_level(acad_session, level)
@@ -110,9 +113,9 @@ def render_html(mat_nos, acad_session, level, index_to_display, first_sem_only=F
     html = render_template(
         'broad_sheet.html', enumerate=enumerate, sum=sum, int=int, url_for=url_for,
         len_first_sem_carryovers=len_first_sem_carryovers, len_second_sem_carryovers=len_second_sem_carryovers,
+        index_to_display=index_to_display, empty_value=empty_value, color_map=color_map,
         first_sem_courses=first_sem_courses, second_sem_courses=second_sem_courses,
         first_sem_options=first_sem_options, second_sem_options=second_sem_options,
-        index_to_display=index_to_display, empty_value=empty_value, color_map=color_map,
         students=students, session=acad_session, level=level, first_sem_only=first_sem_only,
     )
     return html, level
@@ -208,6 +211,9 @@ def enrich_mat_no_list(mat_nos, acad_session, level, level_courses):
         personal_info = process_personal_info(mat_no)
         result_details['othernames'] = personal_info['othernames']
         result_details['surname'] = personal_info['surname']
+        result_details['grad_status'] = personal_info['grad_stats']  # todo: change "grad_stats" to "grad_status"
+        result_details['cgpa'] = round(get_cgpa(mat_no), 2)
+        result_details['degree_class'] = compute_degree_class(mat_no, cgpa=result_details['cgpa'])
 
         # add the previously passed courses for spill students
         if passed_500_courses:
