@@ -22,6 +22,11 @@ def get(mat_no, acad_session):
 
 
 @access_decorator
+def get_result_details(mat_no, acad_session):
+    return get_results(mat_no, acad_session)
+
+
+@access_decorator
 def post(list_of_results):
     if not list_of_results:
         return 'No result record supplied', 400
@@ -107,6 +112,66 @@ def get_results_for_acad_session(mat_no, acad_session, return_empty=False):
              'category': category,
              }
     return frame, 200
+
+
+def get_course_details(course_code):
+    details = course_details.get(course_code, retJSON=False)
+    return [details['course_title'], details['course_credit'], details['course_semester']]
+
+
+def get_results(mat_no, acad_session):
+    from sms.src.course_reg import get_existing_course_reg
+
+    reg, return_code = get_existing_course_reg(mat_no, acad_session)
+    if return_code != 200:
+        return reg, return_code
+
+    res, _ = utils.get_result_at_acad_session(acad_session, mat_no=mat_no)
+    if not res:
+        return 'No result available for entered session', 404
+
+    regular_reg_courses = reg['courses']['first_sem'] + reg['courses']['second_sem']
+    carryover_reg_courses = reg['choices']['first_sem'] + reg['choices']['second_sem']
+
+    details = reg['personal_info']
+    session = res.pop('session')
+    level = res.pop('level')
+    carryovers = res.pop('carryovers')
+    unusual_results = res.pop('unusual_results')
+
+    carryovers_dict = {}
+    carryovers_list = [] if not carryovers else carryovers.split(',')
+    for course in carryovers_list:
+        course_code, score, grade = course.split(' ')
+        carryovers_dict[course_code] = [int(score), grade]
+
+    for course_dets in regular_reg_courses:
+        course_code = course_dets[0]
+        if course_code in carryovers_dict:
+            carryover_reg_courses.append(course_dets)
+            regular_reg_courses.remove(course_dets)
+            continue
+        score, grade = res.get(course_code, ',').split(',')
+        score = score if not score.isdecimal() else int(score)
+        course_dets.extend([score, grade])
+
+    for course_dets in carryover_reg_courses:
+        course_code = course_dets[0]
+        score, grade = carryovers_dict.get(course_code, ',').split(',')
+        score = score if not score.isdecimal() else int(score)
+        course_dets.extend([score, grade])
+
+    result_details = {
+        'mat_no': mat_no,
+        'name': details['surname'] + ' ' + details['othernames'],
+        'level': level,
+        'session': session,
+        'result': regular_reg_courses,
+        'carryovers': carryover_reg_courses,
+        'unusual_results': unusual_results
+    }
+
+    return result_details, 200
 
 
 def add_result_records(list_of_results):
