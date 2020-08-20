@@ -42,10 +42,7 @@ def get_all(level=None, options=False, inactive=False):
 
 @access_decorator
 def post(course):
-    course_level = course['course_level']
-    exec('from sms.models.courses import Courses{} as Courses'.format(course_level))
-    model = eval('Courses')
-    course_obj = model(**course)
+    course_obj = Courses(**course)
     db.session.add(course_obj)
     db.session.commit()
 
@@ -69,8 +66,9 @@ def put(data):
 
 
 @access_decorator
-def delete(course_code, course_level):
-    exec('from sms.models.courses import Courses{} as Courses'.format(course_level))
-    course_obj = eval('Courses').query.filter_by(course_code=course_code).first_or_404()
+def delete(course_code):
+    course_obj = Courses.query.filter_by(course_code=course_code).first()
+    if not course_obj:
+        return None, 404
     db.session.delete(course_obj)
     db.session.commit()
