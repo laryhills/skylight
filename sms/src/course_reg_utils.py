@@ -98,10 +98,10 @@ def enrich_course_list(course_list, fields=('course_code', 'course_title', 'cour
     enriched_course_list = []
     for crse in course_list:
         if isinstance(crse, list):
-            crse_dets = course_details.get(crse[0], 0)
+            crse_dets = course_details.get(crse[0])
             [crse.append(crse_dets[field]) for field in fields if field != 'course_code']
         elif isinstance(crse, str):
-            crse_dets = course_details.get(crse, 0)
+            crse_dets = course_details.get(crse)
             crse = [crse_dets[field] for field in fields]
         enriched_course_list.append(crse)
     return enriched_course_list
@@ -119,7 +119,7 @@ def sum_credits(course_objects, index_for_credits=None):
         if index_for_credits:
             tot += int(course_object[index_for_credits])
         else:
-            tot += int(course_details.get(course_object[0], 0)['course_credit'])
+            tot += int(course_details.get(course_object[0])['course_credit'])
     return tot
 
 
