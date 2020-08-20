@@ -84,14 +84,14 @@ def render_html(mat_nos, acad_session, level, index_to_display, first_sem_only=F
     empty_value = ' '
 
     # get semester courses (with one placeholder option)
-    level_courses = course_details.get_all(level)[0]
+    level_courses = course_details.get_all(level)
     first_sem_courses = multisort([(x['course_code'], x['course_credit'], x['options']) for x in level_courses if
                                    x['course_semester'] == 1])
     second_sem_courses = multisort([(x['course_code'], x['course_credit'], x['options']) for x in level_courses if
                                     x['course_semester'] == 2])
 
     # get optional courses
-    level_courses = course_details.get_all(level, False)[0]
+    level_courses = course_details.get_all(level, False)
     first_sem_options = multisort([(x['course_code'], x['course_credit'], x['options']) for x in level_courses if
                                    x['course_semester'] == 1 and x['options'] == 1])
     second_sem_options = multisort([(x['course_code'], x['course_credit'], x['options']) for x in level_courses if

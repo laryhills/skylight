@@ -128,7 +128,7 @@ def get_carryovers(mat_no, level=None, retJSON=True):
             for option in options:
                 if opt in option["members"].split(','):
                     default = option["default"]
-                    sem = course_details.get(default, 0)["course_semester"]
+                    sem = course_details.get(default)["course_semester"]
                     if default != opt:
                         [first_sem, second_sem][sem-1].remove(default)
                         [first_sem, second_sem][sem-1].add(opt)
@@ -155,10 +155,10 @@ def get_carryovers(mat_no, level=None, retJSON=True):
 
     carryovers = {"first_sem":[],"second_sem":[]}
     for failed_course in first_sem:
-        credit = loads(course_details.get(failed_course))["course_credit"]
+        credit = course_details.get(failed_course)["course_credit"]
         carryovers["first_sem"].append([failed_course, str(credit)])
     for failed_course in second_sem:
-        credit = loads(course_details.get(failed_course))["course_credit"]
+        credit = course_details.get(failed_course)["course_credit"]
         carryovers["second_sem"].append([failed_course, str(credit)])
     if retJSON:
         return dumps(carryovers)
@@ -283,7 +283,7 @@ def compute_gpa(mat_no, ret_json=True):
     for result in loads(result_statement.get(mat_no))["results"]:
         for record in (result["first_sem"] + result["second_sem"]):
             (course, grade) = (record[1], record[5])
-            course_props = loads(course_details.get(course))
+            course_props = course_details.get(course)
             lvl = int(course_props["course_level"] / 100) - 1
             if mode_of_entry != 1:
                 if course in ['GST111', 'GST112', 'GST121', 'GST122', 'GST123']:

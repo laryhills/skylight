@@ -190,7 +190,7 @@ def add_single_result_record(index, result_details, result_errors_file):
         return error_log, 404
 
     try:
-        course_dets = course_details.get(course_code, 0)
+        course_dets = course_details.get(course_code)
     except Exception as e:
         error_text = '{} at index {} was not found in the database'.format(course_code, index)
         result_errors_file.writelines(str(result_details) + '  error: ' + error_text + '\n')
@@ -437,7 +437,7 @@ def calculate_category_deprecated(result_record, courses_registered):
     result_courses.extend(carryovers)
     total_credits, credits_passed = 0, 0
     for course in courses_registered:
-        credit = course_details.get(course, 0)['course_credit']
+        credit = course_details.get(course)['course_credit']
         crs_grade = [x[1] for x in result_courses if x[0] == course]
         if crs_grade and crs_grade[0] not in ['F', 'ABS']:
             credits_passed += credit
