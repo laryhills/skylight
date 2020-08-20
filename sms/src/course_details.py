@@ -1,8 +1,8 @@
 from json import dumps
 from sms.config import db
-from sms.src.users import access_decorator
+from sms.src.users import access_decorator, load_session
 from sms.models.courses import Courses, CoursesSchema
-from sms.src.utils import load_session, get_current_session
+from sms.config import get_current_session
 
 # TODO Create endpoint for teaching departments
 # TODO Change primary key of all courses models from it's course_code to an id
