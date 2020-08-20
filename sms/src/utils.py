@@ -338,6 +338,7 @@ def compute_category(mat_no, level_written, session_taken, total_credits, credit
         elif 23 <= credits_passed < 36: return 'C'
         else:
             # todo: Handle condition for transfer
+            # todo: handle condition for 100 level probation
             if 'C' in previous_categories: return 'E'
             else: return 'D'
     else:

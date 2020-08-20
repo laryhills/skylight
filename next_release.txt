@@ -10,3 +10,5 @@
 10) End user session after a period of inactivity (or heck activity)
 11) Make open_result_edit possible to activate for a single user
 12) Sheets report generation
+
+** handle compute_category for 100 level probation
