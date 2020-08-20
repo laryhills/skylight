@@ -109,9 +109,12 @@ paths:
           type: integer
           required: false
         - in: query
-          name: use_curr_session
+          name: options
           type: boolean
           required: false
+        - in: query
+          name: inactive
+          type: boolean
       responses:
         200:
           description: success

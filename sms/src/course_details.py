@@ -15,9 +15,12 @@ def get(course_code):
 
 def get_course_details(course_code=None, level=None, options=False, inactive=False):
     if course_code:
-        return [dumps(get(course_code))], 200
+        output = [get(course_code)]
     else:
-        return get_all(level, use_curr_session=use_curr_session), 200
+        output = get_all(level, use_curr_session=use_curr_session)
+    if output:
+        return output, 200
+    return output, 404
 
 
 def get_all(level=None, options=False, inactive=False):
