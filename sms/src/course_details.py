@@ -1,55 +1,48 @@
+from json import dumps
 from sms.config import db
-from sms.models.courses import CoursesSchema
-from sms.src.users import access_decorator, load_session
+from sms.src.users import access_decorator
+from sms.models.courses import Courses, CoursesSchema, Options
 
 # TODO Create endpoint for teaching departments
 # TODO Change primary key of all courses models from it's course_code to an id
 #      As it stands, a course's code can't be modified
 
 
-def get(course_code, retJSON=True):
-    level = int(course_code[3]) if course_code[:3] != 'CED' else 4
-    exec('from sms.models.courses import Courses{} as Courses'.format(level * 100))
-    course = eval('Courses').query.filter_by(course_code=course_code).first_or_404()
-    if retJSON:
-        return CoursesSchema().dumps(course)
+def get(course_code):
+    course = Courses.query.filter_by(course_code=course_code).first()
     return CoursesSchema().dump(course)
 
 
-def get_course_details(course_code=None, level=None, use_curr_session=True):
+def get_course_details(course_code=None, level=None, options=False, inactive=False):
     if course_code:
-        return get_by_course_code(course_code)
+        output = [get(course_code)]
     else:
-        return get_all(level, use_curr_session=use_curr_session)
+        output = get_all(level, options, inactive)
+    if output:
+        return output, 200
+    return None, 404
 
 
-def get_by_course_code(course_code):
-    return [get(course_code, retJSON=False)], 200
-
-
-def get_all(level, use_curr_session=True):
-    if use_curr_session:
-        # curr_session = get_current_session()
-        curr_session = 2018     #todo: Change this when 2019 session data is available
-        model = load_session('{}_{}'.format(curr_session, curr_session + 1))
-        course_codes = model.Courses.query.filter_by(mode_of_entry=1).first()
-        level_courses = model.CoursesSchema().dump(course_codes)['level' + str(level)]
-        courses = []
-        for course_code in level_courses.replace(' ', ',').split(','):
-            courses.append(get(course_code, retJSON=False))
-        return courses, 200
+def get_all(level=None, options=False, inactive=False):
+    courses = Courses.query
+    if level:
+        courses = courses.filter_by(course_level=level)
+    if not inactive:
+        courses = courses.filter_by(active=1)
+    if options:
+        course_list = courses.all()
     else:
-        exec('from sms.models.courses import Courses{} as Courses'.format(level))
-        courses = eval('Courses').query.all()
-        return CoursesSchema(many=True).dump(courses), 200
+        course_list = courses.filter_by(options=0).all()
+        for option in Options.query.all():
+            option_member = courses.filter_by(options=option.options_group).first()
+            if option_member:
+                course_list += [option_member]
+    return CoursesSchema(many=True).dump(course_list)
 
 
 @access_decorator
 def post(course):
-    course_level = course['course_level']
-    exec('from sms.models.courses import Courses{} as Courses'.format(course_level))
-    model = eval('Courses')
-    course_obj = model(**course)
+    course_obj = Courses(**course)
     db.session.add(course_obj)
     db.session.commit()
 
@@ -73,8 +66,9 @@ def put(data):
 
 
 @access_decorator
-def delete(course_code, course_level):
-    exec('from sms.models.courses import Courses{} as Courses'.format(course_level))
-    course_obj = eval('Courses').query.filter_by(course_code=course_code).first_or_404()
+def delete(course_code):
+    course_obj = Courses.query.filter_by(course_code=course_code).first()
+    if not course_obj:
+        return None, 404
     db.session.delete(course_obj)
     db.session.commit()

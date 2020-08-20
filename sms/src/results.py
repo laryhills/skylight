@@ -68,38 +68,17 @@ def get_results_for_acad_session(mat_no, acad_session, return_empty=False):
 
     if results:
         # remove extra fields from results
-        [results.pop(key) for key in ['mat_no', 'session']]
-        category = results.pop('category')
-        tcp = results.pop('tcp')
-        level_written = results.pop('level')
-        carryovers = utils.serialize_carryovers(results.pop('carryovers'))
-        unusual_results = utils.serialize_carryovers(results.pop('unusual_results'))
+        results, level_written, tcp, category = refine_res_poll_item(results)
 
-        # flatten the result dictionary
-        regular_courses = [[crse_code] + results[crse_code].split(',') for crse_code in results if results[crse_code]]
-        regular_courses.extend(carryovers)
-
-        # enrich the course lists
-        fields = ('course_credit', 'course_semester', 'course_level')
-        regular_courses = course_reg_utils.enrich_course_list(regular_courses, fields=fields)
-        unusual_results = course_reg_utils.enrich_course_list(unusual_results, fields=fields)
-
-        # get the actual carryovers
-        carryovers = list(filter(lambda x: x[5] < level_written, regular_courses))
-        regular_courses = list(filter(lambda x: x[5] == level_written, regular_courses))
-
-        [unusual_results[index].append('Course not registered') for index in range(len(unusual_results))]
-        [regular_courses[index].append('') for index in range(len(regular_courses))]
+        regular_courses = split_courses_by_semester(multisort(results['regular_courses']), 4)
+        carryovers = split_courses_by_semester(multisort(results['carryovers']), 4)
+        unusual_results = split_courses_by_semester(multisort(results['unusual_results']), 4)
 
     elif return_empty:
         regular_courses, carryovers, unusual_results = [], [], []
         level_written, tcp, category = '', 0, ''
     else:
         return 'No result available for entered session', 404
-
-    regular_courses = split_courses_by_semester(multisort(regular_courses), 4)
-    carryovers = split_courses_by_semester(multisort(carryovers), 4)
-    unusual_results = split_courses_by_semester(multisort(unusual_results), 4)
 
     frame = {'mat_no': mat_no,
              'table': table_to_populate,
@@ -112,6 +91,48 @@ def get_results_for_acad_session(mat_no, acad_session, return_empty=False):
              'category': category,
              }
     return frame, 200
+
+
+def get_results_for_level(mat_no, level_written, return_empty=False):
+    """
+
+    :param mat_no:
+    :param level_written:
+    :param return_empty: return object with empty fields instead of 404
+    :return:
+    """
+    res_poll = utils.result_poll(mat_no)
+    results = {res['session']: (index, res) for index, res in enumerate(res_poll) if res and res['level'] == level_written}
+    result_for_level = {}
+
+    for session in sorted(results.keys()):
+        index, result = results[session]
+        table = 'Result' + str((index + 1) * 100)
+        if result:
+            result, level_written, tcp, category = refine_res_poll_item(result)
+        elif return_empty:
+            regular_courses, carryovers, unusual_results = [], [], []
+            level_written, tcp, category = '', 0, ''
+        else:
+            continue
+
+        regular_courses = split_courses_by_semester(multisort(result['regular_courses']), 4)
+        carryovers = split_courses_by_semester(multisort(result['carryovers']), 4)
+        unusual_results = split_courses_by_semester(multisort(result['unusual_results']), 4)
+
+        frame = {'mat_no': mat_no,
+                 'table': table,
+                 'level_written': level_written,
+                 'session_written': session,
+                 'tcp': tcp,
+                 'regular_courses': regular_courses,
+                 'carryovers': carryovers,
+                 'unusual_results': unusual_results,
+                 'category': category,
+                 }
+        result_for_level[session] = frame
+
+    return result_for_level, 200
 
 
 def get_course_details(course_code):
@@ -201,9 +222,6 @@ def add_result_records(list_of_results):
     result_errors_file.close()
     print('\n====>>  ', '{} result entries added with {} errors'.format(len(list_of_results), len(error_log)))
 
-    if len(list_of_results) == len(error_log):
-        return error_log, 400
-
     return error_log, 200
 
 
@@ -237,7 +255,7 @@ def add_single_result_record(index, result_details, result_errors_file):
         return error_log, 404
 
     try:
-        course_dets = course_details.get(course_code, 0)
+        course_dets = course_details.get(course_code)
     except Exception as e:
         error_text = '{} at index {} was not found in the database'.format(course_code, index)
         result_errors_file.writelines(str(result_details) + '  error: ' + error_text + '\n')
@@ -289,8 +307,8 @@ def add_single_result_record(index, result_details, result_errors_file):
         params = mat_no, session_taken, courses_registered, result_xxx_schema, level_written
         result_record = prepare_new_results_table(*params)
 
-    # Check if a previous entry for the course exists the session and log changes
-    # also modifies the value of "previous_grade"
+    # Check if a previous entry for the course exists in the current session and updates the value
+    # of "previous_grade" while logging the changes to be made
     previous_grade = get_previous_grade_and_log_changes(result_details, result_record, is_unusual)
 
     # add score to result object
@@ -463,6 +481,12 @@ def get_previous_grade_and_log_changes(result_details, result_record, is_unusual
 
 
 def calculate_category_deprecated(result_record, courses_registered):
+    """
+
+    :param result_record: a session's result record from result poll
+    :param courses_registered: a list of course_codes for courses registered
+    :return:
+    """
     results_object = deepcopy(result_record)
     mat_no = results_object.pop('mat_no')
     session_taken = results_object.pop('session')
@@ -478,7 +502,7 @@ def calculate_category_deprecated(result_record, courses_registered):
     result_courses.extend(carryovers)
     total_credits, credits_passed = 0, 0
     for course in courses_registered:
-        credit = course_details.get(course, 0)['course_credit']
+        credit = course_details.get(course)['course_credit']
         crs_grade = [x[1] for x in result_courses if x[0] == course]
         if crs_grade and crs_grade[0] not in ['F', 'ABS']:
             credits_passed += credit
@@ -492,7 +516,7 @@ def split_courses_by_semester(course_list, semester_value_index):
     """
 
     :param course_list: [ ('course_code', 'some_other_detail', ...), (..), ... ]
-    :param semester_index: the index of each course where the semester value can be found
+    :param semester_value_index: the index of each course where the semester value can be found
     :return:
     """
     split_course_list = [list(filter(lambda x: x[semester_value_index] == sem, course_list)) for sem in (1, 2)]
@@ -516,4 +540,36 @@ def dictify(flat_list, key_index=0):
         dic[lis.pop(key_index)] = lis
     return dic
 
-# todo: write function to recalculate category, gpa-credits and cgpa
+
+def refine_res_poll_item(res_poll_item):
+    [res_poll_item.pop(key) for key in ['mat_no', 'session']]
+    category = res_poll_item.pop('category')
+    tcp = res_poll_item.pop('tcp')
+    level_written = res_poll_item.pop('level')
+    carryovers = utils.serialize_carryovers(res_poll_item.pop('carryovers'))
+    unusual_results = utils.serialize_carryovers(res_poll_item.pop('unusual_results'))
+
+    # flatten the result dictionary
+    regular_courses = [[crse_code] + res_poll_item[crse_code].split(',') for crse_code in res_poll_item if res_poll_item[crse_code]]
+    regular_courses.extend(carryovers)
+
+    # enrich the course lists
+    fields = ('course_credit', 'course_semester', 'course_level')
+    regular_courses = course_reg_utils.enrich_course_list(regular_courses, fields=fields)
+    unusual_results = course_reg_utils.enrich_course_list(unusual_results, fields=fields)
+
+    # get the actual carryovers
+    # use a normalized level_written to account for spillover students (treated as 500 level students)
+    level_written_alpha = 500 if level_written > 500 else level_written
+    carryovers = list(filter(lambda x: x[5] < level_written_alpha, regular_courses))
+    regular_courses = list(filter(lambda x: x[5] == level_written_alpha, regular_courses))
+
+    [unusual_results[index].append('Course not registered') for index in range(len(unusual_results))]
+    [regular_courses[index].append('') for index in range(len(regular_courses))]
+
+    results = {
+        'regular_courses': regular_courses,
+        'carryovers': carryovers,
+        'unusual_results': unusual_results
+    }
+    return results, level_written, tcp, category

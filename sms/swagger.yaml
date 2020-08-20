@@ -109,9 +109,12 @@ paths:
           type: integer
           required: false
         - in: query
-          name: use_curr_session
+          name: options
           type: boolean
           required: false
+        - in: query
+          name: inactive
+          type: boolean
       responses:
         200:
           description: success
@@ -284,6 +287,8 @@ paths:
     get:
       tags: [Sheets]
       operationId: sms.src.broad_sheet.get
+      summary: Broad-Sheet generation
+      description: Generates broad-sheets for the session as pdf documents
       produces:
         - application/octet-stream
       parameters:
@@ -294,6 +299,10 @@ paths:
         - in: query
           name: level
           type: integer
+          required: false
+        - in: query
+          name: first_sem_only
+          type: boolean
           required: false
         - in: query
           name: raw_score

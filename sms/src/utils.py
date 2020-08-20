@@ -1,4 +1,4 @@
-from collections import defaultdict
+from concurrent.futures.process import ProcessPoolExecutor
 from json import loads, dumps
 from sms.src import personal_info, course_details, result_statement, users
 from sms import config
@@ -127,7 +127,7 @@ def get_carryovers(mat_no, level=None, retJSON=True):
             for option in options:
                 if opt in option["members"].split(','):
                     default = option["default"]
-                    sem = course_details.get(default, 0)["course_semester"]
+                    sem = course_details.get(default)["course_semester"]
                     if default != opt:
                         [first_sem, second_sem][sem-1].remove(default)
                         [first_sem, second_sem][sem-1].add(opt)
@@ -154,10 +154,10 @@ def get_carryovers(mat_no, level=None, retJSON=True):
 
     carryovers = {"first_sem":[],"second_sem":[]}
     for failed_course in first_sem:
-        credit = loads(course_details.get(failed_course))["course_credit"]
+        credit = course_details.get(failed_course)["course_credit"]
         carryovers["first_sem"].append([failed_course, str(credit)])
     for failed_course in second_sem:
-        credit = loads(course_details.get(failed_course))["course_credit"]
+        credit = course_details.get(failed_course)["course_credit"]
         carryovers["second_sem"].append([failed_course, str(credit)])
     if retJSON:
         return dumps(carryovers)
@@ -282,7 +282,7 @@ def compute_gpa(mat_no, ret_json=True):
     for result in loads(result_statement.get(mat_no))["results"]:
         for record in (result["first_sem"] + result["second_sem"]):
             (course, grade) = (record[1], record[5])
-            course_props = loads(course_details.get(course))
+            course_props = course_details.get(course)
             lvl = int(course_props["course_level"] / 100) - 1
             if mode_of_entry != 1:
                 if course in ['GST111', 'GST112', 'GST121', 'GST122', 'GST123']:
@@ -317,6 +317,54 @@ def get_gpa_credits(mat_no, session=None):
     return gpas, credits
 
 
+def get_cgpa(mat_no):
+    """
+    fetch the current cgpa for student with mat_no from the student's entry session database
+
+    NOTE: THIS DOES NOT DO ANY CALCULATIONS
+
+    :param mat_no:
+    :return:
+    """
+    db_name = get_DB(mat_no)
+    session = load_session(db_name)
+    student = session.GPA_Credits.query.filter_by(mat_no=mat_no).first()
+    return student.cgpa
+
+
+def get_session_degree_class(acad_session):
+    """
+    Get the degree-class dictionary for an academic session with lower limits as keys
+
+    :param acad_session:
+    :return:
+    """
+    session = load_session(acad_session)
+    degree_class = session.DegreeClass.query.all()
+    degree_class = {float(deg.limits.split(',')[0]): deg.cls for deg in degree_class}
+    return degree_class
+
+
+def compute_degree_class(mat_no, cgpa=None, acad_session=None):
+    """
+    get the degree-class text for graduated students
+
+    :param mat_no:
+    :param cgpa:
+    :param acad_session:
+    :return:
+    """
+    # todo extend this for non-graduated students
+    if not cgpa: cgpa = get_cgpa(mat_no)
+    if not acad_session: acad_session = int(get_DB(mat_no)[:4])
+
+    degree_class = get_session_degree_class(acad_session)
+    for lower_limit in sorted(degree_class.keys(), reverse=True):
+        if cgpa >= lower_limit:
+            return degree_class[lower_limit]
+    return ''
+
+
 def get_level_weightings(mod):
     if mod == 1: return [.1, .15, .2, .25, .3]
     elif mod == 2: return [0, .1, .2, .3, .4]
@@ -337,6 +385,7 @@ def compute_category(mat_no, level_written, session_taken, total_credits, credit
         elif 23 <= credits_passed < 36: return 'C'
         else:
             # todo: Handle condition for transfer
+            # todo: handle condition for 100 level probation
             if 'C' in previous_categories: return 'E'
             else: return 'D'
     else:
@@ -417,4 +466,23 @@ def get_num_of_prize_winners():
     """
     # TODO: Query this from the master db
     return 1
+
+
+def multiprocessing_wrapper(func, iterable, context, concurrency=False):
+    """
+    use multiprocessing to call a function on members of an iterable
+
+    (number of workers limited to 5)
+
+    :param func: the function to call
+    :param iterable: items you want to call func on
+    :param context: params that are passed to all instances
+    :param concurrency: whether to use worker processes or not
+    :return:
+    """
+    if not concurrency:
+        [func(item, *context) for item in iterable]
+    else:
+        with ProcessPoolExecutor(max_workers=min(len(iterable), 5)) as executor:
+            [executor.submit(func, item, *context) for item in iterable]
 
