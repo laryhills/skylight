@@ -1,4 +1,3 @@
-from collections import defaultdict
 from concurrent.futures.process import ProcessPoolExecutor
 from json import loads, dumps
 from sms.src import personal_info, course_details, result_statement, users
