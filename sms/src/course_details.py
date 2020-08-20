@@ -16,7 +16,7 @@ def get(course_code):
 
 def get_course_details(course_code=None, level=None, use_curr_session=True):
     if course_code:
-        return [dumps(get(course_code)], 200
+        return [dumps(get(course_code))], 200
     else:
         return get_all(level, use_curr_session=use_curr_session), 200
 
