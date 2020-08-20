@@ -2,7 +2,6 @@ from json import dumps
 from sms.config import db
 from sms.src.users import access_decorator
 from sms.models.courses import Courses, CoursesSchema
-from sms.src.utils import load_session, get_current_session
 
 # TODO Create endpoint for teaching departments
 # TODO Change primary key of all courses models from it's course_code to an id
@@ -22,19 +21,12 @@ def get_course_details(course_code=None, level=None, use_curr_session=True):
 
 
 def get_all(level, use_curr_session=True):
+    courses = Courses.query
+    if level:
+        courses = courses.filter_by(course_level=level)
     if use_curr_session:
-        # curr_session = get_current_session()
-        curr_session = 2018 # TODO: Change this when 2019 session data is available
-        model = load_session(curr_session)
-        course_codes = model.Courses.query.filter_by(mode_of_entry=1).first()
-        level_courses = model.CoursesSchema().dump(course_codes)['level' + str(level)]
-        courses = []
-        for course_code in level_courses.replace(' ', ',').split(','):
-            courses.append(get(course_code))
-        return courses
-    else:
-        courses = Courses.query.all()
-        return CoursesSchema(many=True).dump(courses)
+        courses = courses.filter_by(active=1)
+    return CoursesSchema(many=True).dump(courses.all())
 
 
 @access_decorator
