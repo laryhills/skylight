@@ -8,7 +8,7 @@ from zipfile import ZipFile, ZIP_DEFLATED
 from flask import render_template, send_from_directory, url_for
 
 from sms.src import course_details
-from sms.src.results import get_results_for_acad_session, multisort
+from sms.src.results import get_results_for_acad_session, multisort, get_results_for_level, dictify
 from sms.src.utils import get_current_session, get_registered_courses, get_level, multiprocessing_wrapper
 from sms.src.course_reg_utils import process_personal_info, get_course_reg_at_acad_session
 from sms.src.script import get_students_by_level
@@ -32,8 +32,7 @@ def get(acad_session, level=None, first_sem_only=False, raw_score=False):
     :param raw_score:
     :return:
     """
-    # todo: * handle spillovers (get passed 500l courses - asterisked - alongside the new ones),
-    #           don't worry about length of the carryover column
+    # todo: * handle 100 level probation the same way as spillovers?
     #       * handle the last (2) column(s) for 500l broadsheet
     #       * experiment with wkhtmltopdf's zoom and try to predict the zoom value to use with the
     #           len_first_sem_carryovers, <...>, len(first_sem_course), <...> and len(options[0] + options[1])
@@ -83,13 +82,13 @@ def collect_pdfs_in_zip(file_name):
 def render_html(mat_nos, acad_session, level, index_to_display, first_sem_only=False):
     color_map = {'F': 'red', 'ABS': 'blue'}
     empty_value = ' '
-    students, len_first_sem_carryovers, len_second_sem_carryovers = enrich_mat_no_list(mat_nos, acad_session, level)
 
+    # get semester courses (with one placeholder option)
     level_courses = course_details.get_all(level)[0]
-    first_sem_courses = [(x['course_code'], x['course_credit'], x['options']) for x in level_courses if
-                         x['course_semester'] == 1]
-    second_sem_courses = [(x['course_code'], x['course_credit'], x['options']) for x in level_courses if
-                          x['course_semester'] == 2]
+    first_sem_courses = multisort([(x['course_code'], x['course_credit'], x['options']) for x in level_courses if
+                                   x['course_semester'] == 1])
+    second_sem_courses = multisort([(x['course_code'], x['course_credit'], x['options']) for x in level_courses if
+                                    x['course_semester'] == 2])
 
     # get optional courses
     level_courses = course_details.get_all(level, False)[0]
@@ -98,17 +97,12 @@ def render_html(mat_nos, acad_session, level, index_to_display, first_sem_only=F
     second_sem_options = multisort([(x['course_code'], x['course_credit'], x['options']) for x in level_courses if
                                     x['course_semester'] == 2 and x['options'] == 2])
 
-    first_sem_courses = multisort(first_sem_courses)
-    second_sem_courses = multisort(second_sem_courses)
-
-    # just for now, later this condition should be "if option > 0 for course in level courses"
-    if level == 500:
-        options = [
-            [('MEE531', 7, 1), ('MEE541', 7, 1), ('MEE561', 7, 1), ('MEE581', 7, 1), ('MEE591', 7, 1)],
-            [('MEE532', 8, 2), ('MEE542', 8, 2), ('MEE562', 8, 2), ('MEE582', 8, 2), ('MEE592', 8, 2)]
-        ]
-    else:
-        options = [[], []]
+    courses = {
+        'first_sem': dictify(first_sem_courses + first_sem_options),
+        'second_sem': dictify(second_sem_courses + second_sem_options)
+    }
+    students, len_first_sem_carryovers, len_second_sem_carryovers = enrich_mat_no_list(
+        mat_nos, acad_session, level, courses)
 
     len_first_sem_carryovers = max(len_first_sem_carryovers, 3)
     len_second_sem_carryovers = max(len_second_sem_carryovers, 3)
@@ -175,7 +169,7 @@ def get_level_at_acad_session(mat_no, acad_session):
     return ''
 
 
-def enrich_mat_no_list(mat_nos, acad_session, level):
+def enrich_mat_no_list(mat_nos, acad_session, level, level_courses):
     students = {}
     max_len_first_sem_carryovers = 0
     max_len_second_sem_carryovers = 0
@@ -183,13 +177,14 @@ def enrich_mat_no_list(mat_nos, acad_session, level):
     for mat_no in mat_nos:
 
         result_details = get_results_for_acad_session(mat_no, acad_session)
+        passed_500_courses = {}
 
         if result_details[1] != 200:
             # print(Fore.RED + mat_no, 'has no results' + Style.RESET_ALL)
             continue
         elif result_details[0]['level_written'] > 500 and level == 500:
-            # todo: fetch the passed 500 courses here and append ' *' to the grade and score
-            #       also fix color_map to support ' *'
+            # fetch previously passed 500 level results of spillovers
+            passed_500_courses = get_spillover_passed_level_result(mat_no, level_courses)
             pass
         elif result_details[0]['level_written'] != level:
             # print(mat_no, "result level", result_details[0]['level_written'], '!=', level)
@@ -208,11 +203,17 @@ def enrich_mat_no_list(mat_nos, acad_session, level):
         result_details['semester_tcp'] = sem_tcp
         result_details['semester_tcr'] = sem_tcr
         result_details['semester_tcf'] = sem_tcf
-        result_details['failed_courses'] = failed_courses
+        result_details['sem_failed_courses'] = failed_courses
 
         personal_info = process_personal_info(mat_no)
         result_details['othernames'] = personal_info['othernames']
         result_details['surname'] = personal_info['surname']
+
+        # add the previously passed courses for spill students
+        if passed_500_courses:
+            passed_500_courses['first_sem'].update(result_details['regular_courses']['first_sem'])
+            passed_500_courses['second_sem'].update(result_details['regular_courses']['second_sem'])
+            result_details['regular_courses'] = passed_500_courses
 
         if len(result_details['carryovers']['first_sem']) > max_len_first_sem_carryovers:
             max_len_first_sem_carryovers = len(result_details['carryovers']['first_sem'])
@@ -228,7 +229,7 @@ def sum_semester_credits(result_details, grade_index, credit_index):
     tcp = [0, 0]  # total credits passed
     tcr = [0, 0]  # total credits registered
     tcf = [0, 0]  # total credits failed
-    failed_courses = []
+    failed_courses = [[], []]
 
     for index, sem in enumerate(['first_sem', 'second_sem']):
         courses = {**result_details['regular_courses'][sem], **result_details['carryovers'][sem]}
@@ -237,7 +238,7 @@ def sum_semester_credits(result_details, grade_index, credit_index):
                 tcp[index] += courses[course][credit_index]
             else:
                 tcf[index] += courses[course][credit_index]
-                failed_courses.append(course)
+                failed_courses[index].append(course)
             tcr[index] += courses[course][credit_index]
 
     # test conformity btw results and tcr, tcp columns
@@ -247,3 +248,30 @@ def sum_semester_credits(result_details, grade_index, credit_index):
     #           + result_details['mat_no'], sum(tcp), result_details['tcp'], sum(tcr), course_reg['tcr']))
 
     return tcp, tcr, tcf, failed_courses
+
+
+def get_spillover_passed_level_result(mat_no, level_courses):
+    current_level = abs(get_level(mat_no))
+    regular_courses = {'first_sem': {}, 'second_sem': {}}
+    option = {'first_sem': '', 'second_sem': ''}
+    results = {}
+    for level in range(500, current_level, 100):
+        results.update(get_results_for_level(mat_no, level)[0])
+
+    for session in sorted(results.keys()):
+        for key in ['regular_courses', 'carryovers']:
+            for semester in ['first_sem', 'second_sem']:
+                for course in results[session][key][semester]:
+                    course_dets = results[session][key][semester][course]
+                    # add course
+                    if course in level_courses[semester] and (course_dets[1] not in ['F', 'ABS']):
+                        # add an asterisk to the score and grade to indicate it's out of session
+                        course_dets[0] += ' *'
+                        course_dets[1] += ' *'
+                        regular_courses[semester][course] = course_dets
+                        # replace old option with new one if necessary
+                        if level_courses[semester][course][1] > 0 and course != option[semester]:
+                            if option[semester] != '': regular_courses[semester].pop(option[semester])
+                            option[semester] = course
+    return regular_courses
+
