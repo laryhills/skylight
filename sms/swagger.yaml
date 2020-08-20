@@ -488,6 +488,36 @@ paths:
         440:
           description: Session expired, login again
 
+  /results_single:
+    get:
+      tags: [Results]
+      operationId: sms.src.results.get_result_details
+      description: Gets the result details of a particular student for the entered session
+      parameters:
+        - in: query
+          name: mat_no
+          type: string
+          required: true
+        - in: query
+          name: acad_session
+          type: integer
+          required: true
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/Results_Single_get'
+        400:
+          description: Bad request
+        401:
+          description: Unauthorised
+        403:
+          description: Forbidden
+        404:
+          description: No results found
+        440:
+          description: Session expired, login again
+
   /accounts:
     get:
       tags: [Accounts]
@@ -610,6 +640,21 @@ paths:
           description: Authentication failed
         440:
           description: Session expired, login again
+
+  /grading_rules:
+    get:
+      operationId: sms.src.grading_rules.get
+      parameters:
+        - in: query
+          name: acad_session
+          type: integer
+          required: true
+      responses:
+        200:
+          description: Grading rules successfully retrieved
+          schema:
+            type: array
+            items: {}
 
 definitions:
   PersonalInfo:
@@ -757,6 +802,26 @@ definitions:
     items:
       type: array
       items: {}
+
+  Results_Single_get:
+    type: object
+    properties:
+      mat_no:
+        type: string
+      name:
+        type: string
+      level:
+        type: integer
+      session:
+        type: integer
+      result:
+        type: array
+        items: {}
+      carryovers:
+        type: array
+        items: {}
+      unusual_results:
+        type: string
 
   Accounts_post:
     type: object
