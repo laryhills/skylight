@@ -49,7 +49,7 @@ def get_course_reg_at_acad_session(acad_session, full_course_reg=None, mat_no=No
     :return:
     """
     if not full_course_reg:
-        from utils import get_registered_courses
+        from sms.src.utils import get_registered_courses
         full_course_reg = get_registered_courses(mat_no)
 
     course_reg = {}
