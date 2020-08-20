@@ -1,7 +1,7 @@
 from json import dumps
 from sms.config import db
 from sms.src.users import access_decorator
-from sms.models.courses import Courses, CoursesSchema
+from sms.models.courses import Courses, CoursesSchema, Options
 
 # TODO Create endpoint for teaching departments
 # TODO Change primary key of all courses models from it's course_code to an id
@@ -26,9 +26,13 @@ def get_all(level=None, options=False, inactive=False):
         courses = courses.filter_by(course_level=level)
     if not inactive:
         courses = courses.filter_by(active=1)
-    if not options:
-        courses = None
-    return CoursesSchema(many=True).dump(courses.all())
+    if options:
+        course_list = courses.all()
+    else:
+        course_list = courses.filter_by(options=0).all()
+        for option in Options.query.all():
+            course_list += [courses.filter_by(options=option.options_group).first()]
+    return CoursesSchema(many=True).dump(course_list)
 
 
 @access_decorator
