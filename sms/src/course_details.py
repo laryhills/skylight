@@ -17,7 +17,7 @@ def get_course_details(course_code=None, level=None, options=False, inactive=Fal
     if course_code:
         output = [get(course_code)]
     else:
-        output = get_all(level, use_curr_session=use_curr_session)
+        output = get_all(level, options, inactive)
     if output:
         return output, 200
     return None, 404
