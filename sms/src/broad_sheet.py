@@ -36,9 +36,8 @@ def get(acad_session, level=None, first_sem_only=False, raw_score=False):
     :return:
     """
     # todo: * handle 100 level probation the same way as spillovers?
-    #       * properly size columns
-    #       * experiment with wkhtmltopdf's zoom and try to predict the zoom value to use with the
-    #           len_first_sem_carryovers, <...>, len(first_sem_course), <...> and len(first_sem_options), <...>
+    #       * generate preview pngs
+    #       * fix wierd wkhtmltopdf issue with the table headers in paginated pages
 
     start = perf_counter()
     registered_students_for_session = get_filtered_student_by_level(acad_session, level)
@@ -118,9 +117,9 @@ def render_html(mat_nos, acad_session, level, index_to_display, first_sem_only=F
         first_sem_options=first_sem_options, second_sem_options=second_sem_options,
         students=students, session=acad_session, level=level, first_sem_only=first_sem_only,
     )
-    filename = os.path.join(os.path.expanduser('~'), f'{level}.html')
-    open(filename, 'w').write(html)
-    subprocess.run(['google-chrome', filename])
+    # filename = os.path.join(os.path.expanduser('~'), f'{level}.html')
+    # open(filename, 'w').write(html)
+    # subprocess.run(['google-chrome', filename])
     return html, level
 
 
@@ -144,6 +143,7 @@ def generate_pdf(html, level, file_name):
         'enable-local-file-access': None,
         'print-media-type': None,
         'no-outline': None,
+        # 'use-xserver': None,
         'dpi': 100,
         'log-level': 'warn',  # error, warn, info, none
     }

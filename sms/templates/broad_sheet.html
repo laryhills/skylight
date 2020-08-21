@@ -252,7 +252,7 @@ style='font-size:4.5pt'></span></p>
    <td width="16%" colspan={{ len_first_sem_carryovers }} rowspan=4 style='width:16.22%;border-top:none;
    border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
    padding:0 0 0 0;height:23.6pt'>
-   <p class=MsoNormal align=center style='text-align:center'><b>
+   <p class=MsoNormal style='text-align:center'><b>
      <span lang=EN-US style='font-size:14.0pt;font-family:"Calibri",sans-serif'>CARRYOVER COURSES</span></b></p>
    </td>
    <td width="12%" colspan={{ ((first_sem_courses | length) - rem_first_sem) + (first_sem_options | length) }} style='width:12.7%;border-top:none;border-left:
@@ -263,34 +263,43 @@ style='font-size:4.5pt'></span></p>
    </td>
    <td width="1%" rowspan=4 style='width:1.4%;border-top:none;border-left:none;
    border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-   padding:0 0 0 0;height:23.6pt'>
+   padding:0 0 0 0;height:23.6pt;text-align: center'>
    <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
-   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;-webkit-transform:rotate(270deg);-moz-transform:rotate(270deg);-o-transform:rotate(270deg);-ms-transform:rotate(270deg)'><b><span
-   lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;
-   letter-spacing:1.5pt'>PASSED&nbsp;CREDITS</span></b></p>
+   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+   {% for char in 'PASSED CREDITS' %}
+       <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
+       letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
+   {% endfor %}
+   </b></p>
    </td>
    <td width="1%" rowspan=4 style='width:1.44%;border-top:none;border-left:
    none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
    padding:0 0 0 0;height:23.6pt'>
-   <p class=MsoNormal style='margin-top:0;margin-right:5.85pt;margin-bottom:
-   0;margin-left:6.1pt;margin-bottom:.0001pt;text-indent:.15pt;line-height:
-   104%;-webkit-transform:rotate(270deg);-moz-transform:rotate(270deg);-o-transform:rotate(270deg);-ms-transform:rotate(270deg)'><b><span lang=EN-US style='font-size:11.0pt;line-height:104%;
-   font-family:"Calibri",sans-serif;letter-spacing:1.5pt'>FAILED&nbsp;CREDITS</span></b></p>
+   <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+   {% for char in 'FAILED CREDITS' %}
+       <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
+       letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
+   {% endfor %}
+   </b></p>
    </td>
    <td width="1%" rowspan=4 style='width:1.46%;border-top:none;border-left:
    none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
    padding:0 0 0 0;height:23.6pt'>
-   <p class=MsoNormal style='margin-top:0;margin-right:5.85pt;margin-bottom:
-   0;margin-left:6.1pt;margin-bottom:.0001pt;text-indent:.15pt;line-height:
-   104%;-webkit-transform:rotate(270deg);-moz-transform:rotate(270deg);-o-transform:rotate(270deg);-ms-transform:rotate(270deg)'><b><span lang=EN-US style='font-size:11.0pt;line-height:104%;
-   font-family:"Calibri",sans-serif;letter-spacing:1.5pt'>TOTAL&nbsp;CREDITS</span></b></p>
+   <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+   {% for char in 'TOTAL CREDITS' %}
+       <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
+       letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
+   {% endfor %}
+   </b></p>
    </td>
 
   {% if not first_sem_only %}
    <td width="14%" colspan={{ len_second_sem_carryovers }} rowspan=4 style='width:14.44%;border-top:none;
    border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
    padding:0 0 0 0;height:23.6pt'>
-   <p class=MsoNormal align=center style='text-align:center'><b><span
+   <p class=MsoNormal style='text-align:center'><b><span
    lang=EN-US style='font-size:14.0pt;font-family:"Calibri",sans-serif'>CARRYOVER COURSES</span></b></p>
    </td>
    <td width="13%" colspan={{ ((second_sem_courses | length) - rem_second_sem) + (second_sem_options | length) }}
@@ -303,25 +312,34 @@ style='font-size:4.5pt'></span></p>
    none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
    padding:0 0 0 0;height:23.6pt'>
    <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
-   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;-webkit-transform:rotate(270deg);-moz-transform:rotate(270deg);-o-transform:rotate(270deg);-ms-transform:rotate(270deg)'><b><span
-   lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;
-   letter-spacing:1.5pt'>PASSED&nbsp;CREDITS</span></b></p>
+   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+   {% for char in 'PASSED CREDITS' %}
+       <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
+       letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
+   {% endfor %}
+   </b></p>
    </td>
    <td width="1%" rowspan=4 style='width:1.14%;border-top:none;border-left:
    none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
    padding:0 0 0 0;height:23.6pt'>
-   <p class=MsoNormal style='margin-top:0;margin-right:5.85pt;margin-bottom:
-   0;margin-left:6.1pt;margin-bottom:.0001pt;text-indent:.15pt;line-height:
-   104%;-webkit-transform:rotate(270deg);-moz-transform:rotate(270deg);-o-transform:rotate(270deg);-ms-transform:rotate(270deg)'><b><span lang=EN-US style='font-size:11.0pt;line-height:104%;
-   font-family:"Calibri",sans-serif;letter-spacing:1.5pt'>FAILED&nbsp;CREDITS</span></b></p>
+   <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+   {% for char in 'FAILED CREDITS' %}
+       <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
+       letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
+   {% endfor %}
+   </b></p>
    </td>
    <td width="1%" rowspan=4 style='width:1.16%;border-top:none;border-left:
    none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
    padding:0 0 0 0;height:23.6pt'>
-   <p class=MsoNormal style='margin-top:0;margin-right:5.85pt;margin-bottom:
-   0;margin-left:6.1pt;margin-bottom:.0001pt;text-indent:.15pt;line-height:
-   104%;-webkit-transform:rotate(270deg);-moz-transform:rotate(270deg);-o-transform:rotate(270deg);-ms-transform:rotate(270deg)'><b><span lang=EN-US style='font-size:11.0pt;line-height:104%;
-   font-family:"Calibri",sans-serif;letter-spacing:1.5pt'>TOTAL&nbsp;CREDITS</span></b></p>
+   <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+   {% for char in 'TOTAL CREDITS' %}
+       <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
+       letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
+   {% endfor %}
+   </b></p>
    </td>
   {% endif %}
 
@@ -331,25 +349,34 @@ style='font-size:4.5pt'></span></p>
    none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
    padding:0 0 0 0;height:23.6pt'>
    <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
-   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;-webkit-transform:rotate(270deg);-moz-transform:rotate(270deg);-o-transform:rotate(270deg);-ms-transform:rotate(270deg)'><b><span
-   lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;
-   letter-spacing:1.5pt'>PASSED&nbsp;CREDITS</span></b></p>
+   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+   {% for char in 'PASSED CREDITS' %}
+       <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
+       letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
+   {% endfor %}
+   </b></p>
    </td>
    <td width="1%" rowspan=4 style='width:1.16%;border-top:none;border-left:
    none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
    padding:0 0 0 0;height:23.6pt'>
-   <p class=MsoNormal style='margin-top:0;margin-right:5.85pt;margin-bottom:
-   0;margin-left:6.1pt;margin-bottom:.0001pt;text-indent:.15pt;line-height:
-   104%;-webkit-transform:rotate(270deg);-moz-transform:rotate(270deg);-o-transform:rotate(270deg);-ms-transform:rotate(270deg)'><b><span lang=EN-US style='font-size:11.0pt;line-height:104%;
-   font-family:"Calibri",sans-serif;letter-spacing:1.5pt'>FAILED&nbsp;CREDITS</span></b></p>
+   <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+   {% for char in 'FAILED CREDITS' %}
+       <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
+       letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
+   {% endfor %}
+   </b></p>
    </td>
    <td width="1%" rowspan=4 style='width:1.16%;border-top:none;border-left:
    none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
    padding:0 0 0 0;height:23.6pt'>
-   <p class=MsoNormal style='margin-top:0;margin-right:5.85pt;margin-bottom:
-   0;margin-left:6.1pt;margin-bottom:.0001pt;text-indent:.15pt;line-height:
-   104%;-webkit-transform:rotate(270deg);-moz-transform:rotate(270deg);-o-transform:rotate(270deg);-ms-transform:rotate(270deg)'><b><span lang=EN-US style='font-size:11.0pt;line-height:104%;
-   font-family:"Calibri",sans-serif;letter-spacing:1.5pt'>TOTAL&nbsp;CREDITS</span></b></p>
+   <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+   {% for char in 'TOTAL CREDITS' %}
+       <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
+       letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
+   {% endfor %}
+   </b></p>
    </td>
   {% endif %}
 
@@ -371,16 +398,20 @@ style='font-size:4.5pt'></span></p>
    <td width="1%" rowspan=4 style='width:1.2%;border-top:none;border-left:none;
     border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
     padding:0 0 0 0;height:23.6pt'>
-   <p class=MsoNormal style='margin-top:1.2pt;margin-right:4.0pt;margin-bottom:
-    0;margin-left:2.45pt;margin-bottom:.0001pt;text-indent:-.1pt;-webkit-transform:rotate(270deg);-moz-transform:rotate(270deg);-o-transform:rotate(270deg);-ms-transform:rotate(270deg)'><b><span
-   lang=EN-US style='font-size:11.0pt;font-family:"Calibri",sans-serif'>CATEGORY</span></b></p>
+   <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+   {% for char in 'CATEGORY' %}
+       <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
+       letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
+   {% endfor %}
+   </b></p>
    </td>
   {% endif %}
 
   </tr>
 
 
-  <tr style='page-break-inside:avoid'>
+  <tr>
    <td width="19%" colspan=3 rowspan=2 style='width:19.2%;border:solid windowtext 1.0pt;
    border-top:none;padding:0 0 0 0;height:113.15pt'>
        <p class=MsoNormal align=center style='margin-top:0;margin-right:30.7pt;
@@ -410,20 +441,23 @@ style='font-size:4.5pt'></span></p>
    {% set first_sem_option_hit = False %}
    {% for course, credit, option in first_sem_courses %}
        {% if int(option) == 0 %}
-           <td width="1%" rowspan="2" style='width:1.32%;border-top:none;border-left:none;
+          <td width="1%" rowspan="2" style='width:1.32%;border-top:none;border-left:none;
                border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-               padding:0 0 0 0;height:113.15pt'>
+               padding:0 0 0 0;height:89.55pt'>
                <p class=MsoNormal style='margin-top:.5pt;margin-right:5.1pt;margin-bottom:
-               0;margin-left:5.25pt;margin-bottom:.0001pt;-webkit-transform:rotate(270deg);-moz-transform:rotate(270deg);-o-transform:rotate(270deg);-ms-transform:rotate(270deg)'><b><span lang=EN-US
-               style='font-size:11.0pt;font-family:"Calibri",sans-serif;letter-spacing:
-               3.0pt'>{{ course }}</span></b></p>
+               0;margin-left:5.25pt;margin-bottom:.0001pt;text-align: center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+                   {% for char in course %}
+                   <span lang=EN-US style='font-size:11.0pt;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;letter-spacing:3.0pt'>
+                       {{ char }}</span>
+                   {% endfor %}
+               </b></p>
            </td>
        {% elif int(option) == 1 and not first_sem_option_hit%}
            {% set first_sem_option_hit = True %}
-           <td rowspan="1" colspan="{{ first_sem_options | length }}" width="88" style='width:6.5%;border-top:none;
+           <td rowspan="1" colspan="{{ first_sem_options | length }}" style='border-top:none;
               border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0 0 0 0;
               height:23.6pt'>
-              <p class=MsoNormal align=center style='text-align:center;line-height:13.0pt'><b>
+              <p class=MsoNormal style='text-align:center;line-height:13.0pt'><b>
               <span lang=EN-US style='font-size:12.0pt;font-family:"Calibri",sans-serif'>OPTIONAL COURSES</span></b></p>
           </td>
        {% endif %}
@@ -433,13 +467,16 @@ style='font-size:4.5pt'></span></p>
    {% set second_sem_option_hit = False %}
    {% for course, credit, option in second_sem_courses %}
        {% if int(option) == 0 %}
-           <td width="1%" rowspan="2" style='width:1.32%;border-top:none;border-left:none;
+          <td width="1%" rowspan="2" style='width:1.32%;border-top:none;border-left:none;
                border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-               padding:0 0 0 0;height:113.15pt'>
+               padding:0 0 0 0;height:89.55pt'>
                <p class=MsoNormal style='margin-top:.5pt;margin-right:5.1pt;margin-bottom:
-               0;margin-left:5.25pt;margin-bottom:.0001pt;-webkit-transform:rotate(270deg);-moz-transform:rotate(270deg);-o-transform:rotate(270deg);-ms-transform:rotate(270deg)'><b><span lang=EN-US
-               style='font-size:11.0pt;font-family:"Calibri",sans-serif;letter-spacing:
-               3.0pt'>{{ course }}</span></b></p>
+               0;margin-left:5.25pt;margin-bottom:.0001pt;text-align: center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+                   {% for char in course %}
+                   <span lang=EN-US style='font-size:11.0pt;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;letter-spacing:3.0pt'>
+                       {{ char }}</span>
+                   {% endfor %}
+               </b></p>
            </td>
        {% elif int(option) == 2 and not second_sem_option_hit%}
            {% set second_sem_option_hit = True %}
@@ -459,11 +496,14 @@ style='font-size:4.5pt'></span></p>
       {% for course, credit, option in first_sem_options %}
           <td width="1%" style='width:1.32%;border-top:none;border-left:none;
                border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-           padding:0 0 0 0;height:89.55pt'>
-              <p class=MsoNormal style='margin-top:.5pt;margin-right:5.1pt;margin-bottom:
-           0;margin-left:5.25pt;margin-bottom:.0001pt;-webkit-transform:rotate(270deg);-moz-transform:rotate(270deg);-o-transform:rotate(270deg);-ms-transform:rotate(270deg)'><b><span lang=EN-US
-              style='font-size:11.0pt;font-family:"Calibri",sans-serif;letter-spacing:
-           3.0pt'>{{ course }}</span></b></p>
+               padding:0 0 0 0;height:89.55pt'>
+               <p class=MsoNormal style='margin-top:.5pt;margin-right:5.1pt;margin-bottom:
+               0;margin-left:5.25pt;margin-bottom:.0001pt;text-align: center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+                   {% for char in course %}
+                   <span lang=EN-US style='font-size:11.0pt;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;letter-spacing:3.0pt'>
+                       {{ char }}</span>
+                   {% endfor %}
+               </b></p>
           </td>
       {% endfor %}
   {% endif %}
@@ -473,10 +513,13 @@ style='font-size:4.5pt'></span></p>
           <td width="1%" style='width:1.32%;border-top:none;border-left:none;
                border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
            padding:0 0 0 0;height:89.55pt'>
-              <p class=MsoNormal style='margin-top:.5pt;margin-right:5.1pt;margin-bottom:
-           0;margin-left:5.25pt;margin-bottom:.0001pt;-webkit-transform:rotate(270deg);-moz-transform:rotate(270deg);-o-transform:rotate(270deg);-ms-transform:rotate(270deg)'><b><span lang=EN-US
-              style='font-size:11.0pt;font-family:"Calibri",sans-serif;letter-spacing:
-           3.0pt'>{{ course }}</span></b></p>
+               <p class=MsoNormal style='margin-top:.5pt;margin-right:5.1pt;margin-bottom:
+               0;margin-left:5.25pt;margin-bottom:.0001pt;text-align: center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+                   {% for char in course %}
+                   <span lang=EN-US style='font-size:11.0pt;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;letter-spacing:3.0pt'>
+                       {{ char }}</span>
+                   {% endfor %}
+               </b></p>
           </td>
       {% endfor %}
   {% endif %}
