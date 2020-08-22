@@ -12,9 +12,11 @@ well as updating gpa record of the student
 """
 import os.path
 from copy import deepcopy
+from colorama import init, Fore, Style
 from sms.src import course_reg_utils, personal_info, course_details, utils
 from sms.src.users import access_decorator
 
+init()  # initialize colorama
 
 @access_decorator
 def get(mat_no, acad_session):
@@ -64,16 +66,15 @@ def get_results_for_acad_session(mat_no, acad_session, return_empty=False):
     if results:
         # remove extra fields from results
         results, level_written, tcp, category = refine_res_poll_item(results)
-
-        regular_courses = split_courses_by_semester(multisort(results['regular_courses']), 4)
-        carryovers = split_courses_by_semester(multisort(results['carryovers']), 4)
-        unusual_results = split_courses_by_semester(multisort(results['unusual_results']), 4)
-
     elif return_empty:
-        regular_courses, carryovers, unusual_results = [], [], []
+        result = {'regular_courses': [], 'carryovers': [], 'unusual_results': []}
         level_written, tcp, category = '', 0, ''
     else:
         return 'No result available for entered session', 404
+
+    regular_courses = split_courses_by_semester(multisort(results['regular_courses']), 4)
+    carryovers = split_courses_by_semester(multisort(results['carryovers']), 4)
+    unusual_results = split_courses_by_semester(multisort(results['unusual_results']), 4)
 
     frame = {'mat_no': mat_no,
              'table': table_to_populate,
@@ -106,7 +107,7 @@ def get_results_for_level(mat_no, level_written, return_empty=False):
         if result:
             result, level_written, tcp, category = refine_res_poll_item(result)
         elif return_empty:
-            regular_courses, carryovers, unusual_results = [], [], []
+            result = {'regular_courses': [], 'carryovers': [], 'unusual_results': []}
             level_written, tcp, category = '', 0, ''
         else:
             continue
@@ -146,12 +147,17 @@ def add_result_records(list_of_results):
     result_errors_file = open(os.path.join(base_dir, '../../result_errors.txt'), 'a')
     error_log = []
 
-    # todo: initialize a dictionary of course details here and pass to "add_single_result_record"
-    #       this should include all the courses in set(list_of_results[*][0])
-    #       or grow this dictionary lazily
+    # Initialize a dictionary of course details for all courses in list_of_results
+    courses = list(set(list(zip(*list_of_results))[0]))
+    try:
+        course_details_dict = {course: course_details.get(course) for course in courses}
+    except:
+        # for any error, set this to an empty dict, individual calls will be made
+        # and the error course would fail gracefully
+        course_details_dict = {}
 
     for index, result_details in enumerate(list_of_results):
-        errors, status_code = add_single_result_record(index, result_details, result_errors_file)
+        errors, status_code = add_single_result_record(index, result_details, result_errors_file, course_details_dict)
         error_log.extend(errors)
 
     result_errors_file.close()
@@ -160,7 +166,7 @@ def add_result_records(list_of_results):
     return error_log, 200
 
 
-def add_single_result_record(index, result_details, result_errors_file):
+def add_single_result_record(index, result_details, result_errors_file, course_details_dict):
     """
 
     :param index: position of entry in the larger list --for tracking
@@ -189,14 +195,18 @@ def add_single_result_record(index, result_details, result_errors_file):
         print('\n[WARNING]: ', error_log[-1])
         return error_log, 404
 
-    try:
+    if course_code in course_details_dict and course_details_dict[course_code]:
+        course_dets = course_details_dict[course_code]
+    else:
+        # if there was error in initializing course_details_dict, individual calls would be made
         course_dets = course_details.get(course_code)
-    except Exception as e:
-        error_text = '{} at index {} was not found in the database'.format(course_code, index)
-        result_errors_file.writelines(str(result_details) + '  error: ' + error_text + '\n')
-        error_log.append(error_text)
-        print('\n[WARNING]: ', error_log[-1])
-        return error_log, 404
+        if not course_dets:
+            # fail on non-existent course(s)
+            error_text = '{} at index {} was not found in the database'.format(course_code, index)
+            result_errors_file.writelines(str(result_details) + '  error: ' + error_text + '\n')
+            error_log.append(error_text)
+            print('\n[WARNING]: ', error_log[-1], Style.RESET_ALL,)
+            return error_log, 404
 
     course_credit = course_dets['course_credit']
     course_level = course_dets['course_level']
