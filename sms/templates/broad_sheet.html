@@ -640,8 +640,13 @@ style='font-size:4.5pt'></span></p>
   <td width="13%" style='width:13.0%;border-top:none;border-left:none;
   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
   padding:0 0 0 0;height:43.2pt'>
+  {% if index_to_display == 0 %}
   <p class=MsoNormal style='margin-left:4.05pt;margin-right:4.05pt'><span lang=EN-US style='font-size:11.0pt;font-family:"Calibri",sans-serif'>
       {{ students[student]['othernames'] | safe }} <b>{{ surname[0] | safe }}</b> {{  surname[1] if (surname | length) > 1  else '' }}</span></p>
+  {% else %}
+  <p class=MsoNormal style='margin-left:4.05pt;margin-right:4.05pt'><span lang=EN-US style='font-size:11.0pt;font-family:"Calibri",sans-serif'>
+      {{ empty_value }}&nbsp;</span></p>
+  {% endif %}
   </td>
 
 
