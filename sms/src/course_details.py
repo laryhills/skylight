@@ -48,18 +48,19 @@ def post(course):
 
 @access_decorator
 def put(data):
-    error_log = []
+    modified = []
     for course in data:
-        course_obj = Courses.query.filter_by(course_code=course['course_code']).first()
+        course_code = course["course_code"]
+        course_obj = Courses.query.filter_by(course_code=course_code).first()
         if not course_obj:
-            msg = course['course_code'] + ' not found'
-            error_log.append(msg)
-            continue
+            return None, 404
         for k, v in course.items():
             setattr(course_obj, k, v)
+        modified.append(course_obj)
+    for course_obj in modified:
         db.session.add(course_obj)
     db.session.commit()
-    return error_log, 200
+    return None, 200
 
 
 @access_decorator
