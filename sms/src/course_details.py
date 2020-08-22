@@ -1,9 +1,9 @@
-from json import dumps
 from sms.config import db
 from sms.src.users import access_decorator
 from sms.models.courses import Courses, CoursesSchema, Options
 
 # TODO Create endpoint for teaching departments
+
 
 def get(course_code):
     course = Courses.query.filter_by(course_code=course_code).first()
