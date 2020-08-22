@@ -14,12 +14,14 @@
 	panose-1:2 15 5 2 2 2 4 3 2 4;}
 @font-face
 	{font-family:"Bodoni MT Black";}
+
  /* Style Definitions */
  p.MsoNormal, li.MsoNormal, div.MsoNormal
 	{margin:0;
 	margin-bottom:.0001pt;
 	font-size:10.0pt;
 	font-family:"Times New Roman",serif;}
+
 h1
 	{mso-style-link:"Heading 1 Char";
 	margin-top:12.0pt;
@@ -873,7 +875,7 @@ style='font-size:4.5pt'></span></p>
   {% if level == 500 and grad_status == 1 and not first_sem_only %}
       <p class=MsoNormal style="margin-left:4.05pt; margin-right:4.05pt;text-align:center"><span lang=EN-US style='font-size:8.0pt;font-family:"Calibri",sans-serif;color:black'>
           {{ students[student]['cgpa'] }}</span></p>
-      <p class=MsoNormal style="margin-left:4.05pt; margin-right:4.05pt"><span lang=EN-US style='font-size:8.0pt;font-family:"Calibri",sans-serif;color:black'>
+      <p class=MsoNormal style="margin-left:4.05pt; margin-right:4.05pt;text-align:center"><span lang=EN-US style='font-size:8.0pt;font-family:"Calibri",sans-serif;color:black'>
           {{ students[student]['degree_class'] }}</span></p>
   {% else %}
       <p class=MsoNormal style="margin-left:4.05pt; margin-right:4.05pt"><span lang=EN-US style='font-size:8.0pt;font-family:"Calibri",sans-serif;color:black'>
@@ -884,7 +886,7 @@ style='font-size:4.5pt'></span></p>
  {% if level != 500 and not first_sem_only %}
   <td width="1%" style='width:1.2%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
       border-right:solid windowtext 1.0pt;padding:0 0 0 0;height:43.2pt'>
-      <p class=MsoNormal align=center style='text-align:center'><b><span lang=EN-US style='font-size:9.0pt;
+      <p class=MsoNormal style='text-align:center'><b><span lang=EN-US style='font-size:9.0pt;
       font-family:"Calibri",sans-serif;color:black'>{{ students[student]['category'] }}</span></b></p>
   </td>
  {% endif %}
