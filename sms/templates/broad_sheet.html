@@ -239,7 +239,7 @@ style='font-size:4.5pt'></span></p>
       {% set rem_cols = 0 %}
   {% endif %}
 
-   <td width="15%" colspan={{ 5 - rem_cols }} valign=top style='width:15.86%;border:solid windowtext 1.0pt;
+   <td width="15%" colspan={{ 5 - rem_cols }} style='width:15.86%;border:solid windowtext 1.0pt;
    border-left:none;padding:0 0 0 0;height:24.05pt'><p class=MsoNormal align=center style='text-align:center'><b>
     <span lang=EN-US style='font-size:16.0pt;font-family:"Calibri",sans-serif;'>
      OVERALL</span></b></p>
@@ -414,10 +414,14 @@ style='font-size:4.5pt'></span></p>
   <tr>
    <td width="19%" colspan=3 rowspan=2 style='width:19.2%;border:solid windowtext 1.0pt;
    border-top:none;padding:0 0 0 0;height:113.15pt'>
+              <p class=MsoNormal align=center style='margin-top:0;margin-right:30.7pt;
+       margin-bottom:0;margin-left:18.7pt;margin-bottom:.0001pt;text-align:center'>
+           <b><span lang=EN-US style='font-size:14.0pt;font-family:"Calibri"'>
+               &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/></span></b></p>
        <p class=MsoNormal align=center style='margin-top:0;margin-right:30.7pt;
        margin-bottom:0;margin-left:18.7pt;margin-bottom:.0001pt;text-align:center'>
            <b><span lang=EN-US style='font-size:14.0pt;font-family:"Calibri";'>
-               Department of Mechanical Engineering,</span></b></p>
+               Department&nbsp;of&nbsp;Mechanical Engineering,</span></b></p>
        <p class=MsoNormal align=center style='margin-top:0;margin-right:30.7pt;
        margin-bottom:0;margin-left:18.7pt;margin-bottom:.0001pt;text-align:center'>
            <b><span lang=EN-US style='font-size:14.0pt;font-family:"Calibri";'>
@@ -430,9 +434,9 @@ style='font-size:4.5pt'></span></p>
        margin-bottom:0;margin-left:18.7pt;margin-bottom:.0001pt;text-align:center'>
            <b><span lang=EN-US style='font-size:14.0pt;font-family:"Calibri"'>
                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/></span></b></p>
-       <p class=MsoNormal align=center style='margin-right:20.2pt;text-align:center'>
+       <p class=MsoNormal align=center style='margin-right:20.2pt;margin-left:20.2pt;text-align:center'>
            <b><span lang=EN-US style='font-size:14.0pt;font-family:"Calibri"'>
-               {{ level }} Level Raw Score Broad-Sheet</span></b></p>
+               {{ level }}&nbsp;Level&nbsp;{{ 'Raw' if index_to_display == 0 else 'Letter' }}&nbsp;{{ 'Score' if index_to_display == 0 else 'Grade' }}&nbsp;Broad&#x2011;Sheet</span></b></p>
    </td>
 
 
@@ -484,7 +488,7 @@ style='font-size:4.5pt'></span></p>
            </td>
        {% elif int(option) == 2 and not second_sem_option_hit%}
            {% set second_sem_option_hit = True %}
-           <td rowspan="1" colspan="{{ second_sem_options | length }}" width="88" style='width:6.5%;border-top:none;
+           <td rowspan="1" colspan="{{ second_sem_options | length }}" style='width:6.5%;border-top:none;
               border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0 0 0 0;
               height:23.6pt'>
               <p class=MsoNormal align=center style='text-align:center;line-height:13.0pt'><b>
