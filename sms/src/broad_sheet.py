@@ -1,7 +1,6 @@
 import os.path
-import subprocess
-
 import pdfkit
+import subprocess
 from datetime import date
 from time import perf_counter
 from secrets import token_hex
@@ -128,24 +127,17 @@ def render_html(mat_nos, acad_session, level, index_to_display, first_sem_only=F
 def generate_pdf(html, level, file_name):
     pdf_name = file_name + '_' + str(level) + '.pdf'
     options = {
+        'footer-html': os.path.join(cache_base_dir, file_name + '_footer.html'),
         'page-size': 'A3',
         'orientation': 'landscape',
-        # 'page-height': '420mm',  # <unitreal> like margin',
-        # 'page-width': '297mm',  # <unitreal> like margin',
-        # 'margin: 36.0pt, 21.6pt, 72.0pt, 21.6pt'
         'margin-top': '0.5in',
         'margin-right': '0.3in',
         'margin-bottom': '1.5in',
         'margin-left': '0.3in',
-
-        'footer-html': os.path.join(cache_base_dir, file_name + '_footer.html'),
-        # 'minimum-font-size': 12,
-        # 'encoding': "UTF-8",
         # 'disable-smart-shrinking': None,
         'enable-local-file-access': None,
         'print-media-type': None,
         'no-outline': None,
-        # 'use-xserver': None,
         'dpi': 100,
         'log-level': 'warn',  # error, warn, info, none
     }
