@@ -10,16 +10,6 @@ def get(course_code):
     return CoursesSchema().dump(course)
 
 
-def get_course_details(course_code=None, level=None, options=True, inactive=False):
-    if course_code:
-        output = [get(course_code)]
-    else:
-        output = get_all(level, options, inactive)
-    if output:
-        return output, 200
-    return None, 404
-
-
 def get_all(level=None, options=True, inactive=False):
     courses = Courses.query
     if level:
@@ -37,6 +27,17 @@ def get_all(level=None, options=True, inactive=False):
     return CoursesSchema(many=True).dump(course_list)
 
 
+def get_course_details(course_code=None, level=None, options=True, inactive=False):
+    if course_code:
+        output = get(course_code)
+        output = [output] if output else []
+    else:
+        output = get_all(level, options, inactive)
+    if output:
+        return output, 200
+    return None, 404
+
+
 @access_decorator
 def post(course):
     course_obj = Courses(**course)
@@ -49,9 +50,7 @@ def post(course):
 def put(data):
     error_log = []
     for course in data:
-        course_level = course['course_level']
-        exec('from sms.models.courses import Courses{} as Courses'.format(course_level))
-        course_obj = eval('Courses').query.filter_by(course_code=course['course_code']).first()
+        course_obj = Courses.query.filter_by(course_code=course['course_code']).first()
         if not course_obj:
             msg = course['course_code'] + ' not found'
             error_log.append(msg)
