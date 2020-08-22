@@ -85,7 +85,7 @@ def render_html(mat_nos, acad_session, level, index_to_display, first_sem_only=F
     empty_value = ' '
 
     # get semester courses (with one placeholder option)
-    level_courses = course_details.get_all(level=level)
+    level_courses = course_details.get_all(level=level, options=False)
     first_sem_courses = multisort([(x['course_code'], x['course_credit'], x['options']) for x in level_courses if
                                    x['course_semester'] == 1])
     second_sem_courses = multisort([(x['course_code'], x['course_credit'], x['options']) for x in level_courses if
@@ -118,9 +118,9 @@ def render_html(mat_nos, acad_session, level, index_to_display, first_sem_only=F
         first_sem_options=first_sem_options, second_sem_options=second_sem_options,
         students=students, session=acad_session, level=level, first_sem_only=first_sem_only,
     )
-    # filename = os.path.join(os.path.expanduser('~'), f'{level}.html')
-    # open(filename, 'w').write(html)
-    # subprocess.run(['google-chrome', filename])
+    filename = os.path.join(os.path.expanduser('~'), f'{level}.html')
+    open(filename, 'w').write(html)
+    subprocess.run(['google-chrome', filename])
     return html, level
 
 
