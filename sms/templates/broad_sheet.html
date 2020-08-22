@@ -203,7 +203,7 @@ style='font-size:4.5pt'></span></p>
  style='width:100.0%;border-collapse:collapse;border:none'>
  <thead>
   <tr style='height:24.05pt'>
-   <td width="19%" colspan=3 rowspan=2 style='width:19.2%;border:solid windowtext 1.0pt;
+   <td width="19%" colspan=3 rowspan=2 style='border:solid windowtext 1.0pt;
    padding:0 0 0 0;height:24.05pt'>
    <p class=MsoNormal align=center style='text-align:center'><b><span
    lang=EN-US style='font-size:16.0pt;font-family:"Calibri",sans-serif'>{{ session }}/{{ session + 1 }} SESSION</span></b></p>
@@ -214,18 +214,17 @@ style='font-size:4.5pt'></span></p>
     {% set rem_second_sem = 1 if second_sem_options else 0 %}
    <td width="33%"
    colspan={{ len_first_sem_carryovers + ((first_sem_courses | length) - rem_first_sem)  + (first_sem_options | length) + 3 }}
-   style='width:33.2%;border:solid windowtext 1.0pt;border-left:none;padding:0 0 0 0;height:24.05pt'>
-   <p class=MsoNormal align=center style='margin-right:152.15pt;text-align:
-   center;line-height:12.0pt'><b><span lang=EN-US style='font-size:16.0pt;
+   style='border:solid windowtext 1.0pt;border-left:none;padding:0 0 0 0;height:24.05pt'>
+   <p class=MsoNormal align=center style='text-align:center;line-height:12.0pt'><b><span lang=EN-US style='font-size:16.0pt;
    font-family:"Calibri",sans-serif;'>
    FIRST SEMESTER</span></b></p>
    </td>
 
   {% if not first_sem_only %}
-   <td width="31%"
+   <td width="33%"
    colspan={{ len_second_sem_carryovers + ((second_sem_courses | length) - rem_second_sem) + (second_sem_options | length) + 3 }}
-   style='width:31.74%;border:solid windowtext 1.0pt;border-left:none;padding:0 0 0 0;height:24.05pt'>
-   <p class=MsoNormal align=center style='margin-right:154.25pt;text-align:center;line-height:12.0pt'><b>
+   style='border:solid windowtext 1.0pt;border-left:none;padding:0 0 0 0;height:24.05pt'>
+   <p class=MsoNormal align=center style='text-align:center;line-height:12.0pt'><b>
     <span lang=EN-US style='font-size:16.0pt;font-family:"Calibri",sans-serif'>
      SECOND SEMESTER</span></b></p>
    </td>
@@ -263,39 +262,18 @@ style='font-size:4.5pt'></span></p>
    <p class=MsoNormal align=center style='text-align:center;line-height:13.0pt'><b>
      <span lang=EN-US style='font-size:12.0pt;font-family:"Calibri",sans-serif'>REGULAR COURSES</span></b></p>
    </td>
-   <td width="1%" valign="bottom" rowspan=4 style='width:1.4%;border-top:none;border-left:none;
-   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-   padding:0 0 10pt 0;height:23.6pt;text-align: center'>
-   <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
-   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
-   {% for char in 'PASSED CREDITS' %}
-       <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
-       letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
-   {% endfor %}
-   </b></p>
-   </td>
-   <td width="1%" valign="bottom" rowspan=4 style='width:1.44%;border-top:none;border-left:
-   none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-   padding:0 0 10pt 0;height:23.6pt'>
-   <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
-   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
-   {% for char in 'FAILED CREDITS' %}
-       <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
-       letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
-   {% endfor %}
-   </b></p>
-   </td>
-   <td width="1%" valign="bottom" rowspan=4 style='width:1.46%;border-top:none;border-left:
-   none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-   padding:0 0 10pt 0;height:23.6pt'>
-   <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
-   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
-   {% for char in 'TOTAL CREDITS' %}
-       <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
-       letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
-   {% endfor %}
-   </b></p>
-   </td>
+
+  {% for _ in range(3) %}
+      <td width="1%" rowspan="2" valign="bottom" style='width:1.4%;border-top:none;border-left:none;
+      border-bottom:none;border-right:solid windowtext 1.0pt;
+      padding:0 0 10pt 0;height:23.6pt;text-align: center'>
+      <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+      0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;'><b>
+          <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;
+          letter-spacing:1.5pt'>&nbsp;</span>
+      </b></p>
+      </td>
+  {% endfor %}
 
   {% if not first_sem_only %}
    <td width="14%" colspan={{ len_second_sem_carryovers }} rowspan=4 style='width:14.44%;border-top:none;
@@ -310,76 +288,32 @@ style='font-size:4.5pt'></span></p>
    <p class=MsoNormal align=center style='text-align:center;line-height:13.0pt'><b><span
    lang=EN-US style='font-size:12.0pt;font-family:"Calibri",sans-serif'>REGULAR COURSES</span></b></p>
    </td>
-   <td width="1%" valign="bottom" rowspan=4 style='width:1.36%;border-top:none;border-left:
-   none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-   padding:0 0 10pt 0;height:23.6pt'>
-   <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
-   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
-   {% for char in 'PASSED CREDITS' %}
-       <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
-       letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
+   {% for _ in range(3) %}
+       <td width="1%" rowspan="2" valign="bottom" style='width:1.4%;border-top:none;border-left:none;
+       border-bottom:none;border-right:solid windowtext 1.0pt;
+       padding:0 0 10pt 0;height:23.6pt;text-align: center'>
+       <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+       0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;'><b>
+           <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;
+           letter-spacing:1.5pt'>&nbsp;</span>
+       </b></p>
+       </td>
    {% endfor %}
-   </b></p>
-   </td>
-   <td width="1%" valign="bottom" rowspan=4 style='width:1.14%;border-top:none;border-left:
-   none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-   padding:0 0 10pt 0;height:23.6pt'>
-   <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
-   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
-   {% for char in 'FAILED CREDITS' %}
-       <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
-       letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
-   {% endfor %}
-   </b></p>
-   </td>
-   <td width="1%" valign="bottom" rowspan=4 style='width:1.16%;border-top:none;border-left:
-   none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-   padding:0 0 10pt 0;height:23.6pt'>
-   <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
-   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
-   {% for char in 'TOTAL CREDITS' %}
-       <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
-       letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
-   {% endfor %}
-   </b></p>
-   </td>
   {% endif %}
 
 
   {% if not first_sem_only %}
-   <td width="1%" valign="bottom" rowspan=4 style='width:1.16%;border-top:none;border-left:
-   none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-   padding:0 0 10pt 0;height:23.6pt'>
-   <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
-   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
-   {% for char in 'PASSED CREDITS' %}
-       <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
-       letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
-   {% endfor %}
-   </b></p>
-   </td>
-   <td width="1%" valign="bottom" rowspan=4 style='width:1.16%;border-top:none;border-left:
-   none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-   padding:0 0 10pt 0;height:23.6pt'>
-   <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
-   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
-   {% for char in 'FAILED CREDITS' %}
-       <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
-       letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
-   {% endfor %}
-   </b></p>
-   </td>
-   <td width="1%" valign="bottom" rowspan=4 style='width:1.16%;border-top:none;border-left:
-   none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-   padding:0 0 10pt 0;height:23.6pt'>
-   <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
-   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
-   {% for char in 'TOTAL CREDITS' %}
-       <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
-       letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
-   {% endfor %}
-   </b></p>
-   </td>
+      {% for _ in range(3) %}
+       <td width="1%" rowspan="2" valign="bottom" style='width:1.4%;border-top:none;border-left:none;
+       border-bottom:none;border-right:solid windowtext 1.0pt;
+       padding:0 0 10pt 0;height:23.6pt;text-align: center'>
+       <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+       0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;'><b>
+           <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;
+           letter-spacing:1.5pt'>&nbsp;</span>
+       </b></p>
+       </td>
+      {% endfor %}
   {% endif %}
 
    <td width="11%" rowspan=4 style='width:11.18%;border-top:none;border-left:
@@ -397,15 +331,13 @@ style='font-size:4.5pt'></span></p>
    </td>
 
   {% if level != 500 and not first_sem_only %}
-   <td width="1%" valign="bottom" rowspan=4 style='width:1.2%;border-top:none;border-left:none;
-    border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-    padding:0 0 10pt 0;height:23.6pt'>
+   <td width="1%" rowspan="2" valign="bottom" style='width:1.4%;border-top:none;border-left:none;
+   border-bottom:none;border-right:solid windowtext 1.0pt;
+   padding:0 0 10pt 0;height:23.6pt;text-align: center'>
    <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
-   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
-   {% for char in 'CATEGORY' %}
-       <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
-       letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
-   {% endfor %}
+   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;'><b>
+       <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;
+       letter-spacing:1.5pt'>&nbsp;</span>
    </b></p>
    </td>
   {% endif %}
@@ -441,25 +373,15 @@ style='font-size:4.5pt'></span></p>
                {{ level }}&nbsp;Level&nbsp;{{ 'Raw' if index_to_display == 0 else 'Letter' }}&nbsp;{{ 'Score' if index_to_display == 0 else 'Grade' }}&nbsp;Broad&#x2011;Sheet</span></b></p>
    </td>
 
-
-   {# Populating courses row #}
-
    {% set first_sem_option_hit = False %}
    {% for course, credit, option in first_sem_courses %}
        {% if int(option) == 0 %}
-          <td width="1%" rowspan="2" valign="bottom" style='width:1.32%;border-top:none;border-left:none;
-               border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-               padding:0 0 10pt 0;height:89.55pt'>
-               <p class=MsoNormal style='margin-top:.5pt;margin-right:5.1pt;
-               margin-left:5.25pt;margin-bottom:.0001pt;text-align: center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
-               {# bypass the fix for column width if there is only one course #}
-               {% set course = [course] if (first_sem_courses | length) == 1 else course %}
-                   {% for char in course %}
-                   <span lang=EN-US style='font-size:11.0pt;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;letter-spacing:3.0pt'>
-                       {{ char }}</span>
-                   {% endfor %}
-               </b></p>
-           </td>
+            <td rowspan="1" style='border-top:none;border-bottom:none;
+                border-left:none;border-right:solid windowtext 1.0pt;padding:0 0 0 0;height:23.6pt'>
+                <p class=MsoNormal align=center style='text-align:center;line-height:13.0pt'><b>
+                    <span lang=EN-US style='font-size:12.0pt;font-family:"Calibri",sans-serif'>&nbsp;</span>
+                </b></p>
+            </td>
        {% elif int(option) == 1 and not first_sem_option_hit%}
            {% set first_sem_option_hit = True %}
            <td rowspan="1" colspan="{{ first_sem_options | length }}" style='border-top:none;
@@ -475,11 +397,111 @@ style='font-size:4.5pt'></span></p>
    {% set second_sem_option_hit = False %}
    {% for course, credit, option in second_sem_courses %}
        {% if int(option) == 0 %}
-          <td width="1%" rowspan="2" valign="bottom" style='width:1.32%;border-top:none;border-left:none;
+            <td rowspan="1" style='border-top:none;border-bottom:none;
+                border-left:none;border-right:solid windowtext 1.0pt;padding:0 0 0 0;height:23.6pt'>
+                <p class=MsoNormal align=center style='text-align:center;line-height:13.0pt'><b>
+                    <span lang=EN-US style='font-size:12.0pt;font-family:"Calibri",sans-serif'>&nbsp;</span>
+                </b></p>
+            </td>
+       {% elif int(option) == 2 and not second_sem_option_hit%}
+           {% set second_sem_option_hit = True %}
+           <td rowspan="1" colspan="{{ second_sem_options | length }}" style='border-top:none;
+              border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0 0 0 0;
+              height:23.6pt'>
+              <p class=MsoNormal style='text-align:center;line-height:13.0pt'><b>
+              <span lang=EN-US style='font-size:12.0pt;font-family:"Calibri",sans-serif'>OPTIONAL COURSES</span></b></p>
+          </td>
+       {% endif %}
+   {% endfor %}
+   {% endif %}
+  </tr>
+
+
+  {# Populating courses row #}
+
+  <tr>
+   {% set first_sem_option_hit = False %}
+   {% for course, credit, option in first_sem_courses %}
+       {% if int(option) == 0 %}
+           <td valign="bottom" style='width:12pt;border-top:none;border-left:none;
                border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
                padding:0 0 10pt 0;height:89.55pt'>
-               <p class=MsoNormal style='margin-top:.5pt;margin-right:5.1pt;margin-bottom:
-               0;margin-left:5.25pt;margin-bottom:.0001pt;text-align: center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+               <p class=MsoNormal style='margin-top:.5pt;margin-right:5.1pt;
+               margin-left:5.25pt;margin-bottom:5.25pt;text-align: center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+               {# bypass the fix for column width if there is only one course #}
+               {% set course = [course] if (first_sem_courses | length) == 1 else course %}
+                   {% for char in course %}
+                   <span lang=EN-US style='font-size:11.0pt;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;letter-spacing:3.0pt'>
+                       {{ char }}</span>
+                   {% endfor %}
+               </b></p>
+           </td>
+       {% elif int(option) == 1 and not first_sem_option_hit%}
+           {% set first_sem_option_hit = True %}
+           {% for course, credit, option in first_sem_options %}
+               <td valign="bottom" style='width:12pt;border-top:none;border-left:none;
+                   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+                   padding:0 0 10pt 0;height:89.55pt'>
+                   <p class=MsoNormal style='margin-top:.5pt;margin-right:5.1pt;
+                   margin-left:5.25pt;margin-bottom:5.25pt;text-align: center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+                       {% for char in course %}
+                       <span lang=EN-US style='font-size:11.0pt;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;letter-spacing:3.0pt'>
+                           {{ char }}</span>
+                       {% endfor %}
+                   </b></p>
+               </td>
+           {% endfor %}
+       {% endif %}
+   {% endfor %}
+
+
+   {# passed, failed, total credits; first semester #}
+   <td width="1%" valign="bottom" rowspan=2 style='width:1.4%;border-top:none;border-left:none;
+   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+   padding:0 0 10pt 0;height:116.75pt;text-align: center'>
+   <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+   {% for char in 'PASSED CREDITS' %}
+       <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
+       letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
+   {% endfor %}
+   </b></p>
+   </td>
+   <td width="1%" valign="bottom" rowspan=2 style='width:1.44%;border-top:none;border-left:
+   none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+   padding:0 0 10pt 0;height:116.75pt'>
+   <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+   {% for char in 'FAILED CREDITS' %}
+       <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
+       letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
+   {% endfor %}
+   </b></p>
+   </td>
+   <td width="1%" valign="bottom" rowspan=2 style='width:1.46%;border-top:none;border-left:
+   none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+   padding:0 0 10pt 0;height:116.75pt'>
+   <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+   {% for char in 'TOTAL CREDITS' %}
+       <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
+       letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
+   {% endfor %}
+   </b></p>
+   </td>
+
+
+   {# second semester #}
+
+   {% if not first_sem_only %}
+   {% set second_sem_option_hit = False %}
+   {% for course, credit, option in second_sem_courses %}
+       {% if int(option) == 0 %}
+           <td valign="bottom" style='width:12pt;border-top:none;border-left:none;
+               border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+               padding:0 0 10pt 0;height:89.55pt'>
+               <p class=MsoNormal style='margin-top:.5pt;margin-right:5.1pt;
+               margin-left:5.25pt;margin-bottom:5.25pt;text-align: center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
                {# bypass the fix for column width if there is only one course #}
                {% set course = [course] if (second_sem_courses | length) == 1 else course %}
                    {% for char in course %}
@@ -490,51 +512,117 @@ style='font-size:4.5pt'></span></p>
            </td>
        {% elif int(option) == 2 and not second_sem_option_hit%}
            {% set second_sem_option_hit = True %}
-           <td rowspan="1" colspan="{{ second_sem_options | length }}" style='width:6.5%;border-top:none;
-              border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0 0 0 0;
-              height:23.6pt'>
-              <p class=MsoNormal align=center style='text-align:center;line-height:13.0pt'><b>
-              <span lang=EN-US style='font-size:12.0pt;font-family:"Calibri",sans-serif'>OPTIONAL COURSES</span></b></p>
-          </td>
+           {% for course, credit, option in second_sem_options %}
+               <td valign="bottom" style='width:12pt;border-top:none;border-left:none;
+                   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+                   padding:0 0 10pt 0;height:89.55pt'>
+                   <p class=MsoNormal style='margin-top:.5pt;margin-right:5.1pt;
+                   margin-left:5.25pt;margin-bottom:5.25pt;text-align: center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+                       {% for char in course %}
+                       <span lang=EN-US style='font-size:11.0pt;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;letter-spacing:3.0pt'>
+                           {{ char }}</span>
+                       {% endfor %}
+                   </b></p>
+               </td>
+           {% endfor %}
        {% endif %}
    {% endfor %}
    {% endif %}
-  </tr>
 
-  <tr>
-  {% if first_sem_options %}
-      {% for course, credit, option in first_sem_options %}
-          <td width="1%" valign="bottom" style='width:1.32%;border-top:none;border-left:none;
-               border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-               padding:0 0 10pt 0;height:89.55pt'>
-               <p class=MsoNormal style='margin-top:.5pt;margin-right:5.1pt;
-               margin-left:5.25pt;margin-bottom:.0001pt;text-align: center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
-                   {% for char in course %}
-                   <span lang=EN-US style='font-size:11.0pt;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;letter-spacing:3.0pt'>
-                       {{ char }}</span>
-                   {% endfor %}
-               </b></p>
-          </td>
-      {% endfor %}
+  {# passed, failed, total credits; second semester #}
+  {% if not first_sem_only %}
+      <td width="1%" valign="bottom" rowspan=2 style='width:1.4%;border-top:none;border-left:none;
+       border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+       padding:0 0 10pt 0;height:116.75pt;text-align: center'>
+       <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+       0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+       {% for char in 'PASSED CREDITS' %}
+           <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
+           letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
+       {% endfor %}
+       </b></p>
+       </td>
+       <td width="1%" valign="bottom" rowspan=2 style='width:1.44%;border-top:none;border-left:
+       none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+       padding:0 0 10pt 0;height:116.75pt'>
+       <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+       0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+       {% for char in 'FAILED CREDITS' %}
+           <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
+           letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
+       {% endfor %}
+       </b></p>
+       </td>
+       <td width="1%" valign="bottom" rowspan=2 style='width:1.46%;border-top:none;border-left:
+       none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+       padding:0 0 10pt 0;height:116.75pt'>
+       <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+       0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+       {% for char in 'TOTAL CREDITS' %}
+           <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
+           letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
+       {% endfor %}
+       </b></p>
+       </td>
   {% endif %}
 
-  {% if second_sem_options and not first_sem_only %}
-      {% for course, credit, option in second_sem_options %}
-          <td width="1%" valign="bottom" style='width:1.32%;border-top:none;border-left:none;
-               border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-           padding:0 0 10pt 0;height:89.55pt'>
-               <p class=MsoNormal style='margin-top:.5pt;margin-right:5.1pt;margin-bottom:
-               0;margin-left:5.25pt;margin-bottom:.0001pt;text-align: center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
-                   {% for char in course %}
-                   <span lang=EN-US style='font-size:11.0pt;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;letter-spacing:3.0pt'>
-                       {{ char }}</span>
-                   {% endfor %}
-               </b></p>
-          </td>
-      {% endfor %}
-  {% endif %}
+
+   {# overall #}
+   {% if not first_sem_only %}
+       <td width="1%" valign="bottom" rowspan=2 style='width:1.4%;border-top:none;border-left:none;
+       border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+       padding:0 0 10pt 0;height:116.75pt;text-align: center'>
+       <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+       0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+       {% for char in 'PASSED CREDITS' %}
+           <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
+           letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
+       {% endfor %}
+       </b></p>
+       </td>
+       <td width="1%" valign="bottom" rowspan=2 style='width:1.44%;border-top:none;border-left:
+       none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+       padding:0 0 10pt 0;height:116.75pt'>
+       <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+       0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+       {% for char in 'FAILED CREDITS' %}
+           <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
+           letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
+       {% endfor %}
+       </b></p>
+       </td>
+       <td width="1%" valign="bottom" rowspan=2 style='width:1.46%;border-top:none;border-left:
+       none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+       padding:0 0 10pt 0;height:116.75pt'>
+       <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+       0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+       {% for char in 'TOTAL CREDITS' %}
+           <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
+           letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
+       {% endfor %}
+       </b></p>
+       </td>
+   {% endif %}
+
+   {% if level != 500 and not first_sem_only %}
+   <td width="1%" valign="bottom" rowspan=2 style='width:1.2%;border-top:none;border-left:none;
+    border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+    padding:0 0 10pt 0;height:116.75pt'>
+   <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+   {% for char in 'CATEGORY' %}
+       <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
+       letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
+   {% endfor %}
+   </b></p>
+   </td>
+   {% endif %}
+
   </tr>
 
+
+
+  {# Populating credits row #}
 
   <tr style='height:27.2pt'>
    <td width="1%" style='width:1.44%;border:solid windowtext 1.0pt;border-top:
@@ -558,8 +646,7 @@ style='font-size:4.5pt'></span></p>
    lang=EN-US style='font-size:12.0pt;font-family:"Calibri",sans-serif'>FULL&nbsp;NAMES (Surname&nbsp;Last)</span></b></p>
    </td>
 
-
-   {# Populating credits row #}
+   {# first semester #}
 
    {% set first_sem_option_hit = False %}
    {% for course, credit, option in first_sem_courses %}
@@ -586,6 +673,9 @@ style='font-size:4.5pt'></span></p>
            {% endfor %}
        {% endif %}
    {% endfor %}
+
+
+   {# second semester #}
 
    {% if not first_sem_only %}
    {% set second_sem_option_hit = False %}
@@ -614,6 +704,7 @@ style='font-size:4.5pt'></span></p>
        {% endif %}
    {% endfor %}
    {% endif %}
+
   </tr>
  </thead>
 

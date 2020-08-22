@@ -105,7 +105,7 @@ def render_html(mat_nos, acad_session, level, index_to_display, first_sem_only=F
     students, len_first_sem_carryovers, len_second_sem_carryovers = enrich_mat_no_list(
         mat_nos, acad_session, level, courses)
 
-    fix_table_column_width_error = 7 if first_sem_only else 3
+    fix_table_column_width_error = 7 if first_sem_only else 4
 
     len_first_sem_carryovers = max(len_first_sem_carryovers, fix_table_column_width_error)
     len_second_sem_carryovers = max(len_second_sem_carryovers, fix_table_column_width_error)
