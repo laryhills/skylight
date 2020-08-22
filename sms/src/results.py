@@ -161,7 +161,8 @@ def add_result_records(list_of_results):
         error_log.extend(errors)
 
     result_errors_file.close()
-    print('\n====>>  ', '{} result entries added with {} errors'.format(len(list_of_results), len(error_log)))
+    print(Fore.CYAN, '\n====>>  ', '{} result entries added with {} errors'.format(
+        len(list_of_results), len(error_log)), Style.RESET_ALL)
 
     return error_log, 200
 
@@ -185,14 +186,14 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
                      "result not added".format(score, mat_no, index)
         result_errors_file.writelines(str(result_details) + '  error: ' + error_text + '\n')
         error_log.append(error_text)
-        print('\n[WARNING]: ', error_log[-1])
+        print(Fore.RED, '[WARNING]: ', error_log[-1], Style.RESET_ALL)
         return error_log, 403
 
     if not grade:
         error_text = '{0} at index {1} was not found in the database'.format(mat_no, index)
         result_errors_file.writelines(str(result_details) + '  error: ' + error_text + '\n')
         error_log.append(error_text)
-        print('\n[WARNING]: ', error_log[-1])
+        print(Fore.RED, '[WARNING]: ', error_log[-1], Style.RESET_ALL)
         return error_log, 404
 
     if course_code in course_details_dict and course_details_dict[course_code]:
@@ -205,7 +206,7 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
             error_text = '{} at index {} was not found in the database'.format(course_code, index)
             result_errors_file.writelines(str(result_details) + '  error: ' + error_text + '\n')
             error_log.append(error_text)
-            print('\n[WARNING]: ', error_log[-1], Style.RESET_ALL,)
+            print(Fore.RED, '[WARNING]: ', error_log[-1], Style.RESET_ALL,)
             return error_log, 404
 
     course_credit = course_dets['course_credit']
@@ -219,14 +220,14 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
         is_unusual = True
         error_log.append('No course registration found for {0} at index {1} for the '
                          '{2}/{3} session'.format(mat_no, index, session_taken, session_taken + 1))
-        print('\n====>>  ', error_log[-1])
+        print(Fore.RED, '[WARNING]: ', error_log[-1], Style.RESET_ALL)
 
     courses_registered = course_registration['courses']
     if not is_unusual and course_code not in courses_registered:
         is_unusual = True
         error_log.append('{0} at index {1} did not register {2} in the {3}/{4} '
                          'session'.format(mat_no, index, course_code, session_taken, session_taken + 1))
-        print('\n====>>  ', error_log[-1])
+        print(Fore.RED, '[WARNING]: ', error_log[-1], Style.RESET_ALL)
 
     try:
         db_name = utils.get_DB(mat_no)
@@ -398,7 +399,8 @@ def get_previous_grade_and_log_changes(result_details, result_record, is_unusual
     course_code, session_taken, mat_no, score = result_details
 
     if not is_unusual and result_record['unusual_results'] and course_code in result_record['unusual_results']:
-        print('\n====>>  ', 'moving result record {} for {} from store to result table'.format(course_code, mat_no))
+        print(Fore.CYAN, '[INFO]  ', 'moving result record {} for {} from store to result table'.format(
+            course_code, mat_no), Style.RESET_ALL)
 
     elif (course_code in result_record and result_record[course_code]) or (
             course_code in result_record['carryovers']) or (course_code in result_record['unusual_results']):
@@ -417,7 +419,7 @@ def get_previous_grade_and_log_changes(result_details, result_record, is_unusual
             previous_grade = ''
 
         if previous_score not in ['-1', score]:
-            print('\n====>>   overwriting previous {} result of {} for the {}/{} session: '
+            print(Fore.CYAN, '[INFO]   overwriting previous {} result of {} for the {}/{} session: '
                   '{} ==> {}'.format(course_code, mat_no, session_taken, int(session_taken) + 1, previous_score, score))
         
         if previous_grade != 'ABS':
