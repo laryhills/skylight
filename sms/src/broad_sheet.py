@@ -10,9 +10,9 @@ from zipfile import ZipFile, ZIP_DEFLATED
 from flask import render_template, send_from_directory, url_for
 
 from sms.src import course_details
-from sms.src.results import get_results_for_acad_session, multisort, get_results_for_level, dictify
+from sms.src.results import get_results_for_acad_session, multisort, get_results_for_level
 from sms.src.utils import get_current_session, get_registered_courses, get_level, multiprocessing_wrapper, \
-    compute_degree_class, get_cgpa
+    compute_degree_class, get_cgpa, dictify
 from sms.src.course_reg_utils import process_personal_info, get_course_reg_at_acad_session
 from sms.src.script import get_students_by_level
 from sms.config import cache_base_dir

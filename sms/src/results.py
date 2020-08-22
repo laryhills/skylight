@@ -456,23 +456,9 @@ def split_courses_by_semester(course_list, semester_value_index):
     """
     split_course_list = [list(filter(lambda x: x[semester_value_index] == sem, course_list)) for sem in (1, 2)]
     dic = {
-        'first_sem': dictify(split_course_list[0], key_index=0),
-        'second_sem': dictify(split_course_list[1], key_index=0),
+        'first_sem': utils.dictify(split_course_list[0], key_index=0),
+        'second_sem': utils.dictify(split_course_list[1], key_index=0),
     }
-    return dic
-
-
-def dictify(flat_list, key_index=0):
-    """
-    convert a flat list of lists (or tuples) to a dictionary, with the value at key_index as key
-    :param flat_list:
-    :param key_index:
-    :return:
-    """
-    dic = {}
-    for lis in flat_list:
-        lis = list(lis)
-        dic[lis.pop(key_index)] = lis
     return dic
 
 

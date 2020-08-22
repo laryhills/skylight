@@ -468,6 +468,20 @@ def get_num_of_prize_winners():
     return 1
 
 
+def dictify(flat_list, key_index=0):
+    """
+    convert a flat list of lists (or tuples) to a dictionary, with the value at key_index as key
+    :param flat_list:
+    :param key_index:
+    :return:
+    """
+    dic = {}
+    for lis in flat_list:
+        lis = list(lis)
+        dic[lis.pop(key_index)] = lis
+    return dic
+
+
 def multiprocessing_wrapper(func, iterable, context, concurrency=False):
     """
     use multiprocessing to call a function on members of an iterable
