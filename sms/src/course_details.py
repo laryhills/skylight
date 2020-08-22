@@ -4,26 +4,13 @@ from sms.src.users import access_decorator
 from sms.models.courses import Courses, CoursesSchema, Options
 
 # TODO Create endpoint for teaching departments
-# TODO Change primary key of all courses models from it's course_code to an id
-#      As it stands, a course's code can't be modified
-
 
 def get(course_code):
     course = Courses.query.filter_by(course_code=course_code).first()
     return CoursesSchema().dump(course)
 
 
-def get_course_details(course_code=None, level=None, options=False, inactive=False):
-    if course_code:
-        output = [get(course_code)]
-    else:
-        output = get_all(level, options, inactive)
-    if output:
-        return output, 200
-    return None, 404
-
-
-def get_all(level=None, options=False, inactive=False):
+def get_all(level=None, options=True, inactive=False):
     courses = Courses.query
     if level:
         courses = courses.filter_by(course_level=level)
@@ -40,20 +27,30 @@ def get_all(level=None, options=False, inactive=False):
     return CoursesSchema(many=True).dump(course_list)
 
 
+def get_course_details(course_code=None, level=None, options=True, inactive=False):
+    if course_code:
+        output = get(course_code)
+        output = [output] if output else []
+    else:
+        output = get_all(level, options, inactive)
+    if output:
+        return output, 200
+    return None, 404
+
+
 @access_decorator
 def post(course):
     course_obj = Courses(**course)
     db.session.add(course_obj)
     db.session.commit()
+    return None, 200
 
 
 @access_decorator
 def put(data):
     error_log = []
     for course in data:
-        course_level = course['course_level']
-        exec('from sms.models.courses import Courses{} as Courses'.format(course_level))
-        course_obj = eval('Courses').query.filter_by(course_code=course['course_code']).first()
+        course_obj = Courses.query.filter_by(course_code=course['course_code']).first()
         if not course_obj:
             msg = course['course_code'] + ' not found'
             error_log.append(msg)
@@ -72,3 +69,4 @@ def delete(course_code):
         return None, 404
     db.session.delete(course_obj)
     db.session.commit()
+    return None, 200
