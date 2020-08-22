@@ -160,6 +160,8 @@ paths:
               type: string
         401:
           description: Authentication failed
+        404:
+          description: Course not found
         440:
           description: Session expired, login again
     delete:
