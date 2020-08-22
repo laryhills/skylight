@@ -49,14 +49,14 @@ def post(course):
 @access_decorator
 def put(data):
     courses = [Courses.query.filter_by(course_code=course["course_code"]).first() for course in data]
-    if not all(courses):
-        return None, 404
-    for course, course_obj in zip(data, courses):
-        for k, v in course.items():
-            setattr(course_obj, k, v)
+    if all(courses):
+        for course, course_obj in zip(data, courses):
+            for k, v in course.items():
+                setattr(course_obj, k, v)
             db.session.add(course_obj)
-    db.session.commit()
-    return None, 200
+        db.session.commit()
+        return None, 200
+    return None, 404
 
 
 @access_decorator
