@@ -40,6 +40,8 @@ def get_course_details(course_code=None, level=None, options=True, inactive=Fals
 
 @access_decorator
 def post(course):
+    if Courses.query.filter_by(course_code=course["course_code"]).first():
+        return "Course already exists", 400
     course_obj = Courses(**course)
     db.session.add(course_obj)
     db.session.commit()
