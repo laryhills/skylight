@@ -30,12 +30,12 @@ def get_all(level=None, options=True, inactive=False):
 def get_course_details(course_code=None, level=None, options=True, inactive=False):
     if course_code:
         output = get(course_code)
-        output = [output] if output else []
+        if not output:
+            return None, 404
+        output = [output]
     else:
         output = get_all(level, options, inactive)
-    if output:
-        return output, 200
-    return None, 404
+    return output, 200
 
 
 @access_decorator
