@@ -9,14 +9,18 @@ cur = conn.cursor()
 level = 500
 valid_course = "MEE321"
 course_keys = ("course_code", "course_title", "course_credit", "course_semester", "course_level", "teaching_department", "start_date", "end_date", "options", "active")
-inv_crs_val = ("INV211", "Invalid Course", 2, 1, 200, "MEE", 1970, 2999, 0, 1)
+inv_crs_val = ("INV211", "Invalid Course", 2, 1, 200, "MEE", 1970, 2999, 0, 0)
 
 sql_all_courses = "SELECT * FROM courses"
 sql_get_course = lambda course=valid_course: ("SELECT * FROM courses WHERE course_code=?", (course,))
 sql_get_level = lambda level=level: ("SELECT * FROM courses WHERE course_level=? AND active=?", (level, 1))
 sql_all_courses_active = ("SELECT * FROM courses WHERE active=?",(1,))
-sql_ins_inactive = ("INSERT INTO courses VALUES (?,?,?,?,?,?)", inv_crs_val)
+sql_ins_inactive = ("INSERT INTO courses VALUES (?,?,?,?,?,?,?,?,?,?)", inv_crs_val)
 sql_del_course = lambda course=inv_crs_val[0]: ("DELETE FROM courses WHERE course_code=?",(course,))
+
+def test_setup_env():
+    cur.execute(*sql_del_course())
+    conn.commit()
 
 def test_get_one_course():
     course_obj = course_details.get(valid_course)
@@ -52,11 +56,11 @@ def test_get_all_default():
 def test_get_all_inactive():
     cur.execute(*sql_ins_inactive)
     conn.commit()
-    curr_actives = set([x["course_code"] for x in course_details.get(None, True, False)])
-    curr_all = set([x["course_code"] for x in course_details.get(None, True, True)])
+    curr_actives = set([x["course_code"] for x in course_details.get_all(None, True, False)])
+    curr_all = set([x["course_code"] for x in course_details.get_all(None, True, True)])
     curr_inactives = curr_all - curr_actives
-    assert inv_crs_all[0] in curr_inactives
-    cur.execute(*sql_del_course)
+    assert inv_crs_val[0] in curr_inactives
+    cur.execute(*sql_del_course())
     conn.commit()
 
 
@@ -68,3 +72,7 @@ def test_get_course_details():
 
 def test_post():
     pass
+
+
+def test_teardown_env():
+    test_setup_env()
