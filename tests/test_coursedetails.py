@@ -18,9 +18,11 @@ sql_all_courses_active = ("SELECT * FROM courses WHERE active=?",(1,))
 sql_ins_inactive = ("INSERT INTO courses VALUES (?,?,?,?,?,?,?,?,?,?)", inv_crs_val)
 sql_del_course = lambda course=inv_crs_val[0]: ("DELETE FROM courses WHERE course_code=?",(course,))
 
+
 def test_setup_env():
     cur.execute(*sql_del_course())
     conn.commit()
+
 
 def test_get_one_course():
     course_obj = course_details.get(valid_course)
@@ -28,6 +30,7 @@ def test_get_one_course():
     assert course_obj["teaching_dept"] == course_row["teaching_department"]
     for prop in set(course_keys) - {"teaching_department"}:
         assert course_obj[prop] == course_row[prop]
+
 
 def test_get_all_level():
     lvl_courses = course_details.get_all(level, True, False)
@@ -71,7 +74,13 @@ def test_get_course_details():
 
 
 def test_post():
-    pass
+    course_add = dict(zip(course_keys, inv_crs_val))
+    course_add["teaching_dept"] = course_add["teaching_department"]
+    course_add.pop("teaching_department")
+    assert course_details.post(course_add) == (None, 200)
+    assert course_details.post(course_add)[1] == 400
+    cur.execute(*sql_del_course())
+    conn.commit()
 
 
 def test_teardown_env():
