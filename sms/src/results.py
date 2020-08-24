@@ -18,6 +18,7 @@ from sms.src.users import access_decorator
 
 init()  # initialize colorama
 
+
 @access_decorator
 def get(mat_no, acad_session):
     return get_results_for_acad_session(mat_no, acad_session)
