@@ -17,8 +17,6 @@ from sms.src.script import get_students_by_level
 from sms.config import cache_base_dir
 from sms.src.users import access_decorator
 
-base_dir = os.path.dirname(__file__)
-current_session = get_current_session()
 init()  # initialize colorama
 
 
@@ -44,7 +42,6 @@ def get(acad_session, level=None, first_sem_only=False, raw_score=False):
     index_to_display = 0 if raw_score else 1
     file_name = token_hex(8)
     zip_path = os.path.join(cache_base_dir, file_name)
-    use_workers = True if len(registered_students_for_session) > 1 else False
 
     # create temporary folder to hold files
     if os.path.exists(os.path.join(cache_base_dir, file_name)):
@@ -58,12 +55,14 @@ def get(acad_session, level=None, first_sem_only=False, raw_score=False):
     # render htmls
     t0 = perf_counter()
     context = (acad_session, index_to_display, file_name, first_sem_only)
+    use_workers = True if len(registered_students_for_session) > 1 else False
     multiprocessing_wrapper(render_html, registered_students_for_session.items(), context, use_workers)
     print('htmls rendered in', perf_counter() - t0, 'seconds')
 
     # generate pdfs
     t0 = perf_counter()
     pdf_names = [file_name for file_name in os.listdir(zip_path) if file_name.endswith('render.html')]
+    use_workers = True if len(pdf_names) > 1 else False
     multiprocessing_wrapper(generate_pdf, pdf_names, [zip_path], use_workers)
     print('pdfs generated in', perf_counter() - t0, 'seconds')
 
@@ -182,7 +181,7 @@ def get_filtered_student_by_level(acad_session, level=None):
 
 
 def get_level_at_acad_session(mat_no, acad_session):
-    if acad_session == current_session:
+    if acad_session == get_current_session():
         return get_level(mat_no)
     c_reg = get_registered_courses(mat_no)
     for key in range(800, 0, -100):
