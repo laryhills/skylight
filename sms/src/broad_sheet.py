@@ -1,4 +1,5 @@
 import os.path
+import shutil
 import pdfkit
 import subprocess
 from datetime import date
@@ -36,7 +37,6 @@ def get(acad_session, level=None, first_sem_only=False, raw_score=False):
     """
     # todo: * handle 100 level probation the same way as spillovers?
     #       * generate preview pngs
-    #       * fix wierd wkhtmltopdf issue with the table headers in paginated pages
 
     start = perf_counter()
     registered_students_for_session = get_filtered_student_by_level(acad_session, level)
@@ -44,9 +44,12 @@ def get(acad_session, level=None, first_sem_only=False, raw_score=False):
 
     index_to_display = 0 if raw_score else 1
     file_name = token_hex(8)
+    if os.path.exists(os.path.join(cache_base_dir, file_name)):
+        shutil.rmtree(file_name, ignore_errors=True)
+    os.makedirs(os.path.join(cache_base_dir, file_name), exist_ok=True)
 
     # render the broadsheet footer
-    with open(os.path.join(cache_base_dir, file_name + '_footer.html'), 'w') as footer:
+    with open(os.path.join(cache_base_dir, file_name, 'footer.html'), 'w') as footer:
         footer.write(render_template('broad_sheet_footer.html', current_date=date.today().strftime("%A, %B %-d, %Y")))
 
     # generate broadsheet
@@ -56,25 +59,27 @@ def get(acad_session, level=None, first_sem_only=False, raw_score=False):
     collect_pdfs_in_zip(file_name)
     print('===>> total generation done in', perf_counter() - start)
 
-    resp = send_from_directory(cache_base_dir, file_name + '.zip', as_attachment=True)
+    resp = send_from_directory(os.path.join(cache_base_dir, file_name), 'broad-sheet_' + file_name + '.zip',
+                               as_attachment=True)
     return resp
 
 
 def generate_broadsheet_pdfs(item, acad_session, index_to_display, file_name, first_sem_only=False):
     level, mat_nos = item
     t1 = perf_counter()
-    html, level = render_html(mat_nos, acad_session, level, index_to_display, first_sem_only)
-    generate_pdf(html, level, file_name)
+    htmls, level = render_html(mat_nos, acad_session, level, index_to_display, first_sem_only)
+    [generate_pdf(html, level, file_name, index+1) for index, html in enumerate(htmls)]
     print(f'{str(level)}: pdf generated in', perf_counter() - t1)
 
 
 def collect_pdfs_in_zip(file_name):
-    zip_path = os.path.join(cache_base_dir, file_name + '.zip')
-    with ZipFile(zip_path, 'w', ZIP_DEFLATED) as zf:
-        for level in range(100, 600, 100):
+    zip_path = os.path.join(cache_base_dir, file_name)
+    zip_file = os.path.join(cache_base_dir, file_name, 'broad-sheet_' + file_name + '.zip')
+    with ZipFile(zip_file, 'w', ZIP_DEFLATED) as zf:
+        pdf_names = sorted([file_name for file_name in os.listdir(zip_path) if file_name.endswith('.pdf')])
+        for pdf_name in pdf_names:
             try:
-                pdf_name = file_name + '_' + str(level) + '.pdf'
-                pdf = open(os.path.join(cache_base_dir, pdf_name), 'rb').read()
+                pdf = open(os.path.join(zip_path, pdf_name), 'rb').read()
                 zf.writestr(pdf_name, pdf)
             except Exception as e:
                 pass
@@ -104,30 +109,47 @@ def render_html(mat_nos, acad_session, level, index_to_display, first_sem_only=F
     }
     students, len_first_sem_carryovers, len_second_sem_carryovers = enrich_mat_no_list(
         mat_nos, acad_session, level, courses)
+    students = tuple(students.items())
 
     fix_table_column_width_error = 7 if first_sem_only else 4
 
     len_first_sem_carryovers = max(len_first_sem_carryovers, fix_table_column_width_error)
     len_second_sem_carryovers = max(len_second_sem_carryovers, fix_table_column_width_error)
 
-    html = render_template(
-        'broad_sheet.html', enumerate=enumerate, sum=sum, int=int, url_for=url_for,
-        len_first_sem_carryovers=len_first_sem_carryovers, len_second_sem_carryovers=len_second_sem_carryovers,
-        index_to_display=index_to_display, empty_value=empty_value, color_map=color_map,
-        first_sem_courses=first_sem_courses, second_sem_courses=second_sem_courses,
-        first_sem_options=first_sem_options, second_sem_options=second_sem_options,
-        students=students, session=acad_session, level=level, first_sem_only=first_sem_only,
-    )
-    filename = os.path.join(os.path.expanduser('~'), f'{level}.html')
-    open(filename, 'w').write(html)
-    subprocess.run(['google-chrome', filename])
-    return html, level
+    if first_sem_only or len_first_sem_carryovers + len_second_sem_carryovers < 18: pagination = 15
+    elif len(second_sem_courses) == 1: pagination = 16
+    else: pagination = 18
+    iters = len(students) // pagination
+
+    paginated_htmls = []
+
+    for ite in range(iters+1):
+        left = ite * pagination
+        right = (ite + 1) * pagination
+        if right <= len(students):
+            paginated_students = dictify(students[left:right])
+        else:
+            paginated_students = dictify(students[left:])
+
+        html = render_template(
+            'broad_sheet.html', enumerate=enumerate, sum=sum, int=int, url_for=url_for, start_index=left,
+            len_first_sem_carryovers=len_first_sem_carryovers, len_second_sem_carryovers=len_second_sem_carryovers,
+            index_to_display=index_to_display, empty_value=empty_value, color_map=color_map,
+            first_sem_courses=first_sem_courses, second_sem_courses=second_sem_courses,
+            first_sem_options=first_sem_options, second_sem_options=second_sem_options,
+            students=paginated_students, session=acad_session, level=level, first_sem_only=first_sem_only,
+        )
+        paginated_htmls.append(html)
+        # filename = os.path.join(os.path.expanduser('~'), f'{level}_{left}.html')
+        # open(filename, 'w').write(html)
+        # subprocess.run(['google-chrome', filename])
+    return paginated_htmls, level
 
 
-def generate_pdf(html, level, file_name):
-    pdf_name = file_name + '_' + str(level) + '.pdf'
+def generate_pdf(html, level, file_name, index):
+    pdf_name = str(level) + '_' + str(index) + '.pdf'
     options = {
-        'footer-html': os.path.join(cache_base_dir, file_name + '_footer.html'),
+        'footer-html': os.path.join(cache_base_dir, file_name, 'footer.html'),
         'page-size': 'A3',
         'orientation': 'landscape',
         'margin-top': '0.5in',
@@ -141,7 +163,7 @@ def generate_pdf(html, level, file_name):
         'dpi': 100,
         'log-level': 'warn',  # error, warn, info, none
     }
-    pdfkit.from_string(html, os.path.join(cache_base_dir, pdf_name), options=options)
+    pdfkit.from_string(html, os.path.join(cache_base_dir, file_name, pdf_name), options=options)
 
 
 # ==============================================================================================
