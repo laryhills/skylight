@@ -1,7 +1,6 @@
 import os.path
 import shutil
 import pdfkit
-import subprocess
 from datetime import date
 from time import perf_counter
 from secrets import token_hex
@@ -44,6 +43,10 @@ def get(acad_session, level=None, first_sem_only=False, raw_score=False):
 
     index_to_display = 0 if raw_score else 1
     file_name = token_hex(8)
+    zip_path = os.path.join(cache_base_dir, file_name)
+    use_workers = True if len(registered_students_for_session) > 1 else False
+
+    # create temporary folder to hold files
     if os.path.exists(os.path.join(cache_base_dir, file_name)):
         shutil.rmtree(file_name, ignore_errors=True)
     os.makedirs(os.path.join(cache_base_dir, file_name), exist_ok=True)
@@ -52,29 +55,30 @@ def get(acad_session, level=None, first_sem_only=False, raw_score=False):
     with open(os.path.join(cache_base_dir, file_name, 'footer.html'), 'w') as footer:
         footer.write(render_template('broad_sheet_footer.html', current_date=date.today().strftime("%A, %B %-d, %Y")))
 
-    # generate broadsheet
+    # render htmls
+    t0 = perf_counter()
     context = (acad_session, index_to_display, file_name, first_sem_only)
-    use_workers = True if len(registered_students_for_session) > 1 else False
-    multiprocessing_wrapper(generate_broadsheet_pdfs, registered_students_for_session.items(), context, use_workers)
-    collect_pdfs_in_zip(file_name)
-    print('===>> total generation done in', perf_counter() - start)
+    multiprocessing_wrapper(render_html, registered_students_for_session.items(), context, use_workers)
+    print('htmls rendered in', perf_counter() - t0, 'seconds')
 
-    resp = send_from_directory(os.path.join(cache_base_dir, file_name), 'broad-sheet_' + file_name + '.zip',
-                               as_attachment=True)
+    # generate pdfs
+    t0 = perf_counter()
+    pdf_names = [file_name for file_name in os.listdir(zip_path) if file_name.endswith('render.html')]
+    multiprocessing_wrapper(generate_pdf, pdf_names, [zip_path], use_workers)
+    print('pdfs generated in', perf_counter() - t0, 'seconds')
+
+    # zip
+    zip_file_name = 'broad-sheet_' + file_name + '.zip'
+    collect_pdfs_in_zip(file_name, zip_file_name)
+
+    print('===>> total generation done in', perf_counter() - start)
+    resp = send_from_directory(os.path.join(cache_base_dir, file_name), zip_file_name, as_attachment=True)
     return resp
 
 
-def generate_broadsheet_pdfs(item, acad_session, index_to_display, file_name, first_sem_only=False):
-    level, mat_nos = item
-    t1 = perf_counter()
-    htmls, level = render_html(mat_nos, acad_session, level, index_to_display, first_sem_only)
-    [generate_pdf(html, level, file_name, index+1) for index, html in enumerate(htmls)]
-    print(f'{str(level)}: pdf generated in', perf_counter() - t1)
-
-
-def collect_pdfs_in_zip(file_name):
+def collect_pdfs_in_zip(file_name, zip_file_name):
     zip_path = os.path.join(cache_base_dir, file_name)
-    zip_file = os.path.join(cache_base_dir, file_name, 'broad-sheet_' + file_name + '.zip')
+    zip_file = os.path.join(cache_base_dir, file_name, zip_file_name)
     with ZipFile(zip_file, 'w', ZIP_DEFLATED) as zf:
         pdf_names = sorted([file_name for file_name in os.listdir(zip_path) if file_name.endswith('.pdf')])
         for pdf_name in pdf_names:
@@ -85,7 +89,8 @@ def collect_pdfs_in_zip(file_name):
                 pass
 
 
-def render_html(mat_nos, acad_session, level, index_to_display, first_sem_only=False):
+def render_html(item, acad_session, index_to_display, file_name, first_sem_only=False):
+    level, mat_nos = item
     color_map = {'F': 'red', 'ABS': 'blue'}
     empty_value = ' '
 
@@ -121,8 +126,6 @@ def render_html(mat_nos, acad_session, level, index_to_display, first_sem_only=F
     else: pagination = 18
     iters = len(students) // pagination
 
-    paginated_htmls = []
-
     for ite in range(iters+1):
         left = ite * pagination
         right = (ite + 1) * pagination
@@ -139,17 +142,12 @@ def render_html(mat_nos, acad_session, level, index_to_display, first_sem_only=F
             first_sem_options=first_sem_options, second_sem_options=second_sem_options,
             students=paginated_students, session=acad_session, level=level, first_sem_only=first_sem_only,
         )
-        paginated_htmls.append(html)
-        # filename = os.path.join(os.path.expanduser('~'), f'{level}_{left}.html')
-        # open(filename, 'w').write(html)
-        # subprocess.run(['google-chrome', filename])
-    return paginated_htmls, level
+        open(os.path.join(cache_base_dir, file_name, '{}_{}_render.html'.format(level, ite+1)), 'w').write(html)
 
 
-def generate_pdf(html, level, file_name, index):
-    pdf_name = str(level) + '_' + str(index) + '.pdf'
+def generate_pdf(file_name, file_dir):
     options = {
-        'footer-html': os.path.join(cache_base_dir, file_name, 'footer.html'),
+        'footer-html': os.path.join(cache_base_dir, file_dir, 'footer.html'),
         'page-size': 'A3',
         'orientation': 'landscape',
         'margin-top': '0.5in',
@@ -163,7 +161,9 @@ def generate_pdf(html, level, file_name, index):
         'dpi': 100,
         'log-level': 'warn',  # error, warn, info, none
     }
-    pdfkit.from_string(html, os.path.join(cache_base_dir, file_name, pdf_name), options=options)
+    pdfkit.from_file(os.path.join(cache_base_dir, file_dir, file_name),
+                     os.path.join(cache_base_dir, file_dir, file_name[:-5] + '.pdf'),
+                     options=options)
 
 
 # ==============================================================================================
