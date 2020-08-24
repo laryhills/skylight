@@ -483,7 +483,7 @@ def dictify(flat_list, key_index=0):
     return dic
 
 
-def multiprocessing_wrapper(func, iterable, context, concurrency=True):
+def multiprocessing_wrapper(func, iterable, context, use_workers=True):
     """
     use multiprocessing to call a function on members of an iterable
 
@@ -495,7 +495,7 @@ def multiprocessing_wrapper(func, iterable, context, concurrency=True):
     :param concurrency: whether to use worker processes or not
     :return:
     """
-    if not concurrency:
+    if not use_workers:
         [func(item, *context) for item in iterable]
     else:
         with ProcessPoolExecutor() as executor:
