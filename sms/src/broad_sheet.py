@@ -1,21 +1,23 @@
 import os.path
 import shutil
-import pdfkit
 from datetime import date
-from time import perf_counter
 from secrets import token_hex
-from colorama import init, Fore, Style
+from time import perf_counter
 from zipfile import ZipFile, ZIP_DEFLATED
+
+import imgkit
+import pdfkit
+from colorama import init, Fore, Style
 from flask import render_template, send_from_directory, url_for
 
+from sms.config import cache_base_dir
 from sms.src import course_details
+from sms.src.course_reg_utils import process_personal_info
 from sms.src.results import get_results_for_acad_session, multisort, get_results_for_level
+from sms.src.script import get_students_by_level
+from sms.src.users import access_decorator
 from sms.src.utils import get_current_session, get_registered_courses, get_level, multiprocessing_wrapper, \
     compute_degree_class, get_cgpa, dictify
-from sms.src.course_reg_utils import process_personal_info, get_course_reg_at_acad_session
-from sms.src.script import get_students_by_level
-from sms.config import cache_base_dir
-from sms.src.users import access_decorator
 
 init()  # initialize colorama
 
@@ -33,8 +35,6 @@ def get(acad_session, level=None, first_sem_only=False, raw_score=False, to_prin
     :param to_print: If true generates pdf documents, else generates png images
     :return:
     """
-    # todo: * generate preview pngs
-
     start = perf_counter()
     registered_students_for_session = get_filtered_student_by_level(acad_session, level)
     print('student list fetched in', perf_counter() - start)
@@ -59,31 +59,37 @@ def get(acad_session, level=None, first_sem_only=False, raw_score=False, to_prin
     multiprocessing_wrapper(render_html, registered_students_for_session.items(), context, use_workers)
     print('htmls rendered in', perf_counter() - t0, 'seconds')
 
-    # generate pdfs
+    # generate pdfs or pngs
     t0 = perf_counter()
-    pdf_names = [file_name for file_name in os.listdir(zip_path) if file_name.endswith('render.html')]
-    use_workers = True if len(pdf_names) > 1 else False
-    multiprocessing_wrapper(generate_pdf, pdf_names, [zip_path], use_workers)
-    print('pdfs generated in', perf_counter() - t0, 'seconds')
+    html_names = [file_name for file_name in os.listdir(zip_path) if file_name.endswith('render.html')]
+    use_workers = True if len(html_names) > 1 else False
+    if to_print:
+        render_engine = generate_pdf
+        file_format = 'pdf'
+    else:
+        render_engine = generate_image
+        file_format = 'png'
+    multiprocessing_wrapper(render_engine, html_names, [zip_path, file_format], use_workers)
+    print(f'{file_format}s generated in', perf_counter() - t0, 'seconds')
 
     # zip
     zip_file_name = 'broad-sheet_' + file_name + '.zip'
-    collect_pdfs_in_zip(file_name, zip_file_name)
+    collect_renders_in_zip(file_name, zip_file_name, file_format)
 
     print('===>> total generation done in', perf_counter() - start)
     resp = send_from_directory(os.path.join(cache_base_dir, file_name), zip_file_name, as_attachment=True)
     return resp
 
 
-def collect_pdfs_in_zip(file_name, zip_file_name):
+def collect_renders_in_zip(file_name, zip_file_name, file_format):
     zip_path = os.path.join(cache_base_dir, file_name)
     zip_file = os.path.join(cache_base_dir, file_name, zip_file_name)
     with ZipFile(zip_file, 'w', ZIP_DEFLATED) as zf:
-        pdf_names = sorted([file_name for file_name in os.listdir(zip_path) if file_name.endswith('.pdf')])
-        for pdf_name in pdf_names:
+        render_names = sorted([file_name for file_name in os.listdir(zip_path) if file_name.endswith('.' + file_format)])
+        for render_name in render_names:
             try:
-                pdf = open(os.path.join(zip_path, pdf_name), 'rb').read()
-                zf.writestr(pdf_name, pdf)
+                pdf = open(os.path.join(zip_path, render_name), 'rb').read()
+                zf.writestr(render_name, pdf)
             except Exception as e:
                 pass
 
@@ -144,7 +150,7 @@ def render_html(item, acad_session, index_to_display, file_name, first_sem_only=
         open(os.path.join(cache_base_dir, file_name, '{}_{}_render.html'.format(level, ite+1)), 'w').write(html)
 
 
-def generate_pdf(file_name, file_dir):
+def generate_pdf(file_name, file_dir, file_format='pdf'):
     options = {
         'footer-html': os.path.join(cache_base_dir, file_dir, 'footer.html'),
         'page-size': 'A3',
@@ -161,7 +167,19 @@ def generate_pdf(file_name, file_dir):
         'log-level': 'warn',  # error, warn, info, none
     }
     pdfkit.from_file(os.path.join(cache_base_dir, file_dir, file_name),
-                     os.path.join(cache_base_dir, file_dir, file_name[:-5] + '.pdf'),
+                     os.path.join(cache_base_dir, file_dir, file_name[:-5] + '.' + file_format),
+                     options=options)
+
+
+def generate_image(file_name, file_dir, file_format='png'):
+    options = {
+        'format': file_format,
+        'enable-local-file-access': None,
+        'quality': 50,
+        'log-level': 'warn',
+    }
+    imgkit.from_file(os.path.join(cache_base_dir, file_dir, file_name),
+                     os.path.join(cache_base_dir, file_dir, file_name[:-5] + '.' + file_format),
                      options=options)
 
 
