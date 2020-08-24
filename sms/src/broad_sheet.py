@@ -32,8 +32,7 @@ def get(acad_session, level=None, first_sem_only=False, raw_score=False):
     :param raw_score:
     :return:
     """
-    # todo: * handle 100 level probation the same way as spillovers?
-    #       * generate preview pngs
+    # todo: * generate preview pngs
 
     start = perf_counter()
     registered_students_for_session = get_filtered_student_by_level(acad_session, level)
@@ -90,7 +89,7 @@ def collect_pdfs_in_zip(file_name, zip_file_name):
 
 def render_html(item, acad_session, index_to_display, file_name, first_sem_only=False):
     level, mat_nos = item
-    color_map = {'F': 'red', 'ABS': 'blue'}
+    color_map = {'F': 'red', 'F *': 'red', 'ABS': 'blue', 'ABS *': 'blue'}
     empty_value = ' '
 
     # get semester courses (with one placeholder option)
@@ -194,24 +193,23 @@ def enrich_mat_no_list(mat_nos, acad_session, level, level_courses):
     students = {}
     max_len_first_sem_carryovers = 0
     max_len_second_sem_carryovers = 0
-
+    
+    mat_nos = ['ENG1503878'] + mat_nos
+    
     for mat_no in mat_nos:
 
         result_details = get_results_for_acad_session(mat_no, acad_session)
-        passed_500_courses = {}
 
         if result_details[1] != 200:
             # print(Fore.RED + mat_no, 'has no results' + Style.RESET_ALL)
             continue
-        elif result_details[0]['level_written'] > 500 and level == 500:
-            # fetch previously passed 500 level results of spillovers
-            passed_500_courses = get_spillover_passed_level_result(mat_no, level_courses)
-            pass
-        elif result_details[0]['level_written'] != level:
-            # print(mat_no, "result level", result_details[0]['level_written'], '!=', level)
-            continue
 
         result_details = result_details[0]
+        level_written = result_details['level_written']
+
+        if (level_written != level) and not (level_written > 500 and level == 500):
+            # print(mat_no, "result level", result_details[0]['level_written'], '!=', level)
+            continue
 
         # remove students with no course_reg (only has results in 'unusual_results')
         for key in ['regular_courses', 'carryovers']:
@@ -220,12 +218,6 @@ def enrich_mat_no_list(mat_nos, acad_session, level, level_courses):
             print(Fore.RED + mat_no, 'has no course_reg' + Style.RESET_ALL)
             continue
 
-        sem_tcp, sem_tcr, sem_tcf, failed_courses = sum_semester_credits(result_details, grade_index=1, credit_index=2)
-        result_details['semester_tcp'] = sem_tcp
-        result_details['semester_tcr'] = sem_tcr
-        result_details['semester_tcf'] = sem_tcf
-        result_details['sem_failed_courses'] = failed_courses
-
         personal_info = process_personal_info(mat_no)
         result_details['othernames'] = personal_info['othernames']
         result_details['surname'] = personal_info['surname']
@@ -233,11 +225,27 @@ def enrich_mat_no_list(mat_nos, acad_session, level, level_courses):
         result_details['cgpa'] = round(get_cgpa(mat_no), 2)
         result_details['degree_class'] = compute_degree_class(mat_no, cgpa=result_details['cgpa'])
 
-        # add the previously passed courses for spill students
-        if passed_500_courses:
+        # fetch previously passed level results (100 and 500 level)
+        if level_written > 500 and level == 500:
+            # add the previously passed courses for spill students
+            passed_500_courses = get_previously_passed_level_result(mat_no, level, level_written, acad_session, level_courses)
             passed_500_courses['first_sem'].update(result_details['regular_courses']['first_sem'])
             passed_500_courses['second_sem'].update(result_details['regular_courses']['second_sem'])
             result_details['regular_courses'] = passed_500_courses
+
+        elif level_written == 100 and personal_info['is_symlink'] in [1, '1']:
+            # add the previously passed courses for 100 level probation students
+            passed_100_courses = get_previously_passed_level_result(mat_no, level, level_written, acad_session, level_courses)
+            passed_100_courses['first_sem'].update(result_details['regular_courses']['first_sem'])
+            passed_100_courses['second_sem'].update(result_details['regular_courses']['second_sem'])
+            result_details['regular_courses'] = passed_100_courses
+
+        # compute stats
+        sem_tcp, sem_tcr, sem_tcf, failed_courses = sum_semester_credits(result_details, grade_index=1, credit_index=2)
+        result_details['semester_tcp'] = sem_tcp
+        result_details['semester_tcr'] = sem_tcr
+        result_details['semester_tcf'] = sem_tcf
+        result_details['sem_failed_courses'] = failed_courses
 
         if len(result_details['carryovers']['first_sem']) > max_len_first_sem_carryovers:
             max_len_first_sem_carryovers = len(result_details['carryovers']['first_sem'])
@@ -258,12 +266,16 @@ def sum_semester_credits(result_details, grade_index, credit_index):
     for index, sem in enumerate(['first_sem', 'second_sem']):
         courses = {**result_details['regular_courses'][sem], **result_details['carryovers'][sem]}
         for course in courses:
-            if courses[course][grade_index] not in ['F', 'ABS']:
-                tcp[index] += courses[course][credit_index]
+            credit = courses[course][credit_index]
+            if credit == '': continue
+            elif isinstance(credit, str) and credit != '': credit = int(credit.replace(' *', ''))
+
+            if courses[course][grade_index] not in ['F', 'ABS', 'F *', 'ABS *']:
+                tcp[index] += credit
             else:
-                tcf[index] += courses[course][credit_index]
+                tcf[index] += credit
                 failed_courses[index].append(course)
-            tcr[index] += courses[course][credit_index]
+            tcr[index] += credit
 
     # test conformity btw results and tcr, tcp columns
     # course_reg = get_course_reg_at_acad_session(result_details['session_written'], mat_no=result_details['mat_no'])
@@ -274,21 +286,24 @@ def sum_semester_credits(result_details, grade_index, credit_index):
     return tcp, tcr, tcf, failed_courses
 
 
-def get_spillover_passed_level_result(mat_no, level_courses):
-    current_level = abs(get_level(mat_no))
+def get_previously_passed_level_result(mat_no, broadsheet_level, level_written, acad_session, level_courses):
     regular_courses = {'first_sem': {}, 'second_sem': {}}
     option = {'first_sem': '', 'second_sem': ''}
     results = {}
-    for level in range(500, current_level, 100):
+
+    levels = [broadsheet_level] if broadsheet_level == 100 else range(500, level_written, 100)
+    for level in levels:
         results.update(get_results_for_level(mat_no, level)[0])
 
     for session in sorted(results.keys()):
+        if session >= acad_session:
+            continue
         for key in ['regular_courses', 'carryovers']:
             for semester in ['first_sem', 'second_sem']:
                 for course in results[session][key][semester]:
                     course_dets = results[session][key][semester][course]
                     # add course
-                    if course in level_courses[semester] and (course_dets[1] not in ['F', 'ABS']):
+                    if course in level_courses[semester]:  # and (course_dets[1] not in ['F', 'ABS']):
                         # add an asterisk to the score and grade to indicate it's out of session
                         course_dets[0] += ' *'
                         course_dets[1] += ' *'
