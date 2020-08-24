@@ -234,6 +234,7 @@ def enrich_mat_no_list(mat_nos, acad_session, level, level_courses):
             result_details['regular_courses'] = passed_500_courses
 
         elif level_written == 100 and personal_info['is_symlink'] in [1, '1']:
+            # todo: refactor this when symlinks has been updated to store history
             # add the previously passed courses for 100 level probation students
             passed_100_courses = get_previously_passed_level_result(mat_no, level, level_written, acad_session, level_courses)
             passed_100_courses['first_sem'].update(result_details['regular_courses']['first_sem'])
