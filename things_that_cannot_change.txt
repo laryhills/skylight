@@ -4,6 +4,7 @@ Also just in case of revisions, add why this is necessary
 
 1) Levels must be from 100 or 200 or 300 to 800 (Depending on mode of entry)
    * Results are computed using Result100 - Result800 for all cases
+   * The old passed credits for spillovers are gotten with the assumption that their level > 500
 2) Courses must be from 100 to 500
    * Used in generating the Course Reg columns and Result columns, Iter over Courses100 to 500 in courses.db
 3) Mode of entry either starts from 100, 200 or 300 and ends in 500
