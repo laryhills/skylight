@@ -478,7 +478,8 @@ def dictify(flat_list, key_index=0):
     dic = {}
     for lis in flat_list:
         lis = list(lis)
-        dic[lis.pop(key_index)] = lis
+        key = lis.pop(key_index)
+        dic[key] = lis[0] if len(lis) == 1 and isinstance(lis[0], dict) else lis
     return dic
 
 
