@@ -483,7 +483,7 @@ def dictify(flat_list, key_index=0):
     return dic
 
 
-def multiprocessing_wrapper(func, iterable, context, concurrency=False):
+def multiprocessing_wrapper(func, iterable, context, concurrency=True):
     """
     use multiprocessing to call a function on members of an iterable
 
