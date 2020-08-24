@@ -21,7 +21,7 @@ init()  # initialize colorama
 
 
 @access_decorator
-def get(acad_session, level=None, first_sem_only=False, raw_score=False):
+def get(acad_session, level=None, first_sem_only=False, raw_score=False, to_print=False):
     """
     This function gets the broadsheets for the academic session 'acad_session' for level 'level' if given
     else it gets for all levels during that session
@@ -30,6 +30,7 @@ def get(acad_session, level=None, first_sem_only=False, raw_score=False):
     :param level:
     :param first_sem_only:
     :param raw_score:
+    :param to_print: If true generates pdf documents, else generates png images
     :return:
     """
     # todo: * generate preview pngs
