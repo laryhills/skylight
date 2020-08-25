@@ -109,9 +109,12 @@ paths:
           type: integer
           required: false
         - in: query
-          name: use_curr_session
+          name: options
           type: boolean
           required: false
+        - in: query
+          name: inactive
+          type: boolean
       responses:
         200:
           description: success
@@ -157,6 +160,8 @@ paths:
               type: string
         401:
           description: Authentication failed
+        404:
+          description: Course not found
         440:
           description: Session expired, login again
     delete:
@@ -284,6 +289,8 @@ paths:
     get:
       tags: [Sheets]
       operationId: sms.src.broad_sheet.get
+      summary: Broad-Sheet generation
+      description: Generates broad-sheets for the session as pdf documents
       produces:
         - application/octet-stream
       parameters:
@@ -296,7 +303,15 @@ paths:
           type: integer
           required: false
         - in: query
+          name: first_sem_only
+          type: boolean
+          required: false
+        - in: query
           name: raw_score
+          type: boolean
+          required: false
+        - in: query
+          name: to_print
           type: boolean
           required: false
       responses:
@@ -440,7 +455,7 @@ paths:
       description: Post results to the database as a list of list ==> [ [course_code, session, mat_no, score], [next record], ... ]
       parameters:
         - in: body
-          name: list_of_results
+          name: data
           schema:
             $ref: '#/definitions/Results_post'
       responses:
@@ -467,7 +482,7 @@ paths:
       description: Post results to the database as a list of list ==> [ [course_code, session, mat_no, score], [next record], ... ]
       parameters:
         - in: body
-          name: list_of_results
+          name: data
           schema:
             $ref: '#/definitions/Results_post'
       responses:

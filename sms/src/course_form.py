@@ -20,15 +20,18 @@ def get(mat_no=None, session=None, to_print=False):
     session = session if session else current_session
 
     if mat_no:
-        if session == current_session:
-            course_registration = course_reg.init_new(mat_no)
+        check = course_reg.check_registration_eligibility(mat_no, current_session)
+        if session == current_session and check[1] == 200:
+            course_registration = course_reg.init_new_course_reg(*check[0])
+        elif session != current_session or check[0] == 'Course Registration already exists':
+            course_registration = course_reg.get_existing_course_reg(mat_no, session)
         else:
-            course_registration = course_reg.get(mat_no, session)
-
-        if course_registration[1] == 200:
-            course_registration = course_registration[0]
-        else:
+            course_registration = check
+        if course_registration[1] != 200:
             return course_registration
+
+        course_registration = course_registration[0]
+
     else:
         mat_no = ''
         course_registration = {
@@ -43,14 +46,15 @@ def get(mat_no=None, session=None, to_print=False):
 
     first_sem = course_registration['courses']['first_sem']
     second_sem = course_registration['courses']['second_sem']
+
     if first_sem:
-        first_sem_carryover_courses, first_sem_carryover_titles, first_sem_carryover_credits = list(zip(*first_sem))
+        first_sem_courses, first_sem_titles, first_sem_credits = list(zip(*first_sem))[:3]
     else:
-        first_sem_carryover_courses, first_sem_carryover_credits = [], []
+        first_sem_courses, first_sem_titles, first_sem_credits = [], [], []
     if second_sem:
-        second_sem_carryover_courses, second_sem_carryover_titles, second_sem_carryover_credits = list(zip(*second_sem))
+        second_sem_courses, second_sem_titles, second_sem_credits = list(zip(*second_sem))[:3]
     else:
-        second_sem_carryover_courses, second_sem_carryover_credits = [], []
+        second_sem_courses, second_sem_titles, second_sem_credits = [], [], []
 
     with app.app_context():
         html = render_template('course_form_template.htm', mat_no=mat_no, uniben_logo_path=uniben_logo_path,
@@ -60,10 +64,10 @@ def get(mat_no=None, session=None, to_print=False):
                                level=level, phone_no=person['phone_no'], sex=person['sex'],
                                email=person['email_address'], state=person['state_of_origin'],
                                lga=person['lga'],
-                               first_sem_carryover_courses=first_sem_carryover_courses,
-                               first_sem_carryover_credits=first_sem_carryover_credits,
-                               second_sem_carryover_courses=second_sem_carryover_courses,
-                               second_sem_carryover_credits=second_sem_carryover_credits)
+                               first_sem_carryover_courses=first_sem_courses,
+                               first_sem_carryover_credits=first_sem_credits,
+                               second_sem_carryover_courses=second_sem_courses,
+                               second_sem_carryover_credits=second_sem_credits)
 
         file_name = secrets.token_hex(8)
         if to_print:

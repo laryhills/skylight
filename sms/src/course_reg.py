@@ -1,27 +1,34 @@
 """ ======= COURSE_REG FORMAT =======
     mat_no: 'ENGxxxxxxx'
-    personal_info: {...}
+
+    personal_info: { ... }
+
     table_to_populate: 'CourseRegxxx'
-    course_reg_session: 20xx
-    course_reg_level: x00
+
+    course_reg_session: <int> 20xx
+
+    course_reg_level: <int> x00
+
     max_credits: <int>
+
     courses: {
                first_sem: [ ('course_code_1', 'course_title_1', 'course_credits_1'),
                             ('course_code_2', 'course_title_2', 'course_credits_2'), ...]
-               second_sem: []
+               second_sem: [ ... ]
              }
     choices: {
                first_sem: [ ('course_code_1', 'course_title_1', 'course_credits_1'),
                             ('course_code_2', 'course_title_2', 'course_credits_2'), ...]
-               second_sem: []
+               second_sem: [ ... ]
              }
     probation_status: <int>
+
     fees_status: <int>
+
     others: ''
+
     =======================
 
-example...
-c_reg = {'mat_no': 'ENG1503886', personal_info: {}, 'table_to_populate': 'CourseReg500', 'course_reg_session': 2019, 'course_reg_level': 500, 'max_credits': 50, 'courses': {'first_sem': ['MEE521', 'MEE451', 'MEE561', 'MEE571', 'EMA481', 'MEE502'], 'second_sem': []}, 'probation_status': 0, 'fees_status': None, 'others': None}
 """
 from sms.src import course_reg_utils, results, utils
 from sms.src.users import access_decorator
@@ -70,7 +77,7 @@ def check_registration_eligibility(mat_no, acad_session):
     # does this check for the supplied mat_no in the academic session: acad_session
     current_level = utils.get_level(mat_no)
     res_poll = utils.result_poll(mat_no)
-    course_reg = utils.get_registered_courses(mat_no, level=None, true_levels=False)
+    course_reg = utils.get_registered_courses(mat_no)
 
     course_reg_exists = course_reg_utils.get_course_reg_at_acad_session(acad_session, course_reg)
     if course_reg_exists:
@@ -79,7 +86,7 @@ def check_registration_eligibility(mat_no, acad_session):
     s_personal_info = course_reg_utils.process_personal_info(mat_no)
     table_to_populate = course_reg_utils.get_table_to_populate(current_level, acad_session, res_poll, course_reg)
     probation_status, previous_category = course_reg_utils.get_probation_status_and_prev_category(res_poll, acad_session)
-    graduation_status = s_personal_info['grad_stats']
+    graduation_status = s_personal_info['grad_stats']  # todo: change this to grad_status
 
     # handle special cases
     error_text = ''
@@ -107,7 +114,7 @@ def init_new_course_reg(mat_no, acad_session, table_to_populate, current_level, 
         return 'Cannot determine current level of student', 400
 
     level_courses = utils.get_courses(mat_no, mode_of_entry)
-    fields = ['course_code', 'course_title', 'course_credit']
+    fields = ['course_code', 'course_title', 'course_credit', 'course_semester', 'course_level']
     first_sem_choices = course_reg_utils.enrich_course_list(level_courses[index][0], fields=fields)
     second_sem_choices = course_reg_utils.enrich_course_list(level_courses[index][1], fields=fields)
     first_sem_carryover_courses = course_reg_utils.enrich_course_list(first_sem_carryover_courses, fields=fields)
@@ -147,33 +154,33 @@ def init_new_course_reg(mat_no, acad_session, table_to_populate, current_level, 
     return course_reg_frame, 200
 
 
-def get_existing_course_reg(mat_no, acad_session, old_course_reg=None, s_personal_info=None):
+def get_existing_course_reg(mat_no, acad_session, course_reg=None, s_personal_info=None):
     if not s_personal_info: s_personal_info = course_reg_utils.process_personal_info(mat_no)
-    if not old_course_reg:
-        course_reg = utils.get_registered_courses(mat_no, level=None, true_levels=False)
-        old_course_reg = course_reg_utils.get_course_reg_at_acad_session(acad_session, course_reg)
+    if not course_reg:
+        all_course_reg = utils.get_registered_courses(mat_no)
+        course_reg = course_reg_utils.get_course_reg_at_acad_session(acad_session, all_course_reg)
 
-    if old_course_reg == {}:
+    if course_reg == {}:
         return 'No course registration for entered session', 404
 
-    fields = ('course_code', 'course_title', 'course_credit', 'course_semester')
-    courses_registered = course_reg_utils.enrich_course_list(old_course_reg['courses'], fields=fields)
+    fields = ('course_code', 'course_title', 'course_credit', 'course_semester', 'course_level')
+    courses_registered = course_reg_utils.enrich_course_list(course_reg['courses'], fields=fields)
     courses = [[], []]  # first_sem, second_sem
     [courses[course.pop(3) - 1].append(course) for course in courses_registered]
 
     course_reg_frame = {'mat_no': mat_no,
                         'personal_info': s_personal_info,
-                        'table_to_populate': old_course_reg['table'],
-                        'course_reg_session': old_course_reg['course_reg_session'],
-                        'course_reg_level': old_course_reg['course_reg_level'],
+                        'table_to_populate': course_reg['table'],
+                        'course_reg_session': course_reg['course_reg_session'],
+                        'course_reg_level': course_reg['course_reg_level'],
                         'max_credits': '',
                         'courses': {'first_sem': course_reg_utils.multisort(courses[0]),
                                     'second_sem': course_reg_utils.multisort(courses[1])},
                         'choices': {'first_sem': [],
                                     'second_sem': []},
-                        'probation_status': old_course_reg['probation'],
-                        'fees_status': old_course_reg['fees_status'],
-                        'others': old_course_reg['others']}
+                        'probation_status': course_reg['probation'],
+                        'fees_status': course_reg['fees_status'],
+                        'others': course_reg['others']}
     return course_reg_frame, 200
 
 

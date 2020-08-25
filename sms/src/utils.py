@@ -1,4 +1,4 @@
-from collections import defaultdict
+from concurrent.futures.process import ProcessPoolExecutor
 from json import loads, dumps
 from sms.src import personal_info, course_details, result_statement, users
 from sms import config
@@ -127,7 +127,7 @@ def get_carryovers(mat_no, level=None, retJSON=True):
             for option in options:
                 if opt in option["members"].split(','):
                     default = option["default"]
-                    sem = course_details.get(default, 0)["course_semester"]
+                    sem = course_details.get(default)["course_semester"]
                     if default != opt:
                         [first_sem, second_sem][sem-1].remove(default)
                         [first_sem, second_sem][sem-1].add(opt)
@@ -154,10 +154,10 @@ def get_carryovers(mat_no, level=None, retJSON=True):
 
     carryovers = {"first_sem":[],"second_sem":[]}
     for failed_course in first_sem:
-        credit = loads(course_details.get(failed_course))["course_credit"]
+        credit = course_details.get(failed_course)["course_credit"]
         carryovers["first_sem"].append([failed_course, str(credit)])
     for failed_course in second_sem:
-        credit = loads(course_details.get(failed_course))["course_credit"]
+        credit = course_details.get(failed_course)["course_credit"]
         carryovers["second_sem"].append([failed_course, str(credit)])
     if retJSON:
         return dumps(carryovers)
@@ -234,46 +234,40 @@ def get_grading_point(session):
     return dict(map(lambda x: x.split()[:-1], grading_rules))
 
 
-def get_registered_courses(mat_no, level=None, true_levels=False):
-    # Get courses registered for all levels if level=None else for level
+def get_registered_courses(mat_no, db_level=None):
+    """
+    Get courses registered from all course reg tables if db_level=None else from "CourseReg<db_level>" table
+    :param mat_no:
+    :param db_level:
+    :return:
+    """
     db_name = get_DB(mat_no)
     session = load_session(db_name)
-    courses_registered = defaultdict(dict)
-    if level and not true_levels:
-        levels = [level]
-        levs = level
-    else:
-        levels = range(100, 900, 100)
-        levs = 100
+    levels = [db_level] if db_level else range(100, 900, 100)
+    courses_registered = {}
 
-    first_not_found = True
     for _level in levels:
-        courses_regd = eval('session.CourseReg{}.query.filter_by(mat_no=mat_no).first()'.format(_level))
-        courses_regd_str = eval('session.CourseReg{}Schema().dump(courses_regd)'.format(_level))
-        courses_registered[levs] = {'courses': [], 'table': 'CourseReg{}'.format(_level)}
+        courses_regd = eval('session.CourseReg{}'.format(_level)).query.filter_by(mat_no=mat_no).first()
+        courses_regd_str = eval('session.CourseReg{}Schema()'.format(_level)).dump(courses_regd)
+        courses_registered[_level] = {'courses': [], 'table': 'CourseReg{}'.format(_level)}
+        if not courses_regd_str:
+            continue
+
+        courses_regd_str.pop('mat_no')
+        carryovers = courses_regd_str.pop('carryovers')
+        courses_registered[_level]['course_reg_session'] = courses_regd_str.pop('session')
+        courses_registered[_level]['course_reg_level'] = courses_regd_str.pop('level')
+        for field in ['probation', 'fees_status', 'others', 'tcr']:
+            courses_registered[_level][field] = courses_regd_str.pop(field)
+
         for course in courses_regd_str:
-            if courses_regd_str[course] == '1':
-                courses_registered[levs]['courses'].append(course)
-        courses_registered[levs]['courses'] = sorted(courses_registered[levs]['courses'])
+            if courses_regd_str[course] in [1, '1']:
+                courses_registered[_level]['courses'].append(course)
 
-        if true_levels:
-            if courses_regd_str != {} and levs != 100 and len(courses_registered[levs]['courses']) == 0 and first_not_found:
-                first_not_found = False
-                del courses_registered[levs]
-                levs -= 100
-                courses_registered[levs] = {'courses': [], 'table': 'CourseReg{}'.format(_level)}
+        courses_registered[_level]['courses'] = sorted(courses_registered[_level]['courses'])
+        if carryovers and carryovers not in [0, '0', '']:
+            courses_registered[_level]['courses'].extend(sorted(carryovers.split(',')))
 
-        if 'carryovers' in courses_regd_str and courses_regd_str['carryovers']:
-            if courses_regd_str['carryovers'] != '0':
-                courses_registered[levs]['courses'].extend(sorted(courses_regd_str['carryovers'].split(',')))
-
-        for field in ['course_reg_level', 'probation', 'fees_status', 'others', 'tcr']:
-            courses_registered[levs][field] = courses_regd_str[field] if field in courses_regd_str else None
-        courses_registered[levs]['course_reg_level'] = courses_regd_str['level'] if 'level' in courses_regd_str else None
-        courses_registered[levs]['course_reg_session'] = courses_regd_str['session'] if 'session' in courses_regd_str else None
-        levs += 100
-    if level:
-        return courses_registered[level]
     return courses_registered
 
 
@@ -288,7 +282,7 @@ def compute_gpa(mat_no, ret_json=True):
     for result in loads(result_statement.get(mat_no))["results"]:
         for record in (result["first_sem"] + result["second_sem"]):
             (course, grade) = (record[1], record[5])
-            course_props = loads(course_details.get(course))
+            course_props = course_details.get(course)
             lvl = int(course_props["course_level"] / 100) - 1
             if mode_of_entry != 1:
                 if course in ['GST111', 'GST112', 'GST121', 'GST122', 'GST123']:
@@ -323,6 +317,54 @@ def get_gpa_credits(mat_no, session=None):
     return gpas, credits
 
 
+def get_cgpa(mat_no):
+    """
+    fetch the current cgpa for student with mat_no from the student's entry session database
+
+    NOTE: THIS DOES NOT DO ANY CALCULATIONS
+
+    :param mat_no:
+    :return:
+    """
+    db_name = get_DB(mat_no)
+    session = load_session(db_name)
+    student = session.GPA_Credits.query.filter_by(mat_no=mat_no).first()
+    return student.cgpa
+
+
+def get_session_degree_class(acad_session):
+    """
+    Get the degree-class dictionary for an academic session with lower limits as keys
+
+    :param acad_session:
+    :return:
+    """
+    session = load_session(acad_session)
+    degree_class = session.DegreeClass.query.all()
+    degree_class = {float(deg.limits.split(',')[0]): deg.cls for deg in degree_class}
+    return degree_class
+
+
+def compute_degree_class(mat_no, cgpa=None, acad_session=None):
+    """
+    get the degree-class text for graduated students
+
+    :param mat_no:
+    :param cgpa:
+    :param acad_session:
+    :return:
+    """
+    # todo extend this for non-graduated students
+    if not cgpa: cgpa = get_cgpa(mat_no)
+    if not acad_session: acad_session = int(get_DB(mat_no)[:4])
+
+    degree_class = get_session_degree_class(acad_session)
+    for lower_limit in sorted(degree_class.keys(), reverse=True):
+        if cgpa >= lower_limit:
+            return degree_class[lower_limit]
+    return ''
+
+
 def get_level_weightings(mod):
     if mod == 1: return [.1, .15, .2, .25, .3]
     elif mod == 2: return [0, .1, .2, .3, .4]
@@ -343,6 +385,7 @@ def compute_category(mat_no, level_written, session_taken, total_credits, credit
         elif 23 <= credits_passed < 36: return 'C'
         else:
             # todo: Handle condition for transfer
+            # todo: handle condition for 100 level probation
             if 'C' in previous_categories: return 'E'
             else: return 'D'
     else:
@@ -423,4 +466,38 @@ def get_num_of_prize_winners():
     """
     # TODO: Query this from the master db
     return 1
+
+
+def dictify(flat_list, key_index=0):
+    """
+    convert a flat list of lists (or tuples) to a dictionary, with the value at key_index as key
+    :param flat_list:
+    :param key_index:
+    :return:
+    """
+    dic = {}
+    for lis in flat_list:
+        lis = list(lis)
+        key = lis.pop(key_index)
+        dic[key] = lis[0] if len(lis) == 1 and isinstance(lis[0], dict) else lis
+    return dic
+
+
+def multiprocessing_wrapper(func, iterable, context, use_workers=True):
+    """
+    use multiprocessing to call a function on members of an iterable
+
+    (number of workers limited to 5)
+
+    :param func: the function to call
+    :param iterable: items you want to call func on
+    :param context: params that are passed to all instances
+    :param concurrency: whether to use worker processes or not
+    :return:
+    """
+    if not use_workers:
+        [func(item, *context) for item in iterable]
+    else:
+        with ProcessPoolExecutor() as executor:
+            [executor.submit(func, item, *context) for item in iterable]
 

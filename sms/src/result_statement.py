@@ -1,5 +1,5 @@
 from sms.src import personal_info, course_details, utils
-from json import loads, dumps
+from json import dumps
 
 
 def get(mat_no, retJSON=True):
@@ -45,7 +45,7 @@ def get(mat_no, retJSON=True):
                         course, sem, credit, title = "CHM122", 2, 3, "General Chemistry II"
                         (score, grade) = [x.strip() for x in result["CHM112"].split(',')]
                     else:
-                        course_props = loads(course_details.get(course))
+                        course_props = course_details.get(course)
                         sem = course_props['course_semester']
                         credit = course_props['course_credit']
                         title = course_props['course_title']

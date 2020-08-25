@@ -14,12 +14,14 @@
 	panose-1:2 15 5 2 2 2 4 3 2 4;}
 @font-face
 	{font-family:"Bodoni MT Black";}
+
  /* Style Definitions */
  p.MsoNormal, li.MsoNormal, div.MsoNormal
 	{margin:0;
 	margin-bottom:.0001pt;
 	font-size:10.0pt;
 	font-family:"Times New Roman",serif;}
+
 h1
 	{mso-style-link:"Heading 1 Char";
 	margin-top:12.0pt;
@@ -201,38 +203,44 @@ style='font-size:4.5pt'></span></p>
  style='width:100.0%;border-collapse:collapse;border:none'>
  <thead>
   <tr style='height:24.05pt'>
-   <td width="19%" colspan=3 rowspan=2 style='width:19.2%;border:solid windowtext 1.0pt;
+   <td width="19%" colspan=3 rowspan=2 style='border:solid windowtext 1.0pt;
    padding:0 0 0 0;height:24.05pt'>
    <p class=MsoNormal align=center style='text-align:center'><b><span
    lang=EN-US style='font-size:16.0pt;font-family:"Calibri",sans-serif'>{{ session }}/{{ session + 1 }} SESSION</span></b></p>
    </td>
 
-   {# reduce the semester courses length by one if optional course present there #}
-    {% set rem_first_sem, rem_second_sem = 0, 0 %}
-    {% if options[0] %}
-        {% set rem_first_sem = 1 %}
-    {% endif %}
-    {% if options[1] %}
-        {% set rem_second_sem = 1 %}
-    {% endif %}
+   {# reduce the semester courses length by the length of optional course present in semester course list #}
+    {% set rem_first_sem = 1 if first_sem_options else 0  %}
+    {% set rem_second_sem = 1 if second_sem_options else 0 %}
    <td width="33%"
-   colspan={{ len_first_sem_carryovers + ((first_sem_courses | length) - rem_first_sem)  + (options[0] | length) + 3 }}
-   style='width:33.2%;border:solid windowtext 1.0pt;border-left:none;padding:0 0 0 0;height:24.05pt'>
-   <p class=MsoNormal align=center style='margin-right:152.15pt;text-align:
-   center;line-height:12.0pt'><b><span lang=EN-US style='font-size:16.0pt;
+   colspan={{ len_first_sem_carryovers + ((first_sem_courses | length) - rem_first_sem)  + (first_sem_options | length) + 3 }}
+   style='border:solid windowtext 1.0pt;border-left:none;padding:0 0 0 0;height:24.05pt'>
+   <p class=MsoNormal align=center style='text-align:center;line-height:12.0pt'><b><span lang=EN-US style='font-size:16.0pt;
    font-family:"Calibri",sans-serif;'>
    FIRST SEMESTER</span></b></p>
    </td>
 
-   <td width="31%"
-   colspan={{ len_second_sem_carryovers + ((second_sem_courses | length) - rem_second_sem) + (options[1] | length) + 3 }}
-   style='width:31.74%;border:solid windowtext 1.0pt;border-left:none;padding:0 0 0 0;height:24.05pt'>
-   <p class=MsoNormal align=center style='margin-right:154.25pt;text-align:center;line-height:12.0pt'><b>
+  {% if not first_sem_only %}
+   <td width="33%"
+   colspan={{ len_second_sem_carryovers + ((second_sem_courses | length) - rem_second_sem) + (second_sem_options | length) + 3 }}
+   style='border:solid windowtext 1.0pt;border-left:none;padding:0 0 0 0;height:24.05pt'>
+   <p class=MsoNormal align=center style='text-align:center;line-height:12.0pt'><b>
     <span lang=EN-US style='font-size:16.0pt;font-family:"Calibri",sans-serif'>
      SECOND SEMESTER</span></b></p>
    </td>
+  {% endif %}
 
-   <td width="15%" colspan=5 valign=top style='width:15.86%;border:solid windowtext 1.0pt;
+
+  {# remove columns from OVERALL #}
+  {% if first_sem_only %}
+      {% set rem_cols = 4 %}
+  {% elif level == 500 %}
+      {% set rem_cols = 1 %}
+  {% else %}
+      {% set rem_cols = 0 %}
+  {% endif %}
+
+   <td width="15%" colspan={{ 5 - rem_cols }} style='width:15.86%;border:solid windowtext 1.0pt;
    border-left:none;padding:0 0 0 0;height:24.05pt'><p class=MsoNormal align=center style='text-align:center'><b>
     <span lang=EN-US style='font-size:16.0pt;font-family:"Calibri",sans-serif;'>
      OVERALL</span></b></p>
@@ -241,125 +249,113 @@ style='font-size:4.5pt'></span></p>
 
 
   <tr style='height:23.6pt'>
+
    <td width="16%" colspan={{ len_first_sem_carryovers }} rowspan=4 style='width:16.22%;border-top:none;
    border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
    padding:0 0 0 0;height:23.6pt'>
-   <p class=MsoNormal align=center style='text-align:center'><b>
+   <p class=MsoNormal style='text-align:center'><b>
      <span lang=EN-US style='font-size:14.0pt;font-family:"Calibri",sans-serif'>CARRYOVER COURSES</span></b></p>
    </td>
-   <td width="12%" colspan={{ ((first_sem_courses | length) - rem_first_sem) + (options[0] | length) }} style='width:12.7%;border-top:none;border-left:
+   <td width="12%" colspan={{ ((first_sem_courses | length) - rem_first_sem) + (first_sem_options | length) }} style='width:12.7%;border-top:none;border-left:
    none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
    padding:0 0 0 0;height:23.6pt'>
    <p class=MsoNormal align=center style='text-align:center;line-height:13.0pt'><b>
      <span lang=EN-US style='font-size:12.0pt;font-family:"Calibri",sans-serif'>REGULAR COURSES</span></b></p>
    </td>
-   <td width="1%" rowspan=4 style='width:1.4%;border-top:none;border-left:none;
-   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-   padding:0 0 0 0;height:23.6pt'>
-   <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
-   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%'><b><span
-   lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;
-   letter-spacing:1.5pt'>PASSED CREDITS</span></b></p>
-   </td>
-   <td width="1%" rowspan=4 style='width:1.44%;border-top:none;border-left:
-   none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-   padding:0 0 0 0;height:23.6pt'>
-   <p class=MsoNormal style='margin-top:0;margin-right:5.85pt;margin-bottom:
-   0;margin-left:6.1pt;margin-bottom:.0001pt;text-indent:.15pt;line-height:
-   104%'><b><span lang=EN-US style='font-size:11.0pt;line-height:104%;
-   font-family:"Calibri",sans-serif;letter-spacing:1.5pt'>FAILED CREDITS</span></b></p>
-   </td>
-   <td width="1%" rowspan=4 style='width:1.46%;border-top:none;border-left:
-   none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-   padding:0 0 0 0;height:23.6pt'>
-   <p class=MsoNormal style='margin-top:0;margin-right:5.85pt;margin-bottom:
-   0;margin-left:6.1pt;margin-bottom:.0001pt;text-indent:.15pt;line-height:
-   104%'><b><span lang=EN-US style='font-size:11.0pt;line-height:104%;
-   font-family:"Calibri",sans-serif;letter-spacing:1.5pt'>TOTAL CREDITS</span></b></p>
-   </td>
+
+  {% for _ in range(3) %}
+      <td width="1%" rowspan="2" valign="bottom" style='width:1.4%;border-top:none;border-left:none;
+      border-bottom:none;border-right:solid windowtext 1.0pt;
+      padding:0 0 10pt 0;height:23.6pt;text-align: center'>
+      <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+      0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;'><b>
+          <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;
+          letter-spacing:1.5pt'>&nbsp;</span>
+      </b></p>
+      </td>
+  {% endfor %}
+
+  {% if not first_sem_only %}
    <td width="14%" colspan={{ len_second_sem_carryovers }} rowspan=4 style='width:14.44%;border-top:none;
    border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
    padding:0 0 0 0;height:23.6pt'>
-   <p class=MsoNormal align=center style='text-align:center'><b><span
+   <p class=MsoNormal style='text-align:center'><b><span
    lang=EN-US style='font-size:14.0pt;font-family:"Calibri",sans-serif'>CARRYOVER COURSES</span></b></p>
    </td>
-   <td width="13%" colspan={{ ((second_sem_courses | length) - rem_second_sem) + (options[1] | length) }}
+   <td width="13%" colspan={{ ((second_sem_courses | length) - rem_second_sem) + (second_sem_options | length) }}
    style='width:13.64%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid
    windowtext 1.0pt;padding:0 0 0 0;height:23.6pt'>
    <p class=MsoNormal align=center style='text-align:center;line-height:13.0pt'><b><span
    lang=EN-US style='font-size:12.0pt;font-family:"Calibri",sans-serif'>REGULAR COURSES</span></b></p>
    </td>
-   <td width="1%" rowspan=4 style='width:1.36%;border-top:none;border-left:
-   none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-   padding:0 0 0 0;height:23.6pt'>
-   <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
-   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%'><b><span
-   lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;
-   letter-spacing:1.5pt'>PASSED CREDITS</span></b></p>
-   </td>
-   <td width="1%" rowspan=4 style='width:1.14%;border-top:none;border-left:
-   none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-   padding:0 0 0 0;height:23.6pt'>
-   <p class=MsoNormal style='margin-top:0;margin-right:5.85pt;margin-bottom:
-   0;margin-left:6.1pt;margin-bottom:.0001pt;text-indent:.15pt;line-height:
-   104%'><b><span lang=EN-US style='font-size:11.0pt;line-height:104%;
-   font-family:"Calibri",sans-serif;letter-spacing:1.5pt'>FAILED CREDITS</span></b></p>
-   </td>
-   <td width="1%" rowspan=4 style='width:1.16%;border-top:none;border-left:
-   none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-   padding:0 0 0 0;height:23.6pt'>
-   <p class=MsoNormal style='margin-top:0;margin-right:5.85pt;margin-bottom:
-   0;margin-left:6.1pt;margin-bottom:.0001pt;text-indent:.15pt;line-height:
-   104%'><b><span lang=EN-US style='font-size:11.0pt;line-height:104%;
-   font-family:"Calibri",sans-serif;letter-spacing:1.5pt'>TOTAL CREDITS</span></b></p>
-   </td>
-   <td width="1%" rowspan=4 style='width:1.16%;border-top:none;border-left:
-   none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-   padding:0 0 0 0;height:23.6pt'>
-   <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
-   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%'><b><span
-   lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;
-   letter-spacing:1.5pt'>PASSED CREDITS</span></b></p>
-   </td>
-   <td width="1%" rowspan=4 style='width:1.16%;border-top:none;border-left:
-   none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-   padding:0 0 0 0;height:23.6pt'>
-   <p class=MsoNormal style='margin-top:0;margin-right:5.85pt;margin-bottom:
-   0;margin-left:6.1pt;margin-bottom:.0001pt;text-indent:.15pt;line-height:
-   104%'><b><span lang=EN-US style='font-size:11.0pt;line-height:104%;
-   font-family:"Calibri",sans-serif;letter-spacing:1.5pt'>FAILED CREDITS</span></b></p>
-   </td>
-   <td width="1%" rowspan=4 style='width:1.16%;border-top:none;border-left:
-   none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-   padding:0 0 0 0;height:23.6pt'>
-   <p class=MsoNormal style='margin-top:0;margin-right:5.85pt;margin-bottom:
-   0;margin-left:6.1pt;margin-bottom:.0001pt;text-indent:.15pt;line-height:
-   104%'><b><span lang=EN-US style='font-size:11.0pt;line-height:104%;
-   font-family:"Calibri",sans-serif;letter-spacing:1.5pt'>TOTAL CREDITS</span></b></p>
-   </td>
+   {% for _ in range(3) %}
+       <td width="1%" rowspan="2" valign="bottom" style='width:1.4%;border-top:none;border-left:none;
+       border-bottom:none;border-right:solid windowtext 1.0pt;
+       padding:0 0 10pt 0;height:23.6pt;text-align: center'>
+       <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+       0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;'><b>
+           <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;
+           letter-spacing:1.5pt'>&nbsp;</span>
+       </b></p>
+       </td>
+   {% endfor %}
+  {% endif %}
+
+
+  {% if not first_sem_only %}
+      {% for _ in range(3) %}
+       <td width="1%" rowspan="2" valign="bottom" style='width:1.4%;border-top:none;border-left:none;
+       border-bottom:none;border-right:solid windowtext 1.0pt;
+       padding:0 0 10pt 0;height:23.6pt;text-align: center'>
+       <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+       0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;'><b>
+           <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;
+           letter-spacing:1.5pt'>&nbsp;</span>
+       </b></p>
+       </td>
+      {% endfor %}
+  {% endif %}
+
    <td width="11%" rowspan=4 style='width:11.18%;border-top:none;border-left:
    none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
    padding:0 0 0 0;height:23.6pt'>
    <p class=MsoNormal align=center style='text-align:center'><b><span
-   lang=EN-US style='font-size:14.0pt;font-family:"Calibri",sans-serif'>FAILED COURSES</span></b></p>
+   lang=EN-US style='font-size:14.0pt;font-family:"Calibri",sans-serif'>FAILED&nbsp;COURSES</span></b></p>
+
+   {% if level == 500 and not first_sem_only %}
+       <p class=MsoNormal align=center style='text-align:center'><b><span
+       lang=EN-US style='font-size:14.0pt;font-family:"Calibri",sans-serif'>or</span></b></p>
+       <p class=MsoNormal align=center style='text-align:center'><b><span
+       lang=EN-US style='font-size:14.0pt;font-family:"Calibri",sans-serif'>CGPA & CLASS</span></b></p>
+   {% endif %}
    </td>
-   <td width="1%" rowspan=4 style='width:1.2%;border-top:none;border-left:none;
-   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-   padding:0 0 0 0;height:23.6pt'>
-   <p class=MsoNormal style='margin-top:1.2pt;margin-right:4.0pt;margin-bottom:
-   0;margin-left:2.45pt;margin-bottom:.0001pt;text-indent:-.1pt'><b><span
-   lang=EN-US style='font-size:11.0pt;font-family:"Calibri",sans-serif'>CATEGORY</span></b></p>
+
+  {% if level != 500 and not first_sem_only %}
+   <td width="1%" rowspan="2" valign="bottom" style='width:1.4%;border-top:none;border-left:none;
+   border-bottom:none;border-right:solid windowtext 1.0pt;
+   padding:0 0 10pt 0;height:23.6pt;text-align: center'>
+   <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;'><b>
+       <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;
+       letter-spacing:1.5pt'>&nbsp;</span>
+   </b></p>
    </td>
+  {% endif %}
+
   </tr>
 
 
-  <tr style='page-break-inside:avoid'>
+  <tr>
    <td width="19%" colspan=3 rowspan=2 style='width:19.2%;border:solid windowtext 1.0pt;
    border-top:none;padding:0 0 0 0;height:113.15pt'>
+              <p class=MsoNormal align=center style='margin-top:0;margin-right:30.7pt;
+       margin-bottom:0;margin-left:18.7pt;margin-bottom:.0001pt;text-align:center'>
+           <b><span lang=EN-US style='font-size:14.0pt;font-family:"Calibri"'>
+               &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/></span></b></p>
        <p class=MsoNormal align=center style='margin-top:0;margin-right:30.7pt;
        margin-bottom:0;margin-left:18.7pt;margin-bottom:.0001pt;text-align:center'>
            <b><span lang=EN-US style='font-size:14.0pt;font-family:"Calibri";'>
-               Department of Mechanical Engineering,</span></b></p>
+               Department&nbsp;of&nbsp;Mechanical Engineering,</span></b></p>
        <p class=MsoNormal align=center style='margin-top:0;margin-right:30.7pt;
        margin-bottom:0;margin-left:18.7pt;margin-bottom:.0001pt;text-align:center'>
            <b><span lang=EN-US style='font-size:14.0pt;font-family:"Calibri";'>
@@ -372,78 +368,261 @@ style='font-size:4.5pt'></span></p>
        margin-bottom:0;margin-left:18.7pt;margin-bottom:.0001pt;text-align:center'>
            <b><span lang=EN-US style='font-size:14.0pt;font-family:"Calibri"'>
                &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<br/></span></b></p>
-       <p class=MsoNormal align=center style='margin-right:20.2pt;text-align:center'>
+       <p class=MsoNormal align=center style='margin-right:20.2pt;margin-left:20.2pt;text-align:center'>
            <b><span lang=EN-US style='font-size:14.0pt;font-family:"Calibri"'>
-               {{ level }} Level Raw Score Broad-Sheet</span></b></p>
+               {{ level }}&nbsp;Level&nbsp;{{ 'Raw' if index_to_display == 0 else 'Letter' }}&nbsp;{{ 'Score' if index_to_display == 0 else 'Grade' }}&nbsp;Broad&#x2011;Sheet</span></b></p>
    </td>
 
+   {% set first_sem_option_hit = False %}
    {% for course, credit, option in first_sem_courses %}
        {% if int(option) == 0 %}
-           <td width="1%" rowspan="2" style='width:1.32%;border-top:none;border-left:none;
-               border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-               padding:0 0 0 0;height:113.15pt'>
-               <p class=MsoNormal style='margin-top:.5pt;margin-right:5.1pt;margin-bottom:
-               0;margin-left:5.25pt;margin-bottom:.0001pt'><b><span lang=EN-US
-               style='font-size:11.0pt;font-family:"Calibri",sans-serif;letter-spacing:
-               3.0pt'>{{ course }}</span></b></p>
-           </td>
-       {% elif int(option) == 1 %}
-          <td rowspan="1" colspan="{{ options[0] | length }}" width="88" style='width:6.5%;border-top:none;
+            <td rowspan="1" style='border-top:none;border-bottom:none;
+                border-left:none;border-right:solid windowtext 1.0pt;padding:0 0 0 0;height:23.6pt'>
+                <p class=MsoNormal align=center style='text-align:center;line-height:13.0pt'><b>
+                    <span lang=EN-US style='font-size:12.0pt;font-family:"Calibri",sans-serif'>&nbsp;</span>
+                </b></p>
+            </td>
+       {% elif int(option) == 1 and not first_sem_option_hit%}
+           {% set first_sem_option_hit = True %}
+           <td rowspan="1" colspan="{{ first_sem_options | length }}" style='border-top:none;
               border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0 0 0 0;
               height:23.6pt'>
-              <p class=MsoNormal align=center style='text-align:center;line-height:13.0pt'><b>
+              <p class=MsoNormal style='text-align:center;line-height:13.0pt'><b>
               <span lang=EN-US style='font-size:12.0pt;font-family:"Calibri",sans-serif'>OPTIONAL COURSES</span></b></p>
           </td>
        {% endif %}
    {% endfor %}
 
+   {% if not first_sem_only %}
+   {% set second_sem_option_hit = False %}
    {% for course, credit, option in second_sem_courses %}
        {% if int(option) == 0 %}
-           <td width="1%" rowspan="2" style='width:1.32%;border-top:none;border-left:none;
-               border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-               padding:0 0 0 0;height:113.15pt'>
-               <p class=MsoNormal style='margin-top:.5pt;margin-right:5.1pt;margin-bottom:
-               0;margin-left:5.25pt;margin-bottom:.0001pt'><b><span lang=EN-US
-               style='font-size:11.0pt;font-family:"Calibri",sans-serif;letter-spacing:
-               3.0pt'>{{ course }}</span></b></p>
-           </td>
-       {% elif int(option) == 2 %}
-          <td rowspan="1" colspan="{{ options[1] | length }}" width="88" style='width:6.5%;border-top:none;
+            <td rowspan="1" style='border-top:none;border-bottom:none;
+                border-left:none;border-right:solid windowtext 1.0pt;padding:0 0 0 0;height:23.6pt'>
+                <p class=MsoNormal align=center style='text-align:center;line-height:13.0pt'><b>
+                    <span lang=EN-US style='font-size:12.0pt;font-family:"Calibri",sans-serif'>&nbsp;</span>
+                </b></p>
+            </td>
+       {% elif int(option) == 2 and not second_sem_option_hit%}
+           {% set second_sem_option_hit = True %}
+           <td rowspan="1" colspan="{{ second_sem_options | length }}" style='border-top:none;
               border-left:none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;padding:0 0 0 0;
               height:23.6pt'>
-              <p class=MsoNormal align=center style='text-align:center;line-height:13.0pt'><b>
+              <p class=MsoNormal style='text-align:center;line-height:13.0pt'><b>
               <span lang=EN-US style='font-size:12.0pt;font-family:"Calibri",sans-serif'>OPTIONAL COURSES</span></b></p>
           </td>
        {% endif %}
    {% endfor %}
+   {% endif %}
   </tr>
+
+
+  {# Populating courses row #}
 
   <tr>
-  {% if options[0] or options[1] %}
-      {% for course, credit, option in options[0] %}
-          <td width="1%" style='width:1.32%;border-top:none;border-left:none;
+   {% set first_sem_option_hit = False %}
+   {% for course, credit, option in first_sem_courses %}
+       {% if int(option) == 0 %}
+           <td valign="bottom" style='width:12pt;border-top:none;border-left:none;
                border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-           padding:0 0 0 0;height:89.55pt'>
-              <p class=MsoNormal style='margin-top:.5pt;margin-right:5.1pt;margin-bottom:
-           0;margin-left:5.25pt;margin-bottom:.0001pt'><b><span lang=EN-US
-              style='font-size:11.0pt;font-family:"Calibri",sans-serif;letter-spacing:
-           3.0pt'>{{ course }}</span></b></p>
-          </td>
-      {% endfor %}
+               padding:0 0 10pt 0;height:89.55pt'>
+               <p class=MsoNormal style='margin-top:.5pt;margin-right:5.1pt;
+               margin-left:5.25pt;margin-bottom:5.25pt;text-align: center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+               {# bypass the fix for column width if there is only one course #}
+               {% set course = [course] if (first_sem_courses | length) == 1 else course %}
+                   {% for char in course %}
+                   <span lang=EN-US style='font-size:11.0pt;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;letter-spacing:3.0pt'>
+                       {{ char }}</span>
+                   {% endfor %}
+               </b></p>
+           </td>
+       {% elif int(option) == 1 and not first_sem_option_hit%}
+           {% set first_sem_option_hit = True %}
+           {% for course, credit, option in first_sem_options %}
+               <td valign="bottom" style='width:12pt;border-top:none;border-left:none;
+                   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+                   padding:0 0 10pt 0;height:89.55pt'>
+                   <p class=MsoNormal style='margin-top:.5pt;margin-right:5.1pt;
+                   margin-left:5.25pt;margin-bottom:5.25pt;text-align: center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+                       {% for char in course %}
+                       <span lang=EN-US style='font-size:11.0pt;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;letter-spacing:3.0pt'>
+                           {{ char }}</span>
+                       {% endfor %}
+                   </b></p>
+               </td>
+           {% endfor %}
+       {% endif %}
+   {% endfor %}
 
-      {% for course, credit, option in options[1] %}
-          <td width="1%" style='width:1.32%;border-top:none;border-left:none;
+
+   {# passed, failed, total credits; first semester #}
+   <td width="1%" valign="bottom" rowspan=2 style='width:1.4%;border-top:none;border-left:none;
+   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+   padding:0 0 10pt 0;height:116.75pt;text-align: center'>
+   <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+   {% for char in 'PASSED CREDITS' %}
+       <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
+       letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
+   {% endfor %}
+   </b></p>
+   </td>
+   <td width="1%" valign="bottom" rowspan=2 style='width:1.44%;border-top:none;border-left:
+   none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+   padding:0 0 10pt 0;height:116.75pt'>
+   <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+   {% for char in 'FAILED CREDITS' %}
+       <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
+       letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
+   {% endfor %}
+   </b></p>
+   </td>
+   <td width="1%" valign="bottom" rowspan=2 style='width:1.46%;border-top:none;border-left:
+   none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+   padding:0 0 10pt 0;height:116.75pt'>
+   <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+   {% for char in 'TOTAL CREDITS' %}
+       <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
+       letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
+   {% endfor %}
+   </b></p>
+   </td>
+
+
+   {# second semester #}
+
+   {% if not first_sem_only %}
+   {% set second_sem_option_hit = False %}
+   {% for course, credit, option in second_sem_courses %}
+       {% if int(option) == 0 %}
+           <td valign="bottom" style='width:12pt;border-top:none;border-left:none;
                border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
-           padding:0 0 0 0;height:89.55pt'>
-              <p class=MsoNormal style='margin-top:.5pt;margin-right:5.1pt;margin-bottom:
-           0;margin-left:5.25pt;margin-bottom:.0001pt'><b><span lang=EN-US
-              style='font-size:11.0pt;font-family:"Calibri",sans-serif;letter-spacing:
-           3.0pt'>{{ course }}</span></b></p>
-          </td>
-      {% endfor %}
+               padding:0 0 10pt 0;height:89.55pt'>
+               <p class=MsoNormal style='margin-top:.5pt;margin-right:5.1pt;
+               margin-left:5.25pt;margin-bottom:5.25pt;text-align: center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+               {# bypass the fix for column width if there is only one course #}
+               {% set course = [course] if (second_sem_courses | length) == 1 else course %}
+                   {% for char in course %}
+                   <span lang=EN-US style='font-size:11.0pt;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;letter-spacing:3.0pt'>
+                       {{ char }}</span>
+                   {% endfor %}
+               </b></p>
+           </td>
+       {% elif int(option) == 2 and not second_sem_option_hit%}
+           {% set second_sem_option_hit = True %}
+           {% for course, credit, option in second_sem_options %}
+               <td valign="bottom" style='width:12pt;border-top:none;border-left:none;
+                   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+                   padding:0 0 10pt 0;height:89.55pt'>
+                   <p class=MsoNormal style='margin-top:.5pt;margin-right:5.1pt;
+                   margin-left:5.25pt;margin-bottom:5.25pt;text-align: center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+                       {% for char in course %}
+                       <span lang=EN-US style='font-size:11.0pt;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;letter-spacing:3.0pt'>
+                           {{ char }}</span>
+                       {% endfor %}
+                   </b></p>
+               </td>
+           {% endfor %}
+       {% endif %}
+   {% endfor %}
+   {% endif %}
+
+  {# passed, failed, total credits; second semester #}
+  {% if not first_sem_only %}
+      <td width="1%" valign="bottom" rowspan=2 style='width:1.4%;border-top:none;border-left:none;
+       border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+       padding:0 0 10pt 0;height:116.75pt;text-align: center'>
+       <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+       0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+       {% for char in 'PASSED CREDITS' %}
+           <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
+           letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
+       {% endfor %}
+       </b></p>
+       </td>
+       <td width="1%" valign="bottom" rowspan=2 style='width:1.44%;border-top:none;border-left:
+       none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+       padding:0 0 10pt 0;height:116.75pt'>
+       <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+       0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+       {% for char in 'FAILED CREDITS' %}
+           <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
+           letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
+       {% endfor %}
+       </b></p>
+       </td>
+       <td width="1%" valign="bottom" rowspan=2 style='width:1.46%;border-top:none;border-left:
+       none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+       padding:0 0 10pt 0;height:116.75pt'>
+       <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+       0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+       {% for char in 'TOTAL CREDITS' %}
+           <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
+           letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
+       {% endfor %}
+       </b></p>
+       </td>
   {% endif %}
+
+
+   {# overall #}
+   {% if not first_sem_only %}
+       <td width="1%" valign="bottom" rowspan=2 style='width:1.4%;border-top:none;border-left:none;
+       border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+       padding:0 0 10pt 0;height:116.75pt;text-align: center'>
+       <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+       0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+       {% for char in 'PASSED CREDITS' %}
+           <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
+           letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
+       {% endfor %}
+       </b></p>
+       </td>
+       <td width="1%" valign="bottom" rowspan=2 style='width:1.44%;border-top:none;border-left:
+       none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+       padding:0 0 10pt 0;height:116.75pt'>
+       <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+       0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+       {% for char in 'FAILED CREDITS' %}
+           <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
+           letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
+       {% endfor %}
+       </b></p>
+       </td>
+       <td width="1%" valign="bottom" rowspan=2 style='width:1.46%;border-top:none;border-left:
+       none;border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+       padding:0 0 10pt 0;height:116.75pt'>
+       <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+       0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+       {% for char in 'TOTAL CREDITS' %}
+           <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
+           letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
+       {% endfor %}
+       </b></p>
+       </td>
+   {% endif %}
+
+   {% if level != 500 and not first_sem_only %}
+   <td width="1%" valign="bottom" rowspan=2 style='width:1.2%;border-top:none;border-left:none;
+    border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
+    padding:0 0 10pt 0;height:116.75pt'>
+   <p class=MsoNormal style='margin-top:0;margin-right:5.8pt;margin-bottom:
+   0;margin-left:5.85pt;margin-bottom:.0001pt;line-height:104%;text-align:center;-webkit-transform:rotate(180deg);-moz-transform:rotate(180deg);-o-transform:rotate(180deg);-ms-transform:rotate(180deg)'><b>
+   {% for char in 'CATEGORY' %}
+       <span lang=EN-US style='font-size:11.0pt;line-height:104%;font-family:"Calibri",sans-serif;writing-mode:vertical-rl;-webkit-writing-mode:vertical-rl;-ms-writing-mode:tb-rl;
+       letter-spacing:1.5pt'>{{ char if char not in ['', ' '] else '&nbsp;&nbsp;' | safe }}</span>
+   {% endfor %}
+   </b></p>
+   </td>
+   {% endif %}
+
   </tr>
 
+
+
+  {# Populating credits row #}
 
   <tr style='height:27.2pt'>
    <td width="1%" style='width:1.44%;border:solid windowtext 1.0pt;border-top:
@@ -467,6 +646,9 @@ style='font-size:4.5pt'></span></p>
    lang=EN-US style='font-size:12.0pt;font-family:"Calibri",sans-serif'>FULL&nbsp;NAMES (Surname&nbsp;Last)</span></b></p>
    </td>
 
+   {# first semester #}
+
+   {% set first_sem_option_hit = False %}
    {% for course, credit, option in first_sem_courses %}
        {% if option == 0 %}
            <td width="1%" style='width:1.32%;border-top:none;border-left:none;
@@ -477,8 +659,9 @@ style='font-size:4.5pt'></span></p>
            line-height:9.0pt'><b><i><span lang=EN-US style='font-size:11.0pt;
            font-family:"Calibri",sans-serif'>{{ credit }}</span></i></b></p>
            </td>
-       {% elif option == 1 %}
-           {% for course, credit, option in options[0] %}
+       {% elif option == 1 and not first_sem_option_hit %}
+           {% set first_sem_option_hit = True %}
+           {% for course, credit, option in first_sem_options %}
                <td width="1%" style='width:1.32%;border-top:none;border-left:none;
            border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
            padding:0 0 0 0;height:27.2pt'>
@@ -491,6 +674,11 @@ style='font-size:4.5pt'></span></p>
        {% endif %}
    {% endfor %}
 
+
+   {# second semester #}
+
+   {% if not first_sem_only %}
+   {% set second_sem_option_hit = False %}
    {% for course, credit, option in second_sem_courses %}
        {% if option == 0 %}
            <td width="1%" style='width:1.32%;border-top:none;border-left:none;
@@ -501,8 +689,9 @@ style='font-size:4.5pt'></span></p>
            line-height:9.0pt'><b><i><span lang=EN-US style='font-size:11.0pt;
            font-family:"Calibri",sans-serif'>{{ credit }}</span></i></b></p>
            </td>
-       {% elif option == 2 %}
-           {% for course, credit, option in options[1] %}
+       {% elif option == 2 and not second_sem_option_hit %}
+           {% set second_sem_option_hit = True %}
+           {% for course, credit, option in second_sem_options %}
                <td width="1%" style='width:1.32%;border-top:none;border-left:none;
            border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
            padding:0 0 0 0;height:27.2pt'>
@@ -514,6 +703,8 @@ style='font-size:4.5pt'></span></p>
            {% endfor %}
        {% endif %}
    {% endfor %}
+   {% endif %}
+
   </tr>
  </thead>
 
@@ -526,7 +717,7 @@ style='font-size:4.5pt'></span></p>
   none;padding:0 0 0 0;height:43.2pt'>
   <p class=MsoNormal align=center style='margin-top:0;margin-right:4.4pt;
   margin-bottom:0;margin-left:4.1pt;margin-bottom:.0001pt;text-align:center'><span
-  lang=EN-US style='font-size:11.0pt;font-family:"Calibri",sans-serif'>{{ idx + 1 }}</span></p>
+  lang=EN-US style='font-size:11.0pt;font-family:"Calibri",sans-serif'>{{ idx + 1 + start_index }}</span></p>
   </td>
 
   <td width="4%" style='width:4.76%;border-top:none;border-left:none;
@@ -535,11 +726,18 @@ style='font-size:4.5pt'></span></p>
   <p class=MsoNormal style='margin-left:4.05pt; margin-right:4.05pt'><span lang=EN-US
   style='font-size:11.0pt;font-family:"Calibri",sans-serif'>{{ students[student]['mat_no'] }}</span></p>
   </td>
+
+  {% set surname = students[student]['surname'].split(' ') %}
   <td width="13%" style='width:13.0%;border-top:none;border-left:none;
   border-bottom:solid windowtext 1.0pt;border-right:solid windowtext 1.0pt;
   padding:0 0 0 0;height:43.2pt'>
+  {% if index_to_display == 0 %}
   <p class=MsoNormal style='margin-left:4.05pt;margin-right:4.05pt'><span lang=EN-US style='font-size:11.0pt;font-family:"Calibri",sans-serif'>
-      {{ students[student]['othernames'] | safe }} <b>{{ students[student]['surname'] | safe }}</b></span></p>
+      {{ students[student]['othernames'] | safe }} <b>{{ surname[0] | safe }}</b> {{  surname[1] if (surname | length) > 1  else '' }}</span></p>
+  {% else %}
+  <p class=MsoNormal style='margin-left:4.05pt;margin-right:4.05pt'><span lang=EN-US style='font-size:11.0pt;font-family:"Calibri",sans-serif'>
+      {{ empty_value }}&nbsp;</span></p>
+  {% endif %}
   </td>
 
 
@@ -549,7 +747,7 @@ style='font-size:4.5pt'></span></p>
       {% set course_obj = students[student]['carryovers']['first_sem'][course] %}
         <td width="3%" style="width:3.1%;border-top:none;border-left:none;border-bottom:solid black 1.0pt;
         border-right:solid black 1.0pt;padding:0cm 0cm 0cm 0cm;height:43.2pt">
-          <p class="MsoNormal" style="margin-top:0cm;margin-right:0cm;margin-bottom:.8pt;margin-left:2.2pt;
+          <p class="MsoNormal" style="margin-top:0cm;margin-bottom:.8pt;margin-left:2.2pt;
           margin-right:2.2pt;text-align:center"><span lang="EN-US" style="font-size:8.0pt;font-family:'Calibri',
           sans-serif">{{ course }}</span></p>
           <p class="MsoNormal" align="center" style="margin-top:0cm;margin-right:0cm;
@@ -557,15 +755,15 @@ style='font-size:4.5pt'></span></p>
           font-family:'Calibri',sans-serif">{{ course_obj[2] }}</span></p>
           <p class="MsoNormal" align="center" style="margin-left:.3pt;text-align:center">
               <span lang="EN-US" style="font-size:8.0pt;font-family:'Calibri',
-              sans-serif;{{ 'color:red' if int(course_obj[0]) < min_score else 'color:black' }}">
-              {{ course_obj[index_to_display] }}</span></p>
+              sans-serif;color:{{ color_map.get(course_obj[1], 'black') }}">
+              {{ 'ABS' if course_obj[1] == 'ABS' else course_obj[index_to_display]  }}</span></p>
     </td>
   {% endfor %}
 
   {% for _ in range( len_first_sem_carryovers - (students[student]['carryovers']['first_sem'] | length) ) %}
       <td width="3%" style="width:3.1%;border-top:none;border-left:none;border-bottom:solid black 1.0pt;
       border-right:solid black 1.0pt;padding:0cm 0cm 0cm 0cm;height:43.2pt">
-        <p class="MsoNormal" style="margin-top:0cm;margin-right:0cm;margin-bottom:.8pt;
+        <p class="MsoNormal" style="margin-top:0cm;margin-right:2.2pt;margin-bottom:.8pt;
         margin-left:2.2pt;text-align:justify"><span lang="EN-US" style="font-size:8.0pt;
         font-family:'Calibri',sans-serif">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></p>
 
@@ -586,8 +784,8 @@ style='font-size:4.5pt'></span></p>
             {% set course_obj = students[student]['regular_courses']['first_sem'][course] %}
             <td width="2%" style="width:2.2%;border-top:none;border-left:none;border-bottom:solid black 1.0pt;
                 border-right:solid black 1.0pt;padding:0cm 0cm 0cm 0cm;height:43.2pt"><p class="MsoNormal" align="center" style="text-align:center"><span lang="EN-US"
-            style="font-family:'Calibri',sans-serif;{{ 'color:red' if int(course_obj[0]) < min_score else 'color:black' }}">
-                {{ course_obj[index_to_display] }}</span></p>
+            style="font-family:'Calibri',sans-serif;color:{{ color_map.get(course_obj[1], 'black') }}">
+                {{ 'ABS' if course_obj[1] == 'ABS' else course_obj[index_to_display]  }}</span></p>
             </td>
         {% else %}
             <td width="2%" style="width:2.2%;border-top:none;border-left:none;border-bottom:solid black 1.0pt;
@@ -599,15 +797,15 @@ style='font-size:4.5pt'></span></p>
 
      {% elif option == 1 and not first_sem_option_hit %}
         {% set first_sem_option_hit = True %}
-        {% for course, credit, option in options[0] %}
+        {% for course, credit, option in first_sem_options %}
 
            {% if course in students[student]['regular_courses']['first_sem'] %}
                {% set course_obj = students[student]['regular_courses']['first_sem'][course] %}
                <td width="2%" style="width:2.2%;border-top:none;border-left:none;border-bottom:solid black 1.0pt;
                   border-right:solid black 1.0pt;padding:0cm 0cm 0cm 0cm;height:43.2pt"><p class="MsoNormal"
                   align="center" style="text-align:center"><span lang="EN-US" style="font-family:'Calibri',sans-serif;
-                  {{ 'color:red' if int(course_obj[0]) < min_score else 'color:black' }}">
-                   {{ course_obj[index_to_display] }}</span></p>
+                  color:{{ color_map.get(course_obj[1], 'black') }}">
+                   {{ 'ABS' if course_obj[1] == 'ABS' else course_obj[index_to_display]  }}</span></p>
               </td>
            {% else %}
               <td width="2%" style="width:2.2%;border-top:none;border-left:none;border-bottom:solid black 1.0pt;
@@ -619,6 +817,7 @@ style='font-size:4.5pt'></span></p>
 
         {% endfor %}
      {% endif %}
+
   {% endfor %}
 
   <td width="1%" style='width:1.4%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
@@ -639,29 +838,30 @@ style='font-size:4.5pt'></span></p>
 
 
   {# second semester courses #}
+  {% if not first_sem_only %}
 
   {% for course in students[student]['carryovers']['second_sem'] %}
       {% set course_obj = students[student]['carryovers']['second_sem'][course] %}
         <td width="3%" style="width:3.1%;border-top:none;border-left:none;border-bottom:solid black 1.0pt;
       border-right:solid black 1.0pt;padding:0cm 0cm 0cm 0cm;height:43.2pt">
-          <p class="MsoNormal" style="margin-top:0cm;margin-right:0cm;margin-bottom:.8pt;
-        margin-left:2.2pt;text-align:center"><span lang="EN-US" style="font-size:8.0pt;
-        font-family:'Calibri',sans-serif">{{ course }}</span></p>
+          <p class="MsoNormal" style="margin-top:0cm;margin-right:2.2pt;margin-bottom:.8pt;
+        margin-left:2.2pt;text-align:center"><span lang="EN-US" style="font-size:8.0pt;margin-left:2.2pt;
+          margin-right:2.2pt;font-family:'Calibri',sans-serif">{{ course }}</span></p>
           <p class="MsoNormal" align="center" style="margin-top:0cm;margin-right:0cm;
         margin-bottom:.8pt;margin-left:.35pt;text-align:center"><span lang="EN-US" style="font-size:8.0pt;
         font-family:'Calibri',sans-serif">
               {{ course_obj[2] }}</span></p>
           <p class="MsoNormal" align="center" style="margin-left:.3pt;text-align:center">
               <span lang="EN-US" style="font-size:8.0pt;font-family:'Calibri',
-              sans-serif;{{ 'color:red' if int(course_obj[0]) < min_score else 'color:black' }}">
-              {{ course_obj[index_to_display] }}</span></p>
+              sans-serif;color:{{ color_map.get(course_obj[1], 'black') }}">
+              {{ 'ABS' if course_obj[1] == 'ABS' else course_obj[index_to_display]  }}</span></p>
         </td>
   {% endfor %}
 
   {% for _ in range( len_second_sem_carryovers - (students[student]['carryovers']['second_sem'] | length) ) %}
   <td width="3%" style="width:3.1%;border-top:none;border-left:none;border-bottom:solid black 1.0pt;
   border-right:solid black 1.0pt;padding:0cm 0cm 0cm 0cm;height:43.2pt">
-    <p class="MsoNormal" style="margin-top:0cm;margin-right:0cm;margin-bottom:.8pt;
+    <p class="MsoNormal" style="margin-top:0cm;margin-right:2.2pt;margin-bottom:.8pt;
     margin-left:2.2pt;text-align:justify"><span lang="EN-US" style="font-size:8.0pt;
     font-family:'Calibri',sans-serif">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span></p>
 
@@ -683,8 +883,8 @@ style='font-size:4.5pt'></span></p>
             <td width="2%" style="width:2.2%;border-top:none;border-left:none;border-bottom:solid black 1.0pt;
                 border-right:solid black 1.0pt;padding:0cm 0cm 0cm 0cm;height:43.2pt"><p class="MsoNormal" align="center"
                 style="text-align:center"><span lang="EN-US" style="font-family:'Calibri',
-                sans-serif;{{ 'color:red' if int(course_obj[0]) < min_score else 'color:black' }}">
-                {{ course_obj[index_to_display] }}</span></p>
+                sans-serif;color:{{ color_map.get(course_obj[1], 'black') }}">
+                {{ 'ABS' if course_obj[1] == 'ABS' else course_obj[index_to_display]  }}</span></p>
             </td>
         {% else %}
             <td width="2%" style="width:2.2%;border-top:none;border-left:none;border-bottom:solid black 1.0pt;
@@ -696,14 +896,15 @@ style='font-size:4.5pt'></span></p>
 
      {% elif option == 2 and not second_sem_option_hit %}
         {% set second_sem_option_hit = True %}
-        {% for course, credit, option in options[1] %}
+        {% for course, credit, option in second_sem_options  %}
+
            {% if course in students[student]['regular_courses']['second_sem'] %}
                {% set course_obj = students[student]['regular_courses']['second_sem'][course] %}
                <td width="2%" style="width:2.2%;border-top:none;border-left:none;border-bottom:solid black 1.0pt;
                   border-right:solid black 1.0pt;padding:0cm 0cm 0cm 0cm;height:43.2pt"><p class="MsoNormal" align="center"
                   style="text-align:center"><span lang="EN-US" style="font-family:'Calibri',
-                  sans-serif;{{ 'color:red' if int(course_obj[0]) < min_score else 'color:black' }}">
-                  {{ course_obj[index_to_display] }}</span></p>
+                  sans-serif;color:{{ color_map.get(course_obj[1], 'black') }}">
+                  {{ 'ABS' if course_obj[1] == 'ABS' else course_obj[index_to_display]  }}</span></p>
               </td>
            {% else %}
               <td width="2%" style="width:2.2%;border-top:none;border-left:none;border-bottom:solid black 1.0pt;
@@ -712,8 +913,10 @@ style='font-size:4.5pt'></span></p>
                   color:#22B14C">NR</span></p>
               </td>
            {% endif %}
+
         {% endfor %}
      {% endif %}
+
   {% endfor %}
 
   <td width="1%" style='width:1.4%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
@@ -732,9 +935,12 @@ style='font-size:4.5pt'></span></p>
       font-family:"Calibri",sans-serif;color:black'>{{ students[student]['semester_tcr'][1] }}</span></p>
   </td>
 
+  {% endif %}
+
 
   {# overall stats #}
 
+  {% if not first_sem_only %}
   <td width="1%" style='width:1.16%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
       border-right:solid windowtext 1.0pt;padding:0 0 0 0;height:43.2pt'>
       <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US style='font-size:9.0pt;
@@ -750,28 +956,42 @@ style='font-size:4.5pt'></span></p>
       <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US style='font-size:9.0pt;
       font-family:"Calibri",sans-serif;color:black'>{{ sum(students[student]['semester_tcr']) }}</span></p>
   </td>
+  {% endif %}
 
+
+  {% set grad_status = students[student]['grad_status'] %}
+
+  {% set failed_courses = students[student]['sem_failed_courses'][0] %}
+  {% if not first_sem_only %}
+      {% set failed_courses = students[student]['sem_failed_courses'][0] + students[student]['sem_failed_courses'][1] %}
+  {% endif %}
   <td width="11%" style='width:11.18%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
       border-right:solid windowtext 1.0pt;padding:0 0 0 0;height:43.2pt'>
-      <p class=MsoNormal><span lang=EN-US style='font-size:8.0pt;font-family:"Calibri",sans-serif;color:black'>
-          {{ students[student]['failed_courses'] | join(" ") }}
-      </span></p>
+
+  {% if level == 500 and grad_status == 1 and not first_sem_only %}
+      <p class=MsoNormal style="margin-left:4.05pt; margin-right:4.05pt;text-align:center"><span lang=EN-US style='font-size:8.0pt;font-family:"Calibri",sans-serif;color:black'>
+          {{ students[student]['cgpa'] }}</span></p>
+      <p class=MsoNormal style="margin-left:4.05pt; margin-right:4.05pt;text-align:center"><span lang=EN-US style='font-size:8.0pt;font-family:"Calibri",sans-serif;color:black'>
+          {{ students[student]['degree_class'] }}</span></p>
+  {% else %}
+      <p class=MsoNormal style="margin-left:4.05pt; margin-right:4.05pt"><span lang=EN-US style='font-size:8.0pt;font-family:"Calibri",sans-serif;color:black'>
+          {{ failed_courses | join(" ") }}</span></p>
+  {% endif %}
   </td>
 
+ {% if level != 500 and not first_sem_only %}
   <td width="1%" style='width:1.2%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
       border-right:solid windowtext 1.0pt;padding:0 0 0 0;height:43.2pt'>
-      <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US style='font-size:9.0pt;
-      font-family:"Calibri",sans-serif;color:black'>{{ students[student]['category'] }}</span></p>
+      <p class=MsoNormal style='text-align:center'><b><span lang=EN-US style='font-size:9.0pt;
+      font-family:"Calibri",sans-serif;color:black'>{{ students[student]['category'] }}</span></b></p>
   </td>
+ {% endif %}
+
  </tr>
  {% endfor %}
 </table>
 
 </div>
-
-
-<p class=MsoNormal style='margin-top:.2pt;line-height:8.0pt'><span lang=EN-US
-style='font-size:8.0pt'></span></p>
 
 </div>
 

@@ -1,43 +1,14 @@
-1) course addition                                                        >>>>> done
-2) props in MasterDB -> grading rule, current session
-3) On result auto computation, update level in personal info and course reg if present
-        recompute categories and update gpas, credits passed for level (modify GPAs table in DB to tuple of passed credits and GPAs) >>>>> done
-4) Account creation and account management (deletion and modifying permissions)
-5) Add extra column in Resultsx00 to handle unregistered courses          >>>>> done
-6) Sheets report generation
-7) Backup and Restore DBs
-8) Clear all logs (superuser)
-9) Fix child endpoint logging
-10) HOD's access permission
-11) Create session expose, change session updates personal info level
-12) Make sure course reg and Result table have matching tables            >>>>> done
-13) Log user login
-14) Search student by name (say surname) and perhaps streamlined to an entry session or some other filter ==> special cases
-        --- perhaps by adding surname to master db
-15) Solve the security issue with log.py printing account.post()'s data parameter (this includes new users' password)
-16) show account title and possibly username in logs, id is too unspecific and changes overtime
-17) Create logout endpoint
-18) End user session after a period of inactivity (or heck activity)
-    --[remember to take into account that logs.get() keeps getting called when the frontend is in main menu]
-19) Periodically clear cache dir
-20) Make results.py and course_reg.py logs available to logs.py
-21) Make open_result_edit possible to activate for a single user
-22) Make logs.py able to get log data with filter already applied (filter in backend?)
-        ---Logs only filters already fetched data, this causes some problems,
-23) Unify the data formats for input and output for /course_reg and /results
-24) Split heavy course_reg into bits                                      >>>>> done
-        --- /course_reg_old :  returns "not yet registered" for when course reg not yet done for the session
-        --- /course_reg     :  returns details for new course_reg
-        --- util funcs      :  to select table, to get credits registered (from db even), others
-25) An asterisk next to level GPAs in reports when the courses for that level are not all passed
-26) Add table in sessional dbs for logging result errors
-27) Keep list of sessional dbs (and perhaps their URIs) in master db,
-        --- iterate through this list instead of using counting sessions
-28) Function in results (or somewhere similar) that goes through all students in a level (under a course adviser)
-        --- and calculates probation status,
-        --- add symlink status and associated db if necessary,
-        --- re(calculates) gpa and cgpa (it would be prudent to remove this from results)
-        --- maps to a button on the frontend which course advisers click when they're done with result entry
-        --- admin calls this function during create_session if the course adviser has not
-              (after first failing and showing on the frontend that this is the cause)
-29) restructure project
+1)  props in MasterDB -> grading rule, current session, maximum credits for course_reg
+2)  Clear all logs (superuser)
+3)  Backup and Restore DBs
+4)  Create session expose, change session updates personal info level (big red button)
+5)  Log user login
+6)  Create logout endpoint
+7)  Search student by surname
+8)  An asterisk next to level GPAs in reports, sheets when the courses for that level are not all passed
+9)  Periodically clear cache dir
+10) End user session after a period of inactivity (or heck activity)
+11) Make open_result_edit possible to activate for a single user
+12) Sheets report generation
+
+** handle compute_category for 100 level probation
