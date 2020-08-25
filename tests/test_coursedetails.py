@@ -16,7 +16,7 @@ sql_all_courses = "SELECT * FROM courses"
 sql_get_course = lambda course=valid_course: ("SELECT * FROM courses WHERE course_code=?", (course,))
 sql_get_level = lambda level=level: ("SELECT * FROM courses WHERE course_level=? AND active=?", (level, 1))
 sql_all_courses_active = ("SELECT * FROM courses WHERE active=?",(1,))
-sql_ins_course = lambda course=inv_crs_val: ("INSERT INTO courses VALUES (?,?,?,?,?,?,?,?,?,?)", (course,))
+sql_ins_course = lambda course=inv_crs_val: ("INSERT INTO courses VALUES (?,?,?,?,?,?,?,?,?,?)", (*course,))
 sql_del_course = lambda course=inv_crs_val[0]: ("DELETE FROM courses WHERE course_code=?",(course,))
 
 
@@ -96,7 +96,7 @@ def test_put_one():
     course_add["course_credit"] = 3
     course_add["course_semester"] = 2
     course_list = [course_add]
-    assert course_details.put(course_add) == (None, 404)
+    assert course_details.put(course_list) == (None, 404)
     cur.execute(*sql_ins_course())
     conn.commit()
     assert course_details.put(course_list) == (None, 200)
