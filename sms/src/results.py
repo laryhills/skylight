@@ -66,16 +66,16 @@ def get_results_for_acad_session(mat_no, acad_session, return_empty=False):
 
     if results:
         # remove extra fields from results
-        results, level_written, tcp, category = refine_res_poll_item(results)
+        result, level_written, tcp, category = refine_res_poll_item(results)
     elif return_empty:
         result = {'regular_courses': [], 'carryovers': [], 'unusual_results': []}
         level_written, tcp, category = '', 0, ''
     else:
         return 'No result available for entered session', 404
 
-    regular_courses = split_courses_by_semester(multisort(results['regular_courses']), 4)
-    carryovers = split_courses_by_semester(multisort(results['carryovers']), 4)
-    unusual_results = split_courses_by_semester(multisort(results['unusual_results']), 4)
+    regular_courses = split_courses_by_semester(multisort(result['regular_courses']), 4)
+    carryovers = split_courses_by_semester(multisort(result['carryovers']), 4)
+    unusual_results = split_courses_by_semester(multisort(result['unusual_results']), 4)
 
     frame = {'mat_no': mat_no,
              'table': table_to_populate,
