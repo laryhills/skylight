@@ -9,7 +9,7 @@ class Courses(db.Model):
     course_credit = db.Column('COURSE_CREDIT', db.Integer)
     course_semester = db.Column('COURSE_SEMESTER', db.Integer)
     course_level = db.Column('COURSE_LEVEL', db.Integer)
-    teaching_dept = db.Column('TEACHING_DEPARTMENT', db.String(3))
+    teaching_dept = db.Column('TEACHING_DEPT', db.String(3))
     start_date = db.Column('START_DATE', db.Integer)
     end_date = db.Column('END_DATE', db.Integer)
     options = db.Column('OPTIONS', db.Integer)
