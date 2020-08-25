@@ -136,12 +136,11 @@ def add_result_records(list_of_results):
     """  ==== JSON FORMAT FOR THE RESULTS ====
 
     res =[
-            ["MEE351", "2019", "ENG1503886", "98"],
-            ["MEE491", "2019", "ENG1503886", "98"],
-            ["EMA481", "2019", "ENG1503886", "98"],
-            ["MEE531", "2019", "ENG1503886", "98"],
-            ["MEE561", "2019", "ENG1503886", "98"],
-            ["MEE571", "2019", "ENG1503886", "98"]
+             [course_code_1, session_written_1, mat_no_1, score_1]
+
+             [course_code_2, session_written_2, mat_no_2, score_2],
+
+             ...
         ]
     """
     base_dir = os.path.dirname(__file__)
@@ -174,6 +173,7 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
     :param index: position of entry in the larger list --for tracking
     :param result_details: [course_code, session_written, mat_no, score]
     :param result_errors_file: file object in write or append mode for logging important errors
+    :param course_details_dict:
     :return:
     """
     course_code, session_taken, mat_no, score = result_details

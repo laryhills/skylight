@@ -1,27 +1,34 @@
 """ ======= COURSE_REG FORMAT =======
     mat_no: 'ENGxxxxxxx'
-    personal_info: {...}
+
+    personal_info: { ... }
+
     table_to_populate: 'CourseRegxxx'
-    course_reg_session: 20xx
-    course_reg_level: x00
+
+    course_reg_session: <int> 20xx
+
+    course_reg_level: <int> x00
+
     max_credits: <int>
+
     courses: {
                first_sem: [ ('course_code_1', 'course_title_1', 'course_credits_1'),
                             ('course_code_2', 'course_title_2', 'course_credits_2'), ...]
-               second_sem: []
+               second_sem: [ ... ]
              }
     choices: {
                first_sem: [ ('course_code_1', 'course_title_1', 'course_credits_1'),
                             ('course_code_2', 'course_title_2', 'course_credits_2'), ...]
-               second_sem: []
+               second_sem: [ ... ]
              }
     probation_status: <int>
+
     fees_status: <int>
+
     others: ''
+
     =======================
 
-example...
-c_reg = {'mat_no': 'ENG1503886', personal_info: {}, 'table_to_populate': 'CourseReg500', 'course_reg_session': 2019, 'course_reg_level': 500, 'max_credits': 50, 'courses': {'first_sem': ['MEE521', 'MEE451', 'MEE561', 'MEE571', 'EMA481', 'MEE502'], 'second_sem': []}, 'probation_status': 0, 'fees_status': None, 'others': None}
 """
 from sms.src import course_reg_utils, results, utils
 from sms.src.users import access_decorator
