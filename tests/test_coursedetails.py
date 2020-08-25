@@ -8,7 +8,7 @@ conn.row_factory = sqlite3.Row
 cur = conn.cursor()
 level = 500
 valid_course = "MEE321"
-course_keys = ("course_code", "course_title", "course_credit", "course_semester", "course_level", "teaching_department", "start_date", "end_date", "options", "active")
+course_keys = ("course_code", "course_title", "course_credit", "course_semester", "course_level", "teaching_dept", "start_date", "end_date", "options", "active")
 inv_crs_val = ("INV211", "Invalid Course", 2, 1, 200, "MEE", 1970, 2999, 0, 0)
 inv_crs_val_2 = ("INV311", "Invalid Course-2", 2, 1, 300, "MEE", 1970, 2999, 0, 0)
 
@@ -29,8 +29,7 @@ def test_setup_env():
 def test_get_one_course():
     course_obj = course_details.get(valid_course)
     course_row = cur.execute(*sql_get_course(valid_course)).fetchone()
-    assert course_obj["teaching_dept"] == course_row["teaching_department"]
-    for prop in set(course_keys) - {"teaching_department"}:
+    for prop in set(course_keys):
         assert course_obj[prop] == course_row[prop]
 
 
@@ -77,8 +76,6 @@ def test_get_course_details():
 
 def test_post():
     course_add = dict(zip(course_keys, inv_crs_val))
-    course_add["teaching_dept"] = course_add["teaching_department"]
-    course_add.pop("teaching_department")
     assert course_details.post(course_add) == (None, 200)
     assert course_details.post(course_add)[1] == 400
     cur.execute(*sql_del_course())
