@@ -1,5 +1,6 @@
 import os
 import sqlite3
+from sms import config
 from tests import db_path
 from sms.src import course_details
 
@@ -21,6 +22,7 @@ sql_del_course = lambda course=inv_crs_val[0]: ("DELETE FROM courses WHERE cours
 
 
 def test_setup_env():
+    config.add_token("TESTING_token", "coursedetails_test", {"superuser":True, "write": True, "read": True})
     cur.execute(*sql_del_course())
     cur.execute(*sql_del_course(inv_crs_val_2[0]))
     conn.commit()
