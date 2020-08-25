@@ -455,7 +455,7 @@ paths:
       description: Post results to the database as a list of list ==> [ [course_code, session, mat_no, score], [next record], ... ]
       parameters:
         - in: body
-          name: list_of_results
+          name: data
           schema:
             $ref: '#/definitions/Results_post'
       responses:
@@ -482,7 +482,7 @@ paths:
       description: Post results to the database as a list of list ==> [ [course_code, session, mat_no, score], [next record], ... ]
       parameters:
         - in: body
-          name: list_of_results
+          name: data
           schema:
             $ref: '#/definitions/Results_post'
       responses:

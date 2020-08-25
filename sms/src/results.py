@@ -25,11 +25,11 @@ def get(mat_no, acad_session):
 
 
 @access_decorator
-def post(list_of_results):
-    if not list_of_results:
+def post(data):
+    if not data:
         return 'No result record supplied', 400
 
-    result_acad_sessions = list(set(list(zip(*list_of_results))[1]))
+    result_acad_sessions = list(set(list(zip(*data))[1]))
     current_session = utils.get_current_session()
     if len(result_acad_sessions) > 1:
         return 'You are only authorised to add results for the current session. ' \
@@ -39,14 +39,14 @@ def post(list_of_results):
         return 'You are not authorised to add results for the past session: ' \
                '{}/{}'.format(current_session, current_session + 1), 401
 
-    return add_result_records(list_of_results)
+    return add_result_records(data)
 
 
 @access_decorator
-def put(list_of_results):
-    if not list_of_results:
+def put(data):
+    if not data:
         return 'No result record supplied', 400
-    return add_result_records(list_of_results)
+    return add_result_records(data)
 
 
 # ==============================================================================================
