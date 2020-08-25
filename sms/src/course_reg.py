@@ -86,7 +86,7 @@ def check_registration_eligibility(mat_no, acad_session):
     s_personal_info = course_reg_utils.process_personal_info(mat_no)
     table_to_populate = course_reg_utils.get_table_to_populate(current_level, acad_session, res_poll, course_reg)
     probation_status, previous_category = course_reg_utils.get_probation_status_and_prev_category(res_poll, acad_session)
-    graduation_status = s_personal_info['grad_stats']
+    graduation_status = s_personal_info['grad_stats']  # todo: change this to grad_status
 
     # handle special cases
     error_text = ''
