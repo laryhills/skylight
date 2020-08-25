@@ -38,7 +38,7 @@ def get(mat_no):
     personalinfo_schema = PersonalInfoSchema()
     personalinfo_obj = personalinfo_schema.dump(student_data)
     personalinfo_obj['level'] = abs(personalinfo_obj['level'])
-    personalinfo_obj.update({'grad_stats': student_data.grad_status})
+    personalinfo_obj.update({'grad_status': student_data.grad_status})
     return personalinfo_obj
 
 

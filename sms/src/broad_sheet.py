@@ -240,7 +240,7 @@ def enrich_mat_no_list(mat_nos, acad_session, level, level_courses):
         personal_info = process_personal_info(mat_no)
         result_details['othernames'] = personal_info['othernames']
         result_details['surname'] = personal_info['surname']
-        result_details['grad_status'] = personal_info['grad_stats']  # todo: change "grad_stats" to "grad_status"
+        result_details['grad_status'] = personal_info['grad_status']
         result_details['cgpa'] = round(get_cgpa(mat_no), 2)
         result_details['degree_class'] = compute_degree_class(mat_no, cgpa=result_details['cgpa'])
 
