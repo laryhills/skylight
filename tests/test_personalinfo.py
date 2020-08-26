@@ -42,6 +42,10 @@ def delete_student(mat_no):
     conn_2.commit()
 
 
+def test_setup_env():
+    delete_student("ENGTESTING")
+
+
 def test_get_invaid_info():
     mat_no = "INV"+str(time())[-7:]
     assert personal_info.get(mat_no) == None
@@ -118,3 +122,7 @@ def test_post_dets_new_errors():
     dummy_info.pop("mode_of_entry")
     output, ret_code = personal_info.post_exp(dummy_info)
     assert (output, ret_code) == ("Invalid field supplied or missing a compulsory field", 400)
+
+
+def test_teardown_env():
+    test_setup_env()
