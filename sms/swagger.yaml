@@ -452,10 +452,11 @@ paths:
       tags: [Results]
       operationId: sms.src.results.post
       summary: Add result records
-      description: Post results to the database as a list of list ==> [ [course_code, session, mat_no, score], [next record], ... ]
+      description: Post results to the database
       parameters:
         - in: body
           name: data
+          required: true
           schema:
             $ref: '#/definitions/Results_post'
       responses:
@@ -479,7 +480,7 @@ paths:
       tags: [Results]
       operationId: sms.src.results.put
       summary: Edit past result records, requires elevated access
-      description: Post results to the database as a list of list ==> [ [course_code, session, mat_no, score], [next record], ... ]
+      description: Post results to the database, admin
       parameters:
         - in: body
           name: data
@@ -768,10 +769,18 @@ definitions:
         type: string
 
   Results_post:
-    type: array
-    items:
-      type: array
-      items: {}
+    type: object
+    properties:
+      level:
+        type: integer
+      list_of_results:
+        type: array
+        items:
+          type: array
+          items: {}
+    example:
+      level: 500
+      list_of_results: [[course_code_1, session_1, mat_no_1, score_1], [course_code_2, session_2, mat_no_2, score_2]]
 
   Accounts_post:
     type: object
