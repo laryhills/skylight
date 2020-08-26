@@ -216,6 +216,12 @@ fn_props = {
     "personal_info.post_exp": {"perms": {"levels", "write"},
                            "logs": lambda user, params: "{} added personal details for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
                         },
+    "personal_info.put": {"perms": {"superuser", "write"},
+                          "logs": lambda user, params: "{} modified personal details of {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
+                        },
+    "personal_info.patch": {"perms": {"levels", "write"},
+                           "logs": lambda user, params: "{} managed personal details for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
+                        },
     "course_details.post": {"perms": {"superuser", "write"},
                             "logs": lambda user, params: "{} added course {}:-\n{}".format(user, params.get("course_code"), dict_render(params))
                         },
