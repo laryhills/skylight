@@ -75,7 +75,7 @@ def access_decorator(func):
             level = params.get("level") or params.get("data", {}).get("level")
             mat_no = params.get("mat_no") or params.get("data", {}).get("mat_no")
             if mat_no and not level:
-                level = get_level(mat_no)
+                level = get_level(mat_no, parse=False)
                 if not level:
                     return None, 404
             has_access = False
@@ -165,32 +165,8 @@ def get_DB(mat_no):
     return db_name.replace('-', '_')[:-3]
 
 
-# def get_level(mat_no):
-#     # 600-800 - is spill, 100-500 spill not inc, grad_status - graduated
-#     db_name = get_DB(mat_no)
-#     if not db_name:
-#         return None
-#     session = load_session(db_name)
-#     PersonalInfo = session.PersonalInfo
-#     student_data = PersonalInfo.query.filter_by(mat_no=mat_no).first()
-#     current_level = student_data.level
-#     if current_level == 500:
-#         if student_data.is_symlink and student_data.grad_stats == 0:
-#             # Spillover students
-#             for level in [800, 700, 600]:
-#                 course_reg_obj = eval('session.CourseReg{}'.format(level)).query.filter_by(mat_no=mat_no).first()
-#                 if course_reg_obj:
-#                     current_level = course_reg_obj.level
-#                     break
-#             else:
-#                 # Just a backup
-#                 affiliated_session = int(student_data.database.split('-')[0])
-#                 current_level += (affiliated_session - student_data.session_admitted + student_data.mode_of_entry - 1) * 100
-#     return current_level
-
-
-def get_level(mat_no):
-    # 600-800 - is spill, 100-500 spill not inc, grad_status - graduated
+def get_level(mat_no, parse=True):
+    # 600-800 - is spill, 100-500 spill not inc, -ve val if not parse = graduated
     db_name = get_DB(mat_no)
     if not db_name:
         return None
@@ -198,22 +174,11 @@ def get_level(mat_no):
     PersonalInfo = session.PersonalInfo
     student_data = PersonalInfo.query.filter_by(mat_no=mat_no).first()
     current_level = student_data.level
-
-    return current_level if abs(current_level) == current_level else current_level * -1
-
-
-def get_level_new(mat_no):
-    # 600-800 - is spill, 100-500 spill not inc, grad_status - graduated
-    db_name = get_DB(mat_no)
-    if not db_name:
-        return None
-    session = load_session(db_name)
-    PersonalInfo = session.PersonalInfo
-    student_data = PersonalInfo.query.filter_by(mat_no=mat_no).first()
-    current_level = student_data.level
+    if parse:
+        return abs(current_level)
     return current_level
 
-  
+
 # USER-specific functions
 def dict_render(dictionary, indent = 0):
     rendered_dict = ""
