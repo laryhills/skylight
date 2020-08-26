@@ -229,13 +229,18 @@ def post_course_reg(data):
     db_session = course_reg_xxx_schema.Meta.sqla_session
     db_session.add(course_registration)
     db_session.commit()
+    db_session.close()
+
+    success_text = 'course registration successful'
 
     # Here we check if there were any stray results waiting in unusual results for this session
     session_results = [x for x in utils.result_poll(mat_no) if x and (x['session'] == course_reg_session)]
     if session_results and 'unusual_results' in session_results[0] and session_results[0]['unusual_results']:
         unusual_results = session_results[0]['unusual_results'].split(',')
         unusual_results = [[x.split(' ')[0], course_reg_session, mat_no, x.split(' ')[1]] for x in unusual_results]
-        results.post(unusual_results)
+        log = results.add_result_records(unusual_results)
 
-    print('\n====>>  ', 'course registration successful')
-    return 'course registration successful', 201
+        if log[0]: success_text += '; results for unregistered courses still remain in database'
+
+    print('\n====>>  ', success_text)
+    return success_text, 201
