@@ -32,6 +32,9 @@ def post(data):
     if not list_of_results:
         return 'No result record supplied', 400
 
+    if not level:
+        return 'Result entry level was not supplied', 400
+
     result_acad_sessions = list(set(list(zip(*list_of_results))[1]))
     current_session = utils.get_current_session()
     if len(result_acad_sessions) > 1:
