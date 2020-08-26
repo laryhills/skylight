@@ -12,3 +12,4 @@
 12) Sheets report generation
 
 ** handle compute_category for 100 level probation
+** add delete endpoint to results and carryovers

@@ -26,10 +26,16 @@ def get(mat_no, acad_session):
 
 @access_decorator
 def post(data):
-    if not data:
+    level = data.get('level', None)
+    list_of_results = data.get('list_of_results', [])
+
+    if not list_of_results:
         return 'No result record supplied', 400
 
-    result_acad_sessions = list(set(list(zip(*data))[1]))
+    if not level:
+        return 'Result entry level was not supplied', 400
+
+    result_acad_sessions = list(set(list(zip(*list_of_results))[1]))
     current_session = utils.get_current_session()
     if len(result_acad_sessions) > 1:
         return 'You are only authorised to add results for the current session. ' \
@@ -37,16 +43,19 @@ def post(data):
 
     elif int(result_acad_sessions[0]) != current_session:
         return 'You are not authorised to add results for the past session: ' \
-               '{}/{}'.format(current_session, current_session + 1), 401
+               '{}/{}'.format(int(result_acad_sessions[0]), int(result_acad_sessions[0]) + 1), 401
 
-    return add_result_records(data)
+    return add_result_records(list_of_results, level)
 
 
 @access_decorator
 def put(data):
-    if not data:
+    level = data.get('level', None)
+    list_of_results = data.get('list_of_results', [])
+
+    if not list_of_results:
         return 'No result record supplied', 400
-    return add_result_records(data)
+    return add_result_records(list_of_results)
 
 
 # ==============================================================================================
@@ -132,7 +141,7 @@ def get_results_for_level(mat_no, level_written, return_empty=False):
     return result_for_level, 200
 
 
-def add_result_records(list_of_results):
+def add_result_records(list_of_results, level=None):
     """  ==== JSON FORMAT FOR THE RESULTS ====
 
     res =[
@@ -157,31 +166,43 @@ def add_result_records(list_of_results):
         course_details_dict = {}
 
     for index, result_details in enumerate(list_of_results):
-        errors, status_code = add_single_result_record(index, result_details, result_errors_file, course_details_dict)
+        errors, status_code = add_single_result_record(index, result_details, result_errors_file, course_details_dict, level)
         error_log.extend(errors)
 
     result_errors_file.close()
-    print(Fore.CYAN, '\n====>>  ', '{} result entries added with {} errors'.format(
+    print(Fore.CYAN, '\n ====>>  ', '{} result entries added with {} errors'.format(
         len(list_of_results), len(error_log)), Style.RESET_ALL)
 
     return error_log, 200
 
 
-def add_single_result_record(index, result_details, result_errors_file, course_details_dict):
+def add_single_result_record(index, result_details, result_errors_file, course_details_dict, level=None):
     """
 
     :param index: position of entry in the larger list --for tracking
     :param result_details: [course_code, session_written, mat_no, score]
     :param result_errors_file: file object in write or append mode for logging important errors
     :param course_details_dict:
+    :param level: the level for which results is being entered
     :return:
     """
     course_code, session_taken, mat_no, score = result_details
     session_taken, score = map(int, [session_taken, score])
     grade = utils.compute_grade(score, utils.get_DB(mat_no))
+    current_level = utils.get_level(mat_no)
     error_log = []
 
-    # Error check on grade and score
+    # Error check on level, grade and score
+    if level:
+        levels = [600, 700, 800] if level == 600 else [level]
+        if current_level not in levels:
+            error_text = "You are not allowed to enter results for {} at index {} whose current level is {}. " \
+                         "Please meet the {} level course adviser".format(mat_no, index, current_level, current_level)
+            result_errors_file.writelines(str(result_details) + '  error: ' + error_text + '\n')
+            error_log.append(error_text)
+            print(Fore.RED, '[WARNING]: ', error_log[-1], Style.RESET_ALL)
+            return error_log, 403
+
     if not (0 <= score <= 100):
         error_text = "Unexpected value for score, '{}', for {} at index {}; " \
                      "result not added".format(score, mat_no, index)
@@ -217,7 +238,7 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
     course_registration = course_reg_utils.get_course_reg_at_acad_session(session_taken, full_course_reg)
 
     if course_registration == {}:
-        course_registration = {'course_reg_level': utils.get_level(mat_no), 'courses': []}
+        course_registration = {'course_reg_level': current_level, 'courses': []}
         is_unusual = True
         error_log.append('No course registration found for {0} at index {1} for the '
                          '{2}/{3} session'.format(mat_no, index, session_taken, session_taken + 1))
