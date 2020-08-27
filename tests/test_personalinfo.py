@@ -45,6 +45,7 @@ def delete_student(mat_no):
 
 
 def test_setup_env():
+    config.add_token("TESTING_token", "personalinfo_test", perms)
     delete_student("ENGTESTING")
 
 
@@ -69,7 +70,6 @@ def test_get_valid_info():
 
 
 def test_get_valid_dets():
-    config.add_token("TESTING_token", "personalinfo_test", perms)
     info_rows = cur.execute("SELECT * FROM PersonalInfo").fetchall()
     info_row = sample(info_rows, 1)[0]
     output, ret_code = personal_info.get_exp(info_row["matno"])
@@ -82,10 +82,11 @@ def test_get_valid_dets():
 
 
 def test_post_dets_info():
-    config.add_token("TESTING_token", "personalinfo_test", perms)
     dummy_info = info_base.copy()
-    dummy_info["grad_status"] = int(0 > dummy_info["level"])
+    grad_status = int(0 > dummy_info["level"])
+    dummy_info["grad_status"] = grad_status
     output, ret_code = personal_info.post_exp(dummy_info)
+    dummy_info["level"] *= [1,-1][grad_status]
     assert (output, ret_code) == (None, 200)
     info_row = get_student(dummy_info["mat_no"])
     for prop_data, prop_row, in zip(info_keys, row_keys):
@@ -93,26 +94,23 @@ def test_post_dets_info():
             assert dummy_info[prop_data] == info_row[prop_row]
     delete_student(dummy_info["mat_no"])
 
-
-# TODO fix from below
-def test_post_dets_update_errors():
-    config.add_token("TESTING_token", "personalinfo_test", perms)
-    insert_student(row_values)
+    # Flip the grad_status and retry
     dummy_info = info_base.copy()
-    # Inserting an extra field
-    dummy_info["extra"] = "extra"
+    grad_status = int(dummy_info["level"] > 0)
+    dummy_info["grad_status"] = grad_status
     output, ret_code = personal_info.post_exp(dummy_info)
-    assert (output, ret_code) == ("Invalid field supplied", 400)
-    dummy_info.pop("extra")
-    # Set a required field to empty/None/zero
-    dummy_info["level"] = 0
-    output, ret_code = personal_info.post_exp(dummy_info)
-    assert (output, ret_code) == ("Invalid field supplied", 400)
+    row_values[6] *= -1
+    dummy_info["level"] *= [1,-1][grad_status]
+    assert (output, ret_code) == (None, 200)
+    info_row = get_student(dummy_info["mat_no"])
+    for prop_data, prop_row, in zip(info_keys, row_keys):
+        if prop_data:
+            assert dummy_info[prop_data] == info_row[prop_row]
     delete_student(dummy_info["mat_no"])
+    row_values[6] *= -1
 
 
 def test_post_dets_new_errors():
-    config.add_token("TESTING_token", "personalinfo_test", perms)
     dummy_info = info_base.copy()
     dummy_info["mat_no"] = "ENGTESTENG"
     # Inserting an extra field
@@ -128,6 +126,47 @@ def test_post_dets_new_errors():
     dummy_info.pop("mode_of_entry")
     output, ret_code = personal_info.post_exp(dummy_info)
     assert (output, ret_code) == ("Invalid field supplied or missing a compulsory field", 400)
+
+
+def test_put_dets_errors():
+    # Modify invalid mat_no
+    output, ret_code = personal_info.put({"mat_no":"INVALIDMAT"})
+    assert (output, ret_code) == (None, 404)
+    # Put initialization
+    insert_student(row_values)
+    dummy_info = info_base.copy()
+    # Inserting an extra field
+    dummy_info["extra"] = "extra"
+    output, ret_code = personal_info.put(dummy_info)
+    assert (output, ret_code) == ("Invalid field supplied", 400)
+    dummy_info.pop("extra")
+    # Set a required field to empty/None/zero
+    dummy_info["level"] = 0
+    output, ret_code = personal_info.put(dummy_info)
+    assert (output, ret_code) == ("Invalid field supplied", 400)
+    delete_student(dummy_info["mat_no"])
+
+
+def test_patch_dets_errors():
+    # Modify invalid mat_no
+    output, ret_code = personal_info.patch({"mat_no":"INVALIDMAT"})
+    assert (output, ret_code) == (None, 404)
+    # Patch initialization
+    insert_student(row_values)
+    dummy_info = info_base.copy()
+    # Inserting an extra field
+    dummy_info["extra"] = "extra"
+    output, ret_code = personal_info.patch(dummy_info)
+    assert (output, ret_code) == ("Invalid field supplied", 400)
+    dummy_info.pop("extra")
+    # Set a required field to empty/None/zero
+    dummy_info["level"] = 0
+    output, ret_code = personal_info.patch(dummy_info)
+    assert (output, ret_code) == ("Invalid field supplied", 400)
+    delete_student(dummy_info["mat_no"])
+
+
+# TODO patch and put working test
 
 
 def test_teardown_env():
