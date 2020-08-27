@@ -661,7 +661,7 @@ definitions:
         type: string
       sponsor_email_address:
         type: string
-      grad_stats:
+      grad_status:
         type: integer
       is_symlink:
         type: integer
