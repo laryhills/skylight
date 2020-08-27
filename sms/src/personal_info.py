@@ -4,10 +4,10 @@ from sms.src import utils
 from sms.src.users import access_decorator
 from sms.models.master import MasterSchema
 
-all_fields = {'date_of_birth', 'email_address', 'grad_stats', 'level', 'lga', 'mat_no', 'mode_of_entry', 'othernames',
+all_fields = {'date_of_birth', 'email_address', 'grad_status', 'level', 'lga', 'mat_no', 'mode_of_entry', 'othernames',
               'phone_no', 'session_admitted', 'session_grad', 'sex', 'sponsor_email_address', 'sponsor_phone_no',
               'state_of_origin', 'surname'}
-required = all_fields - {'grad_stats', 'session_grad'}
+required = all_fields - {'grad_status', 'session_grad'}
 
 
 @access_decorator
@@ -46,6 +46,8 @@ def get(mat_no):
 
 
 def post(data):
+    if utils.get_DB(data.get("mat_no")):
+        return "Student already exists"
     if not all([data.get(prop) for prop in required]) or (data.keys() - all_fields):
         # Empty value supplied or Invalid field supplied or Missing field present
         return "Invalid field supplied or missing a compulsory field"
@@ -59,10 +61,8 @@ def post(data):
     session = utils.load_session(session_admitted)
     personalinfo_schema = session.PersonalInfoSchema()
     data["is_symlink"] = 0
-    grad_status = data.pop('grad_stats')
+    data["level"] = abs(data["level"]) * [1,-1][data.pop("grad_status")]
     student_model = personalinfo_schema.load(data)
-    if grad_status:
-        student_model.level = -abs(student_model.level)
 
     db.session.add(master_model)
     db.session.commit()
@@ -74,7 +74,6 @@ def post(data):
 
 @access_decorator
 def put(data):
-    # Superuser write perms
     session = utils.get_DB(data.get("mat_no"))
     if not session:
         return None, 404
@@ -84,17 +83,20 @@ def put(data):
 
     session = utils.load_session(session)
     student = session.PersonalInfo.query.filter_by(mat_no=data["mat_no"])
-    if "grad_stats" in data:
-        level = data.get("level") or student.level
-        data["level"] = abs(level) * [1,-1][data.pop("grad_stats")]
+    level = abs(data.get("level",0)) or abs(student.first().level)
+    if "grad_status" in data:
+        data["level"] = level * [1,-1][data.pop("grad_status")]
+    elif "level" in data:
+        # Preserve grad status
+        data["level"] = level * [1,-1][student.first().grad_status]
     student.update(data)
-    db_session = personalinfo_schema.Meta.sqla_session
+    db_session = session.PersonalInfoSchema().Meta.sqla_session
     db_session.commit()
+    return None, 200
 
 
 @access_decorator
 def patch(data):
-    # Levels write perms
     session = utils.get_DB(data.get("mat_no"))
     if not session:
         return None, 404
@@ -106,6 +108,7 @@ def patch(data):
         data.pop(prop, None)
 
     session = utils.load_session(session)
-    session.PersonalInfo.query.filter_by(mat_no=data["mat_no"]).update(data)
-    db_session = personalinfo_schema.Meta.sqla_session
+    student = session.PersonalInfo.query.filter_by(mat_no=data["mat_no"]).update(data)
+    db_session = session.PersonalInfoSchema().Meta.sqla_session
     db_session.commit()
+    return None, 200
