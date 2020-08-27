@@ -46,6 +46,8 @@ def get(mat_no):
 
 
 def post(data):
+    if utils.get_DB(data.get("mat_no")):
+        return "Student already exists"
     if not all([data.get(prop) for prop in required]) or (data.keys() - all_fields):
         # Empty value supplied or Invalid field supplied or Missing field present
         return "Invalid field supplied or missing a compulsory field"
@@ -59,11 +61,8 @@ def post(data):
     session = utils.load_session(session_admitted)
     personalinfo_schema = session.PersonalInfoSchema()
     data["is_symlink"] = 0
-    data["level"] = abs(data["level"])
-    grad_status = data.pop("grad_status")
+    data["level"] = abs(data["level"]) * [1,-1][data.pop("grad_status")]
     student_model = personalinfo_schema.load(data)
-    if grad_status:
-        student_model.level *= -1
 
     db.session.add(master_model)
     db.session.commit()
@@ -84,9 +83,12 @@ def put(data):
 
     session = utils.load_session(session)
     student = session.PersonalInfo.query.filter_by(mat_no=data["mat_no"])
+    level = abs(data.get("level",0)) or abs(student.first().level)
     if "grad_status" in data:
-        level = data.get("level") or student.level
-        data["level"] = abs(level) * [1,-1][data.pop("grad_status")]
+        data["level"] = level * [1,-1][data.pop("grad_status")]
+    elif "level" in data:
+        # Preserve grad status
+        data["level"] = level * [1,-1][student.first().grad_status]
     student.update(data)
     db_session = session.PersonalInfoSchema().Meta.sqla_session
     db_session.commit()
@@ -106,11 +108,7 @@ def patch(data):
         data.pop(prop, None)
 
     session = utils.load_session(session)
-    student = session.PersonalInfo.query.filter_by(mat_no=data["mat_no"])
-    if "level" in data:
-        # Preserve grad status on level edit
-        data["level"] *= [1,-1][student.grad_status]
-    student.update(data)
+    student = session.PersonalInfo.query.filter_by(mat_no=data["mat_no"]).update(data)
     db_session = session.PersonalInfoSchema().Meta.sqla_session
     db_session.commit()
     return None, 200
