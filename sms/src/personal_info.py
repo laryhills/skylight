@@ -74,7 +74,6 @@ def post(data):
 
 @access_decorator
 def put(data):
-    # Superuser write perms
     session = utils.get_DB(data.get("mat_no"))
     if not session:
         return None, 404
@@ -90,11 +89,11 @@ def put(data):
     student.update(data)
     db_session = personalinfo_schema.Meta.sqla_session
     db_session.commit()
+    return None, 200
 
 
 @access_decorator
 def patch(data):
-    # Levels write perms
     session = utils.get_DB(data.get("mat_no"))
     if not session:
         return None, 404
@@ -106,6 +105,11 @@ def patch(data):
         data.pop(prop, None)
 
     session = utils.load_session(session)
-    session.PersonalInfo.query.filter_by(mat_no=data["mat_no"]).update(data)
+    student = session.PersonalInfo.query.filter_by(mat_no=data["mat_no"])
+    if "level" in data:
+        # Preserve grad status on level edit
+        data["level"] *= [1,-1][student.grad_status]
+    student.update(data)
     db_session = personalinfo_schema.Meta.sqla_session
     db_session.commit()
+    return None, 200
