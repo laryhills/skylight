@@ -7,7 +7,7 @@ from sms.models.user import User
 from sms.models.logs import LogsSchema
 from itsdangerous.exc import BadSignature
 from sms.models.master import Master, MasterSchema
-from sms.config import app, bcrypt, add_token, get_token, db
+from sms.config import app, bcrypt, add_token, get_token, remove_token, db
 from itsdangerous import JSONWebSignatureSerializer as Serializer
 
 
@@ -36,6 +36,21 @@ def login(token):
         return None, 401
     except Exception:
         return None, 401
+
+
+def logout(token):
+    try:
+        user = detokenize(token['token'])
+        remove_token(token['token'])
+        print(f'User "{user["username"]}" manually logged out')
+        ret_code = 200
+    except KeyError:
+        print(f'User "{user["username"]}" not previously signed in')
+        ret_code = 404
+    except Exception as e:
+        print(f'Invalid token: {token["token"]}')
+        ret_code = 400
+    return None, ret_code
 
 
 def tokenize(text, s=serializer):
@@ -206,7 +221,6 @@ def get_kwargs(func, args, kwargs):
 my_token = {'token': tokenize("ucheigbeka:testing")}
 print("Using token ", my_token['token'])
 login(my_token)
-
 
 # Function mapping to perms and logs
 fn_props = {
