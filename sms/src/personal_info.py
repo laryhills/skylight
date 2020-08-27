@@ -59,10 +59,11 @@ def post(data):
     session = utils.load_session(session_admitted)
     personalinfo_schema = session.PersonalInfoSchema()
     data["is_symlink"] = 0
-    grad_status = data.pop('grad_status')
+    data["level"] = abs(data["level"])
+    grad_status = data.pop("grad_status")
     student_model = personalinfo_schema.load(data)
     if grad_status:
-        student_model.level = -abs(student_model.level)
+        student_model.level *= -1
 
     db.session.add(master_model)
     db.session.commit()
@@ -87,7 +88,7 @@ def put(data):
         level = data.get("level") or student.level
         data["level"] = abs(level) * [1,-1][data.pop("grad_status")]
     student.update(data)
-    db_session = personalinfo_schema.Meta.sqla_session
+    db_session = session.PersonalInfoSchema().Meta.sqla_session
     db_session.commit()
     return None, 200
 
@@ -110,6 +111,6 @@ def patch(data):
         # Preserve grad status on level edit
         data["level"] *= [1,-1][student.grad_status]
     student.update(data)
-    db_session = personalinfo_schema.Meta.sqla_session
+    db_session = session.PersonalInfoSchema().Meta.sqla_session
     db_session.commit()
     return None, 200
