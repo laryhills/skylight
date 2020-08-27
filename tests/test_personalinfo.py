@@ -22,6 +22,7 @@ perms = {"read": True, "write": True, "superuser": True, "levels": [100, 200, 30
 info_keys = ['mat_no', 'surname', 'othernames', 'mode_of_entry', 'session_admitted', 'session_grad', 'level', None, 'sex', 'date_of_birth', 'state_of_origin', 'lga', 'phone_no', 'email_address', 'sponsor_phone_no', 'sponsor_email_address', None, None, None]
 row_keys = ["MATNO", "SURNAME", "OTHERNAMES", "MODE_OF_ENTRY", "SESSION_ADMIT", "SESSION_GRADUATED", "CURRENT_LEVEL", "OPTION", "SEX", "DATE_OF_BIRTH", "STATE_OF_ORIGIN", "LGA_OF_ORIGIN", "PHONE_NO", "EMAIL_ADDRESS", "SPONSOR_PHONE_NO", "SPONSOR_EMAIL_ADDRESS", "PROBATED_TRANSFERRED", "IS_SYMLINK", "DATABASE"]
 row_values = ["ENGTESTING", "Banks", "Ian", 1, 2015, None, 100, None, "M", "8/12/12", "Edo", "Oredo", "08033104028", "email@gmail.com", "08033104028", "dad@dadmail.com", 0, 0, None]
+row_values_2 = ["ENGTESTING", "Holmes", "Sherlock", 2, 2016, 2020, 200, None, "F", "10/10/10", "Delta", "Agbor", "08012345678", "fmail@fmail.com", "08087654321", "pop@popmail.com", 0, 0, None]
 info_base = dict(zip(info_keys, row_values))
 info_base.pop(None)
 
@@ -83,10 +84,8 @@ def test_get_valid_dets():
 
 def test_post_dets_info():
     dummy_info = info_base.copy()
-    grad_status = int(0 > dummy_info["level"])
-    dummy_info["grad_status"] = grad_status
+    dummy_info["grad_status"] = int(0 > dummy_info["level"])
     output, ret_code = personal_info.post_exp(dummy_info)
-    dummy_info["level"] *= [1,-1][grad_status]
     assert (output, ret_code) == (None, 200)
     info_row = get_student(dummy_info["mat_no"])
     for prop_data, prop_row, in zip(info_keys, row_keys):
@@ -96,11 +95,9 @@ def test_post_dets_info():
 
     # Flip the grad_status and retry
     dummy_info = info_base.copy()
-    grad_status = int(dummy_info["level"] > 0)
-    dummy_info["grad_status"] = grad_status
+    dummy_info["grad_status"] = int(dummy_info["level"] > 0)
     output, ret_code = personal_info.post_exp(dummy_info)
     row_values[6] *= -1
-    dummy_info["level"] *= [1,-1][grad_status]
     assert (output, ret_code) == (None, 200)
     info_row = get_student(dummy_info["mat_no"])
     for prop_data, prop_row, in zip(info_keys, row_keys):
@@ -108,6 +105,35 @@ def test_post_dets_info():
             assert dummy_info[prop_data] == info_row[prop_row]
     delete_student(dummy_info["mat_no"])
     row_values[6] *= -1
+
+
+def test_put_dets():
+    insert_student(row_values)
+    new_info = dict(zip(info_keys, row_values_2))
+    new_info.pop(None)
+    output, ret_code = personal_info.put(new_info)
+    assert (output, ret_code) == (None, 200)
+    info_row = get_student(new_info["mat_no"])
+    for prop_data, prop_row, in zip(info_keys, row_keys):
+        if prop_data:
+            assert new_info[prop_data] == info_row[prop_row]
+    delete_student(new_info["mat_no"])
+
+
+def test_patch_dets():
+    insert_student(row_values)
+    new_info = dict(zip(info_keys, row_values_2))
+    new_info.pop(None)
+    output, ret_code = personal_info.patch(new_info)
+    assert (output, ret_code) == (None, 200)
+    info_row = get_student(new_info["mat_no"])
+    for prop_data, prop_row, in zip(info_keys, row_keys):
+        if prop_data:
+            if prop_data in ("session_admitted", "session_grad", "level", "mode_of_entry"):
+                assert info_base[prop_data] == info_row[prop_row]
+            else:
+                assert new_info[prop_data] == info_row[prop_row]
+    delete_student(new_info["mat_no"])
 
 
 def test_post_dets_new_errors():
@@ -164,9 +190,6 @@ def test_patch_dets_errors():
     output, ret_code = personal_info.patch(dummy_info)
     assert (output, ret_code) == ("Invalid field supplied", 400)
     delete_student(dummy_info["mat_no"])
-
-
-# TODO patch and put working test
 
 
 def test_teardown_env():
