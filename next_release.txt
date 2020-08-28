@@ -2,7 +2,7 @@
 2)  Clear all logs (superuser)
 3)  Backup and Restore DBs
 4)  Create session expose, change session updates personal info level (big red button)
-5)  Log user login
+5)
 6)
 7)  Search student by surname
 8)  An asterisk next to level GPAs in reports, sheets when the courses for that level are not all passed
