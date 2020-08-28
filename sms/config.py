@@ -42,7 +42,7 @@ def get_token(token):
 
 
 def remove_token(token):
-    return tokens.pop(token)
+    return tokens.pop(token, None)
 
 
 def get_current_session():
