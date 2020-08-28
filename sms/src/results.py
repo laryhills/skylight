@@ -299,15 +299,14 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
             result_record['carryovers'] = ','.join(carryovers)
 
     # get the session category
+    owed_courses_exist = check_owed_courses_exists(mat_no, level_written, course_dets) if not is_unusual else True
     if not courses_registered:
-        # todo test this for when it should be 'D'
-        previous_categories = [x['category'] for x in res_poll if x and x['category'] and x['session'] < session_taken]
-        result_record['category'] = 'E' if 'C' in previous_categories else 'D'
+        tcr, tcp = 0, 0
     else:
         if grade not in ['F', 'ABS'] and previous_grade in ['F', 'ABS', ''] and not is_unusual:
             result_record['tcp'] += course_credit
         tcr, tcp = course_registration['tcr'], result_record['tcp']
-        result_record['category'] = utils.compute_category(mat_no, level_written, session_taken, tcr, tcp)
+    result_record['category'] = utils.compute_category(mat_no, level_written, session_taken, tcr, tcp, owed_courses_exist)
 
     res_record = result_xxx_schema.load(result_record)
     db_session = result_xxx_schema.Meta.sqla_session
@@ -447,6 +446,21 @@ def get_previous_grade_and_log_changes(result_details, result_record, is_unusual
         if previous_grade != 'ABS':
             return previous_grade
     return ''
+
+
+def check_owed_courses_exists(mat_no, level_written, course_dets):
+    if level_written >= 500:
+        # we search for carryovers with param level=900 to bypass get_carryovers ignoring unregistered
+        # 500 level courses when the when the student's level is 500
+        owed_courses = utils.get_carryovers(mat_no, level=900, retJSON=False)
+        owed_courses = utils.dictify(owed_courses['first_sem']), utils.dictify(owed_courses['second_sem'])
+        course_code, course_semester = course_dets['course_code'], course_dets['course_semester']
+        if course_code in owed_courses[course_semester - 1]:
+            owed_courses[course_semester - 1].pop(course_code)
+
+        if not owed_courses[0] and not owed_courses[1]:
+            return False
+    return True
 
 
 def calculate_category_deprecated(result_record, courses_registered):
