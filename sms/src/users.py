@@ -11,6 +11,18 @@ from sms.config import app, bcrypt, add_token, get_token, remove_token, db
 from itsdangerous import JSONWebSignatureSerializer as Serializer
 
 
+fn_props = {
+    "users.login": {
+        "perms": {"read", "write"},
+        "logs": lambda user, params: "{} logged in".format(user)
+    },
+    "users.logout": {
+        "perms": {"read", "write"},
+        "logs": lambda user, params: "{} manually logged out".format(user)
+    }
+}
+
+
 def session_key():
     return app.config['SECRET_KEY']
 
@@ -22,35 +34,6 @@ def hash_key(session_key = session_key()):
 
 
 serializer = Serializer(hash_key())
-
-
-def login(token):
-    try:
-        user = detokenize(token['token'])
-        stored_user = User.query.filter_by(username=user['username']).first()
-        if bcrypt.check_password_hash(stored_user.password, user['password']):
-            token_dict = {'token': token['token']}
-            add_token(token['token'], stored_user.username, loads(stored_user.permissions))
-            token_dict['title'] = stored_user.title
-            return token_dict, 200
-        return None, 401
-    except Exception:
-        return None, 401
-
-
-def logout(token):
-    try:
-        user = detokenize(token['token'])
-        remove_token(token['token'])
-        print(f'User "{user["username"]}" manually logged out')
-        ret_code = 200
-    except KeyError:
-        print(f'User "{user["username"]}" not previously signed in')
-        ret_code = 404
-    except Exception as e:
-        print(f'Invalid token: {token["token"]}')
-        ret_code = 400
-    return None, ret_code
 
 
 def tokenize(text, s=serializer):
@@ -217,13 +200,38 @@ def get_kwargs(func, args, kwargs):
     return my_kwargs
 
 
+def login(token):
+    try:
+        user = detokenize(token['token'])
+        stored_user = User.query.filter_by(username=user['username']).first()
+        if bcrypt.check_password_hash(stored_user.password, user['password']):
+            token_dict = {'token': token['token']}
+            add_token(token['token'], stored_user.username, loads(stored_user.permissions))
+            token_dict['title'] = stored_user.title
+            log(user['username'], 'users.login', login, [], [])
+            return token_dict, 200
+        return None, 401
+    except Exception:
+        return None, 401
+
+
+@access_decorator
+def logout(token):
+    try:
+        remove_token(token['token'])
+        return None, 200
+    except Exception:
+        return None, 401
+
+
 # PERFORM LOGIN, REMOVE IN PROD
 my_token = {'token': tokenize("ucheigbeka:testing")}
 print("Using token ", my_token['token'])
 login(my_token)
 
+
 # Function mapping to perms and logs
-fn_props = {
+fn_props.update({
     "personal_info.get_exp": {"perms": {"levels", "read"},
                           "logs": lambda user, params: "{} requested personal details of {}".format(user, params.get("mat_no"))
                         },
@@ -300,4 +308,4 @@ fn_props = {
     "gpa_cards.get": {"perms": {"levels", "read"},
                       "logs": lambda user, params: "{} requested {} level gpa card".format(user, params.get('level'))
                      },
-}
+})
