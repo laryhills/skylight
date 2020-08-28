@@ -371,30 +371,44 @@ def get_level_weightings(mod):
     else: return [0, 0, .25, .35, .4]
 
 
-def compute_category(mat_no, level_written, session_taken, total_credits, credits_passed):
-    entry_session = result_statement.get(mat_no, 0)['entry_session']
+def compute_category(mat_no, level_written, session_taken, tcr, tcp):
+    """
+
+    :param mat_no:
+    :param level_written:
+    :param session_taken:
+    :param tcr: total credits registered for session
+    :param tcp: total credits passed
+    :return:
+    """
+    # todo: Handle condition for transfer
+    person = personal_info.get(mat_no)
+    res_poll = result_poll(mat_no, 0)
     creds = get_credits(mat_no)
-    # ensure to get the right value irrespective of the size of the list (PUTME vs DE students)
+
+    entry_session = person['session_admitted']
+    previous_categories = [x['category'] for x in res_poll if x and x['session'] < session_taken]
+
+    # ensure to get the right value of level_credits irrespective of the size of the list (PUTME vs DE students)
     index = (level_written // 100 - 1)
     level_credits = creds[index + (len(creds) - 5)]
-    previous_categories = [x['category'] for x in result_poll(mat_no, 0) if x and x['session'] < session_taken]
 
-    if total_credits == credits_passed: return 'A'
+    # add previous tcp to current for 100 level probation students
+    if level_written == 100 and 'C' in previous_categories:
+        tcp += sum([x['tcp'] for x in res_poll if x and x['level'] == level_written and x['session'] < session_taken])
+
+    if tcr == tcp: return 'A'
     if level_written == 100 and entry_session >= 2014:
-        if credits_passed >= 36: return 'B'
-        elif 23 <= credits_passed < 36: return 'C'
-        else:
-            # todo: Handle condition for transfer
-            # todo: handle condition for 100 level probation
-            if 'C' in previous_categories: return 'E'
-            else: return 'D'
+        if tcp >= 36: return 'B'
+        elif 23 <= tcp < 36: return 'C'
+        elif 'C' not in previous_categories: return 'D'
+        else: return 'E'
     else:
-        percent_passed = credits_passed / level_credits * 100
+        percent_passed = tcp / level_credits * 100
         if percent_passed >= 50: return 'B'
         elif 25 <= percent_passed < 50: return 'C'
-        else:
-            if 'C' not in previous_categories: return 'D'
-            else: return 'E'
+        elif 'C' not in previous_categories: return 'D'
+        else: return 'E'
 
 
 def get_category_for_unregistered_students(level):

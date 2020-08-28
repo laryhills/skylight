@@ -11,5 +11,4 @@
 11) Make open_result_edit possible to activate for a single user
 12) Sheets report generation
 
-** handle compute_category for 100 level probation
 ** add delete endpoint to results and carryovers
