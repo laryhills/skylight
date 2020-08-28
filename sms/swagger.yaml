@@ -60,9 +60,7 @@ paths:
       responses:
         200:
           description: User manually logged out
-        400:
-          description: Invalid token
-        404:
+        401:
           description: Not previously signed in
 
   /session_key:
