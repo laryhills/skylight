@@ -129,8 +129,11 @@ def get_carryovers(mat_no, level=None, retJSON=True):
                     default = option["default"]
                     sem = course_details.get(default)["course_semester"]
                     if default != opt:
-                        [first_sem, second_sem][sem-1].remove(default)
-                        [first_sem, second_sem][sem-1].add(opt)
+                        try:
+                            [first_sem, second_sem][sem-1].remove(default)
+                            [first_sem, second_sem][sem-1].add(opt)
+                        except KeyError:
+                            pass
 
     for result in results:
         for record in result["first_sem"]:
@@ -371,7 +374,7 @@ def get_level_weightings(mod):
     else: return [0, 0, .25, .35, .4]
 
 
-def compute_category(mat_no, level_written, session_taken, tcr, tcp):
+def compute_category(mat_no, level_written, session_taken, tcr, tcp, owed_courses_exist=True):
     """
 
     :param mat_no:
@@ -379,6 +382,7 @@ def compute_category(mat_no, level_written, session_taken, tcr, tcp):
     :param session_taken:
     :param tcr: total credits registered for session
     :param tcp: total credits passed
+    :param owed_courses_exist:
     :return:
     """
     # todo: Handle condition for transfer
@@ -397,18 +401,26 @@ def compute_category(mat_no, level_written, session_taken, tcr, tcp):
     if level_written == 100 and 'C' in previous_categories:
         tcp += sum([x['tcp'] for x in res_poll if x and x['level'] == level_written and x['session'] < session_taken])
 
-    if tcr == tcp: return 'A'
-    if level_written == 100 and entry_session >= 2014:
-        if tcp >= 36: return 'B'
-        elif 23 <= tcp < 36: return 'C'
-        elif 'C' not in previous_categories: return 'D'
-        else: return 'E'
+    if level_written >= 500:
+        if tcp == tcr and not owed_courses_exist: return 'A'
+        else: return 'B'
     else:
-        percent_passed = tcp / level_credits * 100
-        if percent_passed >= 50: return 'B'
-        elif 25 <= percent_passed < 50: return 'C'
-        elif 'C' not in previous_categories: return 'D'
-        else: return 'E'
+        if tcr == 0:
+            retval = 'D' if 'C' not in previous_categories else 'E'
+            return retval
+        elif tcp == tcr:
+            return 'A'
+        elif level_written == 100 and entry_session >= 2014:
+            if tcp >= 36: return 'B'
+            elif 23 <= tcp < 36: return 'C'
+            elif 'C' not in previous_categories: return 'D'
+            else: return 'E'
+        else:
+            percent_passed = tcp / level_credits * 100
+            if percent_passed >= 50: return 'B'
+            elif 25 <= percent_passed < 50: return 'C'
+            elif 'C' not in previous_categories: return 'D'
+            else: return 'E'
 
 
 def get_category_for_unregistered_students(level):
