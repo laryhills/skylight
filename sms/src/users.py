@@ -13,12 +13,12 @@ from itsdangerous import JSONWebSignatureSerializer as Serializer
 
 fn_props = {
     "users.login": {
-        "perms": {"read", "write"},
+        "perms": {},
         "logs": lambda user, params: "{} logged in".format(user)
     },
     "users.logout": {
-        "perms": {"read", "write"},
-        "logs": lambda user, params: "{} manually logged out".format(user)
+        "perms": {},
+        "logs": lambda user, params: "{} logged out".format(user)
     }
 }
 
@@ -217,11 +217,8 @@ def login(token):
 
 @access_decorator
 def logout(token):
-    try:
-        remove_token(token['token'])
-        return None, 200
-    except Exception:
-        return None, 401
+    remove_token(token['token'])
+    return None, 200
 
 
 # PERFORM LOGIN, REMOVE IN PROD
