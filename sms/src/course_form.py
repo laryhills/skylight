@@ -79,7 +79,7 @@ def get(mat_no=None, session=None, to_print=False):
                 'no-outline': None,
                 'margin-left': '0.5in',
                 'margin-right': '0.5in',
-                'margin-top': '0.5in',
+                'margin-top': '0.6in',
                 'margin-bottom': '0.5in',
                 'dpi': 100,
                 'log-level': 'warn',
