@@ -53,3 +53,9 @@ def remove_token(token):
 def get_current_session():
     # Code stub that returns current session, TODO take from master.db
     return 2019
+
+
+@app.before_first_request
+def start_jobs():
+    from sms.src.ext.jobs import start_scheduled_jobs
+    start_scheduled_jobs()
