@@ -34,8 +34,8 @@ ma = Marshmallow(app)
 bcrypt = Bcrypt(app)
 tokens = {}
 
-cache_base_dir = os.path.join(os.path.expanduser('~'), 'sms', 'cache_mechanical')
-if not os.path.exists(cache_base_dir): os.makedirs(cache_base_dir)
+scheduler = None
+jobs = []
 
 
 def add_token(token, username, permissions):
@@ -58,4 +58,5 @@ def get_current_session():
 @app.before_first_request
 def start_jobs():
     from sms.src.ext.jobs import start_scheduled_jobs
-    start_scheduled_jobs()
+    global scheduler, jobs
+    scheduler, jobs = start_scheduled_jobs()
