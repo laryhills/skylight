@@ -19,6 +19,14 @@ fn_props = {
     "users.logout": {
         "perms": {},
         "logs": lambda user, params: "{} logged out".format(user)
+    },
+    "jobs.backup_databases": {
+        "perms": {},
+        "logs": lambda user, params: "{}: database backup complete".format(user)
+    },
+    "jobs.clear_cache_dir": {
+        "perms": {},
+        "logs": lambda user, params: "{}: program cache cleared".format(user)
     }
 }
 
@@ -223,8 +231,9 @@ def logout(token):
 
 # PERFORM LOGIN, REMOVE IN PROD
 my_token = {'token': tokenize("ucheigbeka:testing")}
-print("Using token ", my_token['token'])
-login(my_token)
+if not get_token(my_token['token']):
+    print("Using token ", my_token['token'])
+    login(my_token)
 
 
 # Function mapping to perms and logs
