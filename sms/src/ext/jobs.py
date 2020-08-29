@@ -24,25 +24,28 @@ def clear_cache_dir():
                 shutil.rmtree(file_path)
         except Exception as e:
             print('Failed to delete %s. Reason: %s' % (file_path, e))
+    log(user='system', func=clear_cache_dir, qual_name='jobs.clear_cache_dir', args=[], kwargs={})
 
 
-def backup_databases():
+def backup_databases(before_restore=False):
     datetime_tag = datetime.now().isoformat().split('.')[0].replace('T', '__')
-    zip_file = os.path.join(backups_dir, 'databases__' + datetime_tag + '.zip.skylight')
+    flag = '__before_restore' if before_restore else ''
+    zip_file = os.path.join(backups_dir, 'databases__' + datetime_tag + flag + '.zip.skylight')
     with ZipFile(zip_file, 'w', ZIP_DEFLATED) as zf:
         # remove sorted and use os.scandir instead of listdir if performance becomes an issue
         databases = sorted([file_name for file_name in os.listdir(DB_DIR) if file_name.endswith('.db')])
         for file_name in databases:
             zf.write(os.path.join(DB_DIR, file_name), arcname=file_name)
+    log(user='system', func=backup_databases, qual_name='jobs.backup_databases', args=[], kwargs={})
 
 
 def my_listener(event):
     if event.code == EVENT_JOB_EXECUTED:
-        log(user='system', func=eval(event.job_id), qual_name='jobs.{}'.format(event.job_id), args=[], kwargs={})
-    elif event.exception or event.code == EVENT_JOB_ERROR:
-        print('The job crashed :(')
-    elif event.code == EVENT_JOB_MISSED:
         pass
+    elif event.exception or event.code == EVENT_JOB_ERROR:
+        print('The job {} crashed :('.format(event.job_id))
+    elif event.code == EVENT_JOB_MISSED:
+        print('Missed job {}'.format(event.job_id))
 
 
 def start_scheduled_jobs():
