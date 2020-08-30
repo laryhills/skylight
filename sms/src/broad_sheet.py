@@ -40,21 +40,21 @@ def get(acad_session, level=None, first_sem_only=False, raw_score=False, to_prin
     print('student list fetched in', perf_counter() - start)
 
     index_to_display = 0 if raw_score else 1
-    file_name = token_hex(8)
-    zip_path = os.path.join(CACHE_BASE_DIR, file_name)
+    file_dir = token_hex(8)
+    zip_path = os.path.join(CACHE_BASE_DIR, file_dir)
 
     # create temporary folder to hold files
-    if os.path.exists(os.path.join(CACHE_BASE_DIR, file_name)):
-        shutil.rmtree(file_name, ignore_errors=True)
-    os.makedirs(os.path.join(CACHE_BASE_DIR, file_name), exist_ok=True)
+    if os.path.exists(os.path.join(CACHE_BASE_DIR, file_dir)):
+        shutil.rmtree(file_dir, ignore_errors=True)
+    os.makedirs(os.path.join(CACHE_BASE_DIR, file_dir), exist_ok=True)
 
     # render the broadsheet footer
-    with open(os.path.join(CACHE_BASE_DIR, file_name, 'footer.html'), 'w') as footer:
+    with open(os.path.join(CACHE_BASE_DIR, file_dir, 'footer.html'), 'w') as footer:
         footer.write(render_template('broad_sheet_footer.html', current_date=date.today().strftime("%A, %B %-d, %Y")))
 
     # render htmls
     t0 = perf_counter()
-    context = (acad_session, index_to_display, file_name, first_sem_only)
+    context = (acad_session, index_to_display, file_dir, first_sem_only)
     use_workers = True if len(registered_students_for_session) > 1 else False
     multiprocessing_wrapper(render_html, registered_students_for_session.items(), context, use_workers)
     print('htmls rendered in', perf_counter() - t0, 'seconds')
@@ -73,17 +73,17 @@ def get(acad_session, level=None, first_sem_only=False, raw_score=False, to_prin
     print(f'{file_format}s generated in', perf_counter() - t0, 'seconds')
 
     # zip
-    zip_file_name = 'broad-sheet_' + file_name + '.zip'
-    collect_renders_in_zip(file_name, zip_file_name, file_format)
+    zip_file_name = 'broad-sheet_' + file_dir + '.zip'
+    collect_renders_in_zip(file_dir, zip_file_name, file_format)
 
     print('===>> total generation done in', perf_counter() - start)
-    resp = send_from_directory(os.path.join(CACHE_BASE_DIR, file_name), zip_file_name, as_attachment=True)
+    resp = send_from_directory(os.path.join(CACHE_BASE_DIR, file_dir), zip_file_name, as_attachment=True)
     return resp
 
 
-def collect_renders_in_zip(file_name, zip_file_name, file_format):
-    zip_path = os.path.join(CACHE_BASE_DIR, file_name)
-    zip_file = os.path.join(CACHE_BASE_DIR, file_name, zip_file_name)
+def collect_renders_in_zip(file_dir, zip_file_name, file_format):
+    zip_path = os.path.join(CACHE_BASE_DIR, file_dir)
+    zip_file = os.path.join(CACHE_BASE_DIR, file_dir, zip_file_name)
     with ZipFile(zip_file, 'w', ZIP_DEFLATED) as zf:
         render_names = sorted([file_name for file_name in os.listdir(zip_path) if file_name.endswith('.' + file_format)])
         for render_name in render_names:
@@ -94,7 +94,7 @@ def collect_renders_in_zip(file_name, zip_file_name, file_format):
                 pass
 
 
-def render_html(item, acad_session, index_to_display, file_name, first_sem_only=False):
+def render_html(item, acad_session, index_to_display, file_dir, first_sem_only=False):
     level, mat_nos = item
     color_map = {'F': 'red', 'F *': 'red', 'ABS': 'blue', 'ABS *': 'blue'}
     empty_value = ' '
@@ -147,10 +147,10 @@ def render_html(item, acad_session, index_to_display, file_name, first_sem_only=
             first_sem_options=first_sem_options, second_sem_options=second_sem_options,
             students=paginated_students, session=acad_session, level=level, first_sem_only=first_sem_only,
         )
-        open(os.path.join(CACHE_BASE_DIR, file_name, '{}_{}_render.html'.format(level, ite + 1)), 'w').write(html)
+        open(os.path.join(CACHE_BASE_DIR, file_dir, '{}_{}_render.html'.format(level, ite + 1)), 'w').write(html)
 
 
-def generate_pdf(file_name, file_dir, file_format='pdf'):
+def generate_pdf(html_name, file_dir, file_format='pdf'):
     options = {
         'footer-html': os.path.join(CACHE_BASE_DIR, file_dir, 'footer.html'),
         'page-size': 'A3',
@@ -166,20 +166,20 @@ def generate_pdf(file_name, file_dir, file_format='pdf'):
         'dpi': 100,
         'log-level': 'warn',  # error, warn, info, none
     }
-    pdfkit.from_file(os.path.join(CACHE_BASE_DIR, file_dir, file_name),
-                     os.path.join(CACHE_BASE_DIR, file_dir, file_name[:-5] + '.' + file_format),
+    pdfkit.from_file(os.path.join(CACHE_BASE_DIR, file_dir, html_name),
+                     os.path.join(CACHE_BASE_DIR, file_dir, html_name[:-5] + '.' + file_format),
                      options=options)
 
 
-def generate_image(file_name, file_dir, file_format='png'):
+def generate_image(html_name, file_dir, file_format='png'):
     options = {
         'format': file_format,
         'enable-local-file-access': None,
         'quality': 50,
         'log-level': 'warn',
     }
-    imgkit.from_file(os.path.join(CACHE_BASE_DIR, file_dir, file_name),
-                     os.path.join(CACHE_BASE_DIR, file_dir, file_name[:-5] + '.' + file_format),
+    imgkit.from_file(os.path.join(CACHE_BASE_DIR, file_dir, html_name),
+                     os.path.join(CACHE_BASE_DIR, file_dir, html_name[:-5] + '.' + file_format),
                      options=options)
 
 
