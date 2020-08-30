@@ -46,6 +46,7 @@ def get(mat_no):
 
 
 def post(data):
+    data = data.copy()
     if utils.get_DB(data.get("mat_no")):
         return "Student already exists"
     if not all([data.get(prop) for prop in required]) or (data.keys() - all_fields):
@@ -74,6 +75,7 @@ def post(data):
 
 @access_decorator
 def put(data):
+    data = data.copy()
     session = utils.get_DB(data.get("mat_no"))
     if not session:
         return None, 404
@@ -97,6 +99,7 @@ def put(data):
 
 @access_decorator
 def patch(data):
+    data = data.copy()
     session = utils.get_DB(data.get("mat_no"))
     if not session:
         return None, 404
