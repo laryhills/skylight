@@ -23,4 +23,11 @@ def test_get_token():
     assert recv_token["user"] == user
     assert recv_token["perms"] == perms
 
+
+def test_remove_token():
+    config.tokens[token] = {"user": user, "perms": perms}
+    assert token in config.tokens
+    assert config.tokens[token] == config.remove_token(token)
+    assert token not in config.tokens
+
 # TODO add test for get_current_session
