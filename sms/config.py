@@ -1,16 +1,20 @@
 import os
 import secrets
+import tempfile
 import connexion
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from flask_bcrypt import Bcrypt
 
 base_dir = os.path.dirname(__file__)
-cache_base_dir = os.path.join(os.path.expanduser('~'), 'sms', 'cache_mechanical')
-backups_dir = os.path.join(os.path.expanduser('~'), 'sms', 'backups_mechanical')
+CACHE_DIR = os.path.join(os.path.expanduser('~'), 'sms', 'cache_mechanical')
+BACKUP_DIR = os.path.join(os.path.expanduser('~'), 'sms', 'backups_mechanical')
 DB_DIR = os.path.join(base_dir, 'database')
+TMPDIR = os.path.join(tempfile.gettempdir(), 'sms', 'mechanical')
 
-[os.makedirs(path) for path in (cache_base_dir, backups_dir) if not os.path.exists(path)]
+CACHE_BASE_DIR = TMPDIR
+
+[os.makedirs(path) for path in (CACHE_DIR, BACKUP_DIR, DB_DIR, TMPDIR) if not os.path.exists(path)]
 
 
 start_session = 2003

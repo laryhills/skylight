@@ -11,11 +11,11 @@ from apscheduler.triggers.cron import CronTrigger
 # from apscheduler.triggers.interval import IntervalTrigger
 
 from sms.src.users import log
-from sms.config import DB_DIR, backups_dir, cache_base_dir
+from sms.config import DB_DIR, BACKUP_DIR, CACHE_BASE_DIR
 
 
 def clear_cache_dir():
-    for file in os.scandir(cache_base_dir):
+    for file in os.scandir(CACHE_BASE_DIR):
         file_path = file.path
         try:
             if os.path.isfile(file_path) or os.path.islink(file_path):
@@ -30,7 +30,7 @@ def clear_cache_dir():
 def backup_databases(before_restore=False):
     datetime_tag = datetime.now().isoformat().split('.')[0].replace('T', '__')
     flag = '__before_restore' if before_restore else ''
-    zip_file = os.path.join(backups_dir, 'databases__' + datetime_tag + flag + '.zip.skylight')
+    zip_file = os.path.join(BACKUP_DIR, 'databases__' + datetime_tag + flag + '.zip.skylight')
     with ZipFile(zip_file, 'w', ZIP_DEFLATED) as zf:
         # remove sorted and use os.scandir instead of listdir if performance becomes an issue
         databases = sorted([file_name for file_name in os.listdir(DB_DIR) if file_name.endswith('.db')])

@@ -5,7 +5,7 @@ import imgkit
 from collections import defaultdict
 from flask import render_template, send_from_directory
 from sms.src import course_reg
-from sms.config import app, cache_base_dir
+from sms.config import app, CACHE_BASE_DIR
 from sms.src.users import access_decorator
 from sms.src.utils import get_current_session
 
@@ -84,8 +84,8 @@ def get(mat_no=None, session=None, to_print=False):
                 'dpi': 100,
                 'log-level': 'warn',
             }
-            pdfkit.from_string(html, os.path.join(cache_base_dir, file_name + '.pdf'), options=options)
-            resp = send_from_directory(cache_base_dir, file_name + '.pdf', as_attachment=True)
+            pdfkit.from_string(html, os.path.join(CACHE_BASE_DIR, file_name + '.pdf'), options=options)
+            resp = send_from_directory(CACHE_BASE_DIR, file_name + '.pdf', as_attachment=True)
         else:
             img_fmt = 'png'
             options = {
@@ -95,6 +95,6 @@ def get(mat_no=None, session=None, to_print=False):
                 'quality': 50,
                 'log-level': 'warn',
             }
-            imgkit.from_string(html, os.path.join(cache_base_dir, file_name + '.' + img_fmt), options=options)
-            resp = send_from_directory(cache_base_dir, file_name + '.' + img_fmt, as_attachment=True)
+            imgkit.from_string(html, os.path.join(CACHE_BASE_DIR, file_name + '.' + img_fmt), options=options)
+            resp = send_from_directory(CACHE_BASE_DIR, file_name + '.' + img_fmt, as_attachment=True)
         return resp

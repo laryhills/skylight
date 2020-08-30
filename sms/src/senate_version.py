@@ -9,7 +9,7 @@ from flask import render_template, send_from_directory
 from sms.src.users import access_decorator
 from sms.src.script import get_students_details_by_category, get_final_year_students_by_category
 from sms.models.master import Category, Category500
-from sms.config import app, cache_base_dir
+from sms.config import app, CACHE_BASE_DIR
 from sms.src.utils import get_depat, get_num_of_prize_winners
 
 base_dir = os.path.dirname(__file__)
@@ -131,10 +131,10 @@ def get_100_to_400(entry_session, level):
     template = Template(template.replace('{data}', data))
     html = template.render(**params)
     file_name = secrets.token_hex(8) + '.pdf'
-    pdfkit.from_string(html, os.path.join(cache_base_dir, file_name))
+    pdfkit.from_string(html, os.path.join(CACHE_BASE_DIR, file_name))
     print(f'Senate version generated in {time.time() - start_time} seconds')
 
-    return send_from_directory(cache_base_dir, file_name, as_attachment=True)
+    return send_from_directory(CACHE_BASE_DIR, file_name, as_attachment=True)
 
 
 def get_500(entry_session):
@@ -245,10 +245,10 @@ def get_500(entry_session):
     html = html.replace('{{ no_s }}', str(total_num_of_referred_students)).replace('{{ no_sw }}', num2words(
         total_num_of_referred_students))
     file_name = secrets.token_hex(8) + '.pdf'
-    pdfkit.from_string(html, os.path.join(cache_base_dir, file_name))
+    pdfkit.from_string(html, os.path.join(CACHE_BASE_DIR, file_name))
     print(f'Senate version generated in {time.time() - start_time} seconds')
 
-    return send_from_directory(cache_base_dir, file_name, as_attachment=True)
+    return send_from_directory(CACHE_BASE_DIR, file_name, as_attachment=True)
 
 
 @access_decorator

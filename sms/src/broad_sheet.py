@@ -10,7 +10,7 @@ import pdfkit
 from colorama import init, Fore, Style
 from flask import render_template, send_from_directory, url_for
 
-from sms.config import cache_base_dir
+from sms.config import CACHE_BASE_DIR
 from sms.src import course_details
 from sms.src.course_reg_utils import process_personal_info
 from sms.src.results import get_results_for_acad_session, multisort, get_results_for_level
@@ -41,15 +41,15 @@ def get(acad_session, level=None, first_sem_only=False, raw_score=False, to_prin
 
     index_to_display = 0 if raw_score else 1
     file_name = token_hex(8)
-    zip_path = os.path.join(cache_base_dir, file_name)
+    zip_path = os.path.join(CACHE_BASE_DIR, file_name)
 
     # create temporary folder to hold files
-    if os.path.exists(os.path.join(cache_base_dir, file_name)):
+    if os.path.exists(os.path.join(CACHE_BASE_DIR, file_name)):
         shutil.rmtree(file_name, ignore_errors=True)
-    os.makedirs(os.path.join(cache_base_dir, file_name), exist_ok=True)
+    os.makedirs(os.path.join(CACHE_BASE_DIR, file_name), exist_ok=True)
 
     # render the broadsheet footer
-    with open(os.path.join(cache_base_dir, file_name, 'footer.html'), 'w') as footer:
+    with open(os.path.join(CACHE_BASE_DIR, file_name, 'footer.html'), 'w') as footer:
         footer.write(render_template('broad_sheet_footer.html', current_date=date.today().strftime("%A, %B %-d, %Y")))
 
     # render htmls
@@ -77,13 +77,13 @@ def get(acad_session, level=None, first_sem_only=False, raw_score=False, to_prin
     collect_renders_in_zip(file_name, zip_file_name, file_format)
 
     print('===>> total generation done in', perf_counter() - start)
-    resp = send_from_directory(os.path.join(cache_base_dir, file_name), zip_file_name, as_attachment=True)
+    resp = send_from_directory(os.path.join(CACHE_BASE_DIR, file_name), zip_file_name, as_attachment=True)
     return resp
 
 
 def collect_renders_in_zip(file_name, zip_file_name, file_format):
-    zip_path = os.path.join(cache_base_dir, file_name)
-    zip_file = os.path.join(cache_base_dir, file_name, zip_file_name)
+    zip_path = os.path.join(CACHE_BASE_DIR, file_name)
+    zip_file = os.path.join(CACHE_BASE_DIR, file_name, zip_file_name)
     with ZipFile(zip_file, 'w', ZIP_DEFLATED) as zf:
         render_names = sorted([file_name for file_name in os.listdir(zip_path) if file_name.endswith('.' + file_format)])
         for render_name in render_names:
@@ -147,12 +147,12 @@ def render_html(item, acad_session, index_to_display, file_name, first_sem_only=
             first_sem_options=first_sem_options, second_sem_options=second_sem_options,
             students=paginated_students, session=acad_session, level=level, first_sem_only=first_sem_only,
         )
-        open(os.path.join(cache_base_dir, file_name, '{}_{}_render.html'.format(level, ite+1)), 'w').write(html)
+        open(os.path.join(CACHE_BASE_DIR, file_name, '{}_{}_render.html'.format(level, ite + 1)), 'w').write(html)
 
 
 def generate_pdf(file_name, file_dir, file_format='pdf'):
     options = {
-        'footer-html': os.path.join(cache_base_dir, file_dir, 'footer.html'),
+        'footer-html': os.path.join(CACHE_BASE_DIR, file_dir, 'footer.html'),
         'page-size': 'A3',
         'orientation': 'landscape',
         'margin-top': '0.5in',
@@ -166,8 +166,8 @@ def generate_pdf(file_name, file_dir, file_format='pdf'):
         'dpi': 100,
         'log-level': 'warn',  # error, warn, info, none
     }
-    pdfkit.from_file(os.path.join(cache_base_dir, file_dir, file_name),
-                     os.path.join(cache_base_dir, file_dir, file_name[:-5] + '.' + file_format),
+    pdfkit.from_file(os.path.join(CACHE_BASE_DIR, file_dir, file_name),
+                     os.path.join(CACHE_BASE_DIR, file_dir, file_name[:-5] + '.' + file_format),
                      options=options)
 
 
@@ -178,8 +178,8 @@ def generate_image(file_name, file_dir, file_format='png'):
         'quality': 50,
         'log-level': 'warn',
     }
-    imgkit.from_file(os.path.join(cache_base_dir, file_dir, file_name),
-                     os.path.join(cache_base_dir, file_dir, file_name[:-5] + '.' + file_format),
+    imgkit.from_file(os.path.join(CACHE_BASE_DIR, file_dir, file_name),
+                     os.path.join(CACHE_BASE_DIR, file_dir, file_name[:-5] + '.' + file_format),
                      options=options)
 
 
