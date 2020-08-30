@@ -649,6 +649,120 @@ paths:
         440:
           description: Session expired, login again
 
+  /backups:
+    get:
+      tags: [Backups]
+      operationId: sms.src.backups.get
+      summary: Get list of backups
+      description: Get list of database backups
+      responses:
+        200:
+          description: Backups retrieved successfully
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                file_name:
+                  type: string
+                file_size:
+                  type: number
+                last_modified_time:
+                  type: number
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+    post:
+      tags: [Backups]
+      operationId: sms.src.backups.post
+      summary: Initiate backup
+      description: Backup the current databases
+      responses:
+        200:
+          description: Backup successful
+          schema:
+            type: string
+        400:
+          description: Something went wrong
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+    patch:
+      tags: [Backups]
+      operationId: sms.src.backups.patch
+      summary: Restore backup
+      description: Restore specific backup
+      parameters:
+        - in: query
+          name: backup_name
+          type: string
+          required: true
+        - in: query
+          name: include_accounts
+          type: boolean
+          required: false
+      responses:
+        200:
+          description: Restore successful
+        400:
+          description: Something went wrong
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+    delete:
+      tags: [Backups]
+      operationId: sms.src.backups.delete
+      summary: Delete a backup
+      description: Delete a specific backup
+      parameters:
+        - in: query
+          name: backup_name
+          type: string
+          required: true
+      responses:
+        200:
+          description: Backup deleted successfully
+          schema:
+            type: string
+        400:
+          description: Something went wrong
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+
+  /backup_download:
+    get:
+      tags: [ Backups ]
+      operationId: sms.src.backups.download
+      summary: Download backups
+      description: Download backups from a list of backup_names or get the "limit" most recent backups
+      produces:
+        - application/octet-stream
+      parameters:
+        - in: query
+          name: backup_names
+          type: array
+          items:
+            type: string
+          required: false
+        - in: query
+          name: limit
+          type: integer
+          required: false
+      responses:
+        200:
+          description: Success
+          schema:
+            type: file
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+
 definitions:
   PersonalInfo:
     type: object
