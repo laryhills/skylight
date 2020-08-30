@@ -231,9 +231,8 @@ def logout(token):
 
 # PERFORM LOGIN, REMOVE IN PROD
 my_token = {'token': tokenize("ucheigbeka:testing")}
-if not get_token(my_token['token']):
-    print("Using token ", my_token['token'])
-    login(my_token)
+print("Using token ", my_token['token'])
+login(my_token)
 
 
 # Function mapping to perms and logs
