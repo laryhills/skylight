@@ -9,27 +9,27 @@ from sms.config import BACKUP_DIR, DB_DIR, CACHE_BASE_DIR
 from sms.src.users import access_decorator
 
 
-# @access_decorator
+@access_decorator
 def get():
     return fetch_backup_list()
 
 
-# @access_decorator
+@access_decorator
 def download(backup_names=None, limit=15):
     return download_backups(backup_names, limit)
 
 
-# @access_decorator
+@access_decorator
 def backup():
     return backup_dbs()
 
 
-# @access_decorator
+@access_decorator
 def restore(backup_name, include_accounts=False):
     return restore_backup(backup_name, include_accounts)
 
 
-# @access_decorator
+@access_decorator
 def delete(backup_name):
     return delete_backup(backup_name)
 
@@ -37,9 +37,6 @@ def delete(backup_name):
 # ================================================================
 # ==========================  CORE  ==============================
 # ================================================================
-# todo: * remove old backups automatically (?) and manually [delete(): delete all before date "dt"]
-#       *
-
 
 def fetch_backup_list():
     backups = []

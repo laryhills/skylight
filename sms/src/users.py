@@ -22,7 +22,8 @@ fn_props = {
     },
     "jobs.backup_databases": {
         "perms": {},
-        "logs": lambda user, params: "{}: database backup complete".format(user)
+        "logs": lambda user, params: "{}: database backup{} complete".format(
+                                      user, ["", " before restore"][int(bool(params.get("before_restore")))])
     },
     "jobs.clear_cache_dir": {
         "perms": {},
@@ -314,4 +315,20 @@ fn_props.update({
     "gpa_cards.get": {"perms": {"levels", "read"},
                       "logs": lambda user, params: "{} requested {} level gpa card".format(user, params.get('level'))
                      },
+    "backups.get": {"perms": {"usernames", "read"},
+                    "logs": lambda user, params: "{} requested list of backups".format(user)
+                    },
+    "backups.download": {"perms": {"superuser", "read"},
+                         "logs": lambda user, params: "{} requested backups files, with:\n{}".format(user, dict_render(params))
+                         },
+    "backups.backup": {"perms": {"superuser", "write"},
+                       "logs": lambda user, params: "{} initialized database backup".format(user)
+                       },
+    "backups.restore": {"perms": {"superuser", "read"},
+                        "logs": lambda user, params: "{} restored backup {}{}".format(user, params.get("backup_name"),
+                            ["", ", previous account details included"][int(bool(params.get("include_accounts")))])
+                        },
+    "backups.delete": {"perms": {"superuser", "read"},
+                       "logs": lambda user, params: "{} deleted backup {}".format(user, [bn+"\n" for bn in params.get("backup_names")])
+                       },
 })
