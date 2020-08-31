@@ -67,7 +67,7 @@ def access_decorator(func):
             # IN PROD replace with `.get("token") and rm try and exc block`
             token = request.headers["token"]
         except Exception:
-            print ("Running from command line or swagger UI, token not supplied!")
+            # print("Running from command line or swagger UI, token not supplied!")
             token = tokenize("ucheigbeka:testing")
             # abort(401)
         req_perms, token_dict = fn_props[qual_name]["perms"].copy(), get_token("TESTING_token") or get_token(token)
@@ -75,7 +75,7 @@ def access_decorator(func):
             # Not logged in (using old session token)
             return None, 440
         user_perms = token_dict["perms"]
-        print ("your perms", user_perms)
+        # print("your perms", user_perms)
         has_access = True
         if "levels" in req_perms:
             params = get_kwargs(func, args, kwargs)
