@@ -66,7 +66,8 @@ def backup_databases(before_restore=False, external=False):
             zf.write(os.path.join(DB_DIR, file_name), arcname=file_name)
 
     if not external:
-        log(user='system', func=backup_databases, qual_name='jobs.backup_databases', args=[], kwargs={})
+        log(user='SYSTEM', func=backup_databases, qual_name='jobs.backup_databases', args=[],
+            kwargs={'before_restore': before_restore, 'external': external})
 
     return backup_name
 
@@ -81,4 +82,4 @@ def clear_cache_dir():
                 shutil.rmtree(file_path)
         except Exception as e:
             print('Failed to delete %s. Reason: %s' % (file_path, e))
-    log(user='system', func=clear_cache_dir, qual_name='jobs.clear_cache_dir', args=[], kwargs={})
+    log(user='SYSTEM', func=clear_cache_dir, qual_name='jobs.clear_cache_dir', args=[], kwargs={})
