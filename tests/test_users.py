@@ -20,6 +20,9 @@ cur=conn.cursor()
 
 # TODO add test get_level
 
+def test_setup_env():
+    config.add_token("TESTING_token", "users_test", {})
+
 def get_log(user):
     return cur.execute("SELECT * FROM Logs WHERE user=?",(user,)).fetchall()[-1]
 
@@ -52,6 +55,11 @@ def test_login_errors():
     my_token = {'token': "invalid token"}
     output, ret_code = users.login(my_token)
     assert (output, ret_code) == (None, 401)
+
+
+def test_logout():
+    output, ret_code = users.logout({"token":token})
+    assert (output, ret_code) == (None, 200)
 
 
 def test_session_key():

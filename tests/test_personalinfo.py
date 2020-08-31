@@ -87,6 +87,7 @@ def test_post_dets_info():
     dummy_info["grad_status"] = int(0 > dummy_info["level"])
     output, ret_code = personal_info.post_exp(dummy_info)
     assert (output, ret_code) == (None, 200)
+    dummy_info["level"] = abs(dummy_info["level"]) * [1, -1][dummy_info["grad_status"]]
     info_row = get_student(dummy_info["mat_no"])
     for prop_data, prop_row, in zip(info_keys, row_keys):
         if prop_data:
@@ -94,11 +95,11 @@ def test_post_dets_info():
     delete_student(dummy_info["mat_no"])
 
     # Flip the grad_status and retry
-    dummy_info = info_base.copy()
-    dummy_info["grad_status"] = int(dummy_info["level"] > 0)
+    dummy_info["grad_status"] = int(not dummy_info["grad_status"])
     output, ret_code = personal_info.post_exp(dummy_info)
-    row_values[6] *= -1
     assert (output, ret_code) == (None, 200)
+    row_values[6] *= -1
+    dummy_info["level"] = abs(dummy_info["level"]) * [1, -1][dummy_info["grad_status"]]
     info_row = get_student(dummy_info["mat_no"])
     for prop_data, prop_row, in zip(info_keys, row_keys):
         if prop_data:
@@ -111,12 +112,29 @@ def test_put_dets():
     insert_student(row_values)
     new_info = dict(zip(info_keys, row_values_2))
     new_info.pop(None)
+    new_info["grad_status"] = int(0 > new_info["level"])
     output, ret_code = personal_info.put(new_info)
     assert (output, ret_code) == (None, 200)
+    new_info["level"] = abs(new_info["level"]) * [1, -1][new_info["grad_status"]]
     info_row = get_student(new_info["mat_no"])
     for prop_data, prop_row, in zip(info_keys, row_keys):
         if prop_data:
             assert new_info[prop_data] == info_row[prop_row]
+
+    # Flip grad status alone
+    new_info_2 = {"mat_no": new_info["mat_no"], "grad_status": int(not new_info["grad_status"])}
+    output, ret_code = personal_info.put(new_info_2)
+    assert (output, ret_code) == (None, 200)
+    info_row = get_student(new_info_2["mat_no"])
+    assert info_row["current_level"] == -new_info["level"]
+
+    # Insert level alone and inherit grad_status
+    new_info_3 = {"mat_no": new_info["mat_no"], "level": 500}
+    output, ret_code = personal_info.put(new_info_3)
+    assert (output, ret_code) == (None, 200)
+    info_row = get_student(new_info_3["mat_no"])
+    assert (info_row["current_level"] > 0) == (-new_info["level"] > 0)
+
     delete_student(new_info["mat_no"])
 
 
