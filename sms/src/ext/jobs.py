@@ -28,9 +28,10 @@ def start_scheduled_jobs():
     _scheduler = BackgroundScheduler(timezone=timezone, job_defaults=job_defaults)
     _scheduler.add_listener(job_listener, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR | EVENT_JOB_MISSED)
 
-    jobs = []
-    jobs.append(_scheduler.add_job(backup_databases, id='backup_databases', trigger=backup_trigger))
-    jobs.append(_scheduler.add_job(clear_cache_dir, id='clear_cache_dir', trigger=cache_trigger))
+    jobs = [
+        _scheduler.add_job(backup_databases, id='backup_databases', trigger=backup_trigger),
+        _scheduler.add_job(clear_cache_base_dir, id='clear_cache_base_dir', trigger=cache_trigger)
+    ]
 
     try:
         _scheduler.start()
