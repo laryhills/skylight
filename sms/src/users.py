@@ -25,7 +25,7 @@ fn_props = {
         "logs": lambda user, params: "{}: database backup{} complete".format(
                                       user, ["", " before restore"][int(bool(params.get("before_restore")))])
     },
-    "jobs.clear_cache_dir": {
+    "jobs.clear_cache_base_dir": {
         "perms": {},
         "logs": lambda user, params: "{}: program cache cleared".format(user)
     }

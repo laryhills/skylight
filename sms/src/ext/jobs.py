@@ -72,7 +72,7 @@ def backup_databases(before_restore=False, external=False):
     return backup_name
 
 
-def clear_cache_dir():
+def clear_cache_base_dir():
     for file in os.scandir(CACHE_BASE_DIR):
         file_path = file.path
         try:
@@ -82,4 +82,4 @@ def clear_cache_dir():
                 shutil.rmtree(file_path)
         except Exception as e:
             print('Failed to delete %s. Reason: %s' % (file_path, e))
-    log(user='SYSTEM', func=clear_cache_dir, qual_name='jobs.clear_cache_dir', args=[], kwargs={})
+    log(user='SYSTEM', func=clear_cache_base_dir, qual_name='jobs.clear_cache_base_dir', args=[], kwargs={})
