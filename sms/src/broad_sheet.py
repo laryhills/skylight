@@ -48,10 +48,6 @@ def get(acad_session, level=None, first_sem_only=False, raw_score=False, to_prin
         shutil.rmtree(file_dir, ignore_errors=True)
     os.makedirs(os.path.join(CACHE_BASE_DIR, file_dir), exist_ok=True)
 
-    # render the broadsheet footer
-    with open(os.path.join(CACHE_BASE_DIR, file_dir, 'footer.html'), 'w') as footer:
-        footer.write(render_template('broad_sheet_footer.html', current_date=date.today().strftime("%A, %B %-d, %Y")))
-
     # render htmls
     t0 = perf_counter()
     context = (acad_session, index_to_display, file_dir, first_sem_only)
@@ -151,8 +147,16 @@ def render_html(item, acad_session, index_to_display, file_dir, first_sem_only=F
 
 
 def generate_pdf(html_name, file_dir, file_format='pdf'):
+    page = html_name.split('_')[1]
+    footer_name = html_name.replace('render', 'footer')
+
+    # render the broadsheet footer
+    with open(os.path.join(CACHE_BASE_DIR, file_dir, footer_name), 'w') as footer:
+        footer.write(render_template('broad_sheet_footer.html',
+                                     current_date=date.today().strftime("%A, %B %-d, %Y"),
+                                     page=page))
     options = {
-        'footer-html': os.path.join(CACHE_BASE_DIR, file_dir, 'footer.html'),
+        'footer-html': os.path.join(CACHE_BASE_DIR, file_dir, footer_name),
         'page-size': 'A3',
         'orientation': 'landscape',
         'margin-top': '0.5in',
