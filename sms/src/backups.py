@@ -20,12 +20,12 @@ def download(backup_names=None, limit=15):
 
 
 # @access_decorator
-def post():
+def backup():
     return backup_dbs()
 
 
 # @access_decorator
-def patch(backup_name, include_accounts=False):
+def restore(backup_name, include_accounts=False):
     return restore_backup(backup_name, include_accounts)
 
 
