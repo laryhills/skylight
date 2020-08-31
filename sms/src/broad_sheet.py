@@ -202,14 +202,14 @@ def get_filtered_student_by_level(acad_session, level=None):
     return students_by_level
 
 
-def get_level_at_acad_session(mat_no, acad_session):
-    if acad_session == get_current_session():
-        return get_level(mat_no)
-    c_reg = get_registered_courses(mat_no)
-    for key in range(800, 0, -100):
-        if c_reg[key]['course_reg_session'] and c_reg[key]['course_reg_session'] == acad_session:
-            return c_reg[key]['course_reg_level']
-    return ''
+# def get_level_at_acad_session(mat_no, acad_session):
+#     if acad_session == get_current_session():
+#         return get_level(mat_no)
+#     c_reg = get_registered_courses(mat_no)
+#     for key in range(800, 0, -100):
+#         if c_reg[key]['course_reg_session'] and c_reg[key]['course_reg_session'] == acad_session:
+#             return c_reg[key]['course_reg_level']
+#     return ''
 
 
 def enrich_mat_no_list(mat_nos, acad_session, level, level_courses):
