@@ -93,11 +93,12 @@ def restore_backup(backup_name, include_accounts=False):
     return None, 200
 
 
-def delete_backup(backup_name):
-    backup_path = os.path.join(BACKUP_DIR, backup_name)
-    if os.path.isfile(backup_path):
-        try:
-            os.unlink(backup_path)
-        except OSError:
-            pass
-    return 'Done', 200
+def delete_backup(backup_names):
+    for backup_name in backup_names:
+        backup_path = os.path.join(BACKUP_DIR, backup_name)
+        if os.path.isfile(backup_path):
+            try:
+                os.unlink(backup_path)
+            except OSError:
+                pass
+    return None, 200
