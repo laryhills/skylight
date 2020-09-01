@@ -324,8 +324,8 @@ fn_props.update({
                        "logs": lambda user, params: "{} initialized database backup".format(user)
                        },
     "backups.restore": {"perms": {"superuser", "read"},
-                        "logs": lambda user, params: "{} restored backup {}{}".format(user, params.get("backup_name"),
-                            ["", ", previous account details included"][int(bool(params.get("include_accounts")))])
+                        "logs": lambda user, params: '{} restored backup "{}"{}'.format(user, params.get("backup_name"),
+                            ["", "; previous account details included"][int(bool(params.get("include_accounts")))])
                         },
     "backups.delete": {"perms": {"superuser", "read"},
                        "logs": lambda user, params: "{} deleted backup {}".format(user, [bn+"\n" for bn in params.get("backup_names")])
