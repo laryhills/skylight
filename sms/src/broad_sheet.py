@@ -217,8 +217,6 @@ def enrich_mat_no_list(mat_nos, acad_session, level, level_courses):
     max_len_first_sem_carryovers = 0
     max_len_second_sem_carryovers = 0
     
-    mat_nos = ['ENG1503878'] + mat_nos
-    
     for mat_no in mat_nos:
 
         result_details = get_results_for_acad_session(mat_no, acad_session)
