@@ -20,7 +20,7 @@ fn_props = {
         "perms": {},
         "logs": lambda user, params: "{} logged out".format(user)
     },
-    "jobs.backup_databases": {
+    "backups.backup_databases": {
         "perms": {},
         "logs": lambda user, params: "{}: database backup{} complete".format(
                                       user, ["", " before restore"][int(bool(params.get("before_restore")))])

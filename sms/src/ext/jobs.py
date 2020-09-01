@@ -1,30 +1,28 @@
-import shutil
 import os
-from datetime import datetime
+import shutil
 from pytz import timezone as tz
-from zipfile import ZipFile, ZIP_DEFLATED
 
 from apscheduler.events import EVENT_JOB_MISSED, EVENT_JOB_ERROR, EVENT_JOB_EXECUTED
 from apscheduler.schedulers.background import BackgroundScheduler
 from apscheduler.schedulers import SchedulerAlreadyRunningError
 from apscheduler.triggers.cron import CronTrigger
-# from apscheduler.triggers.interval import IntervalTrigger
+from apscheduler.triggers.interval import IntervalTrigger
 
+from backups import backup_databases
 from sms.src.users import log
-from sms.config import DB_DIR, BACKUP_DIR, CACHE_BASE_DIR
+from sms.config import CACHE_BASE_DIR
 
 
 def start_scheduled_jobs():
     timezone = tz('Africa/Lagos')
     backup_trigger = CronTrigger(hour=17, minute=5, jitter=120)
     cache_trigger = CronTrigger(hour=17, minute=2, jitter=120)
-    # test_trigger = IntervalTrigger(seconds=10, jitter=2)
+    test_trigger = IntervalTrigger(seconds=10, jitter=2)
     job_defaults = {
         'coalesce': True,
         'max_instances': 1,
         # 'misfire_grace_time': 3
     }
-
     _scheduler = BackgroundScheduler(timezone=timezone, job_defaults=job_defaults)
     _scheduler.add_listener(job_listener, EVENT_JOB_EXECUTED | EVENT_JOB_ERROR | EVENT_JOB_MISSED)
 
@@ -32,11 +30,9 @@ def start_scheduled_jobs():
         _scheduler.add_job(backup_databases, id='backup_databases', trigger=backup_trigger),
         _scheduler.add_job(clear_cache_base_dir, id='clear_cache_base_dir', trigger=cache_trigger)
     ]
-
     try:
         _scheduler.start()
     except SchedulerAlreadyRunningError:
-        print('f')
         pass
 
     return _scheduler, jobs
@@ -54,24 +50,6 @@ def job_listener(event):
 # ==============================================================================
 # ================================  JOBS  ======================================
 # ==============================================================================
-
-def backup_databases(before_restore=False, external=False):
-    datetime_tag = datetime.now().isoformat().split('.')[0].replace('T', '__')
-    flag = '__before_restore' if before_restore else ''
-    backup_name = 'databases__' + datetime_tag + flag + '.zip.skylight'
-
-    databases = sorted([file.name for file in os.scandir(DB_DIR) if file.name.endswith('.db')])
-    zip_file = os.path.join(BACKUP_DIR, backup_name)
-    with ZipFile(zip_file, 'w', ZIP_DEFLATED) as zf:
-        for file_name in databases:
-            zf.write(os.path.join(DB_DIR, file_name), arcname=file_name)
-
-    if not external:
-        log(user='SYSTEM', func=backup_databases, qual_name='jobs.backup_databases', args=[],
-            kwargs={'before_restore': before_restore, 'external': external})
-
-    return backup_name
-
 
 def clear_cache_base_dir():
     for file in os.scandir(CACHE_BASE_DIR):

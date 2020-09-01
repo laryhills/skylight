@@ -1,12 +1,11 @@
 import os
+from datetime import datetime
 from secrets import token_hex
+from flask import send_from_directory
 from zipfile import ZipFile, ZIP_DEFLATED
 
-from flask import send_from_directory
-
-from sms.src.ext.jobs import backup_databases
 from sms.config import BACKUP_DIR, DB_DIR, CACHE_BASE_DIR
-from sms.src.users import access_decorator
+from sms.src.users import access_decorator, log
 
 
 @access_decorator
@@ -21,7 +20,11 @@ def download(backup_names=None, limit=15):
 
 @access_decorator
 def backup():
-    return backup_dbs()
+    try:
+        backup_name = backup_databases(external=True)
+    except:
+        return 'Something went wrong', 400
+    return backup_name, 200
 
 
 @access_decorator
@@ -66,12 +69,22 @@ def download_backups(backup_names=None, limit=15):
         return None, 400
 
 
-def backup_dbs():
-    try:
-        backup_name = backup_databases(external=True)
-    except:
-        return 'Something went wrong', 400
-    return backup_name, 200
+def backup_databases(before_restore=False, external=False):
+    datetime_tag = datetime.now().isoformat().split('.')[0].replace('T', '__')
+    flag = '__before_restore' if before_restore else ''
+    backup_name = 'databases__' + datetime_tag + flag + '.zip.skylight'
+
+    databases = sorted([file.name for file in os.scandir(DB_DIR) if file.name.endswith('.db')])
+    zip_file = os.path.join(BACKUP_DIR, backup_name)
+    with ZipFile(zip_file, 'w', ZIP_DEFLATED) as zf:
+        for file_name in databases:
+            zf.write(os.path.join(DB_DIR, file_name), arcname=file_name)
+
+    if not external:
+        log(user='SYSTEM', func=backup_databases, qual_name='backups.backup_databases', args=[],
+            kwargs={'before_restore': before_restore, 'external': external})
+
+    return backup_name
 
 
 def restore_backup(backup_name, include_accounts=False):
@@ -85,7 +98,10 @@ def restore_backup(backup_name, include_accounts=False):
                 if not include_accounts and database == 'accounts.db':
                     continue
                 zf.extract(database, DB_DIR)
-    except:
+        # todo: refresh sqlalchemy binds here or restart server
+    except FileNotFoundError:
+        return 'Database not found on server', 404
+    except Exception as e:
         return 'Something went wrong', 400
     return None, 200
 
