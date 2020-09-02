@@ -710,6 +710,8 @@ paths:
           description: Something went wrong
         401:
           description: Authentication failed
+        404:
+          description: File not found
         440:
           description: Session expired, login again
     delete:
@@ -731,6 +733,8 @@ paths:
           description: Something went wrong
         401:
           description: Authentication failed
+        404:
+          description: File not found
         440:
           description: Session expired, login again
 
