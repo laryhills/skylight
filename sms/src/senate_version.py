@@ -205,7 +205,7 @@ def get_500(entry_session):
                     cgpas[idx] = student['cgpa']
                     prize_winners[idx] = student
                 elif student['cgpa'] == min_cgpa:
-                    # find a way to resolve ties
+                    # todo: find a way to resolve ties
                     pass
             break
     keys = list(class_mapping.keys())
