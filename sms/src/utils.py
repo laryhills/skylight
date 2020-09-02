@@ -509,7 +509,7 @@ def dictify(flat_list, key_index=0):
     return dic
 
 
-def multiprocessing_wrapper(func, iterable, context, use_workers=True):
+def multiprocessing_wrapper(func, iterable, context, use_workers=True, max_workers=None):
     """
     use multiprocessing to call a function on members of an iterable
 
@@ -518,12 +518,14 @@ def multiprocessing_wrapper(func, iterable, context, use_workers=True):
     :param func: the function to call
     :param iterable: items you want to call func on
     :param context: params that are passed to all instances
-    :param concurrency: whether to use worker processes or not
+    :param use_workers: whether to spawn off child processes
+    :param max_workers: maximum number of child processes to use
     :return:
     """
     if not use_workers:
         [func(item, *context) for item in iterable]
     else:
-        with ProcessPoolExecutor() as executor:
+        max_workers = max_workers if max_workers else min(len(iterable), 4)
+        with ProcessPoolExecutor(max_workers=max_workers) as executor:
             [executor.submit(func, item, *context) for item in iterable]
 
