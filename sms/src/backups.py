@@ -43,8 +43,8 @@ def delete(backup_name):
 
 def fetch_backup_list():
     backups = []
-    with os.scandir(BACKUP_DIR) as dir_entries:
-        for entry in dir_entries:
+    for entry in os.scandir(BACKUP_DIR):
+        if str(entry.name).endswith('.skylight.zip'):
             info = entry.stat()
             backups.append({
                 'file_name': entry.name,
@@ -70,9 +70,9 @@ def download_backups(backup_names=None, limit=15):
 
 
 def backup_databases(before_restore=False, external=False):
-    datetime_tag = datetime.now().isoformat().split('.')[0].replace('T', '__')
+    datetime_tag = datetime.now().isoformat().split('.')[0].replace('T', '__').replace(':', '_')
     flag = '__before_restore' if before_restore else ''
-    backup_name = 'databases__' + datetime_tag + flag + '.zip.skylight'
+    backup_name = 'databases__' + datetime_tag + flag + '.skylight.zip'
 
     databases = sorted([file.name for file in os.scandir(DB_DIR) if file.name.endswith('.db')])
     zip_file = os.path.join(BACKUP_DIR, backup_name)
@@ -91,14 +91,12 @@ def restore_backup(backup_name, include_accounts=False):
     backup_path = os.path.join(BACKUP_DIR, backup_name)
     try:
         backup_databases(before_restore=True)
-        # todo: close db engine connections here
         with ZipFile(backup_path) as zf:
             databases = zf.namelist()
             for database in databases:
                 if not include_accounts and database == 'accounts.db':
                     continue
                 zf.extract(database, DB_DIR)
-        # todo: refresh sqlalchemy binds here or restart server
     except FileNotFoundError:
         return 'Database not found on server', 404
     except Exception as e:
