@@ -44,7 +44,7 @@ def delete(backup_name):
 def fetch_backup_list():
     backups = []
     for entry in os.scandir(BACKUP_DIR):
-        if str(entry.name).endswith('.skylight.zip'):
+        if entry.name.endswith('.skylight.zip'):
             info = entry.stat()
             backups.append({
                 'file_name': entry.name,
