@@ -52,7 +52,7 @@ def get(acad_session, level=None, first_sem_only=False, raw_score=False, to_prin
     t0 = perf_counter()
     context = (acad_session, index_to_display, file_dir, first_sem_only)
     use_workers = True if len(registered_students_for_session) > 1 else False
-    multiprocessing_wrapper(render_html, registered_students_for_session.items(), context, use_workers)
+    multiprocessing_wrapper(render_html, registered_students_for_session.items(), context, use_workers, max_workers=5)
     print('htmls rendered in', perf_counter() - t0, 'seconds')
 
     # generate pdfs or pngs
