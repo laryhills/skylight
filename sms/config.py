@@ -10,11 +10,11 @@ base_dir = os.path.dirname(__file__)
 CACHE_DIR = os.path.join(os.path.expanduser('~'), 'sms', 'cache_mechanical')
 BACKUP_DIR = os.path.join(os.path.expanduser('~'), 'sms', 'backups_mechanical')
 DB_DIR = os.path.join(base_dir, 'database')
-TMPDIR = os.path.join(tempfile.gettempdir(), 'sms', 'mechanical')
+TEMP_DIR = os.path.join(tempfile.gettempdir(), 'sms', 'mechanical')
 
-CACHE_BASE_DIR = TMPDIR
+CACHE_BASE_DIR = TEMP_DIR
 
-[os.makedirs(path) for path in (CACHE_DIR, BACKUP_DIR, DB_DIR, TMPDIR) if not os.path.exists(path)]
+[os.makedirs(path) for path in (CACHE_DIR, BACKUP_DIR, DB_DIR, TEMP_DIR) if not os.path.exists(path)]
 
 
 start_session = 2003
