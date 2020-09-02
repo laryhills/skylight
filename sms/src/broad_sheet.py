@@ -16,8 +16,8 @@ from sms.src.course_reg_utils import process_personal_info
 from sms.src.results import get_results_for_acad_session, multisort, get_results_for_level
 from sms.src.script import get_students_by_level
 from sms.src.users import access_decorator
-from sms.src.utils import get_current_session, get_registered_courses, get_level, multiprocessing_wrapper, \
-    compute_degree_class, get_cgpa, dictify
+from sms.src.utils import multiprocessing_wrapper, compute_degree_class, get_cgpa, dictify, \
+    get_current_session, get_registered_courses, get_level
 
 init()  # initialize colorama
 
