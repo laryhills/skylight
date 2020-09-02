@@ -328,6 +328,6 @@ fn_props.update({
                             ["", "; previous account details included"][int(bool(params.get("include_accounts")))])
                         },
     "backups.delete": {"perms": {"superuser", "read"},
-                       "logs": lambda user, params: "{} deleted backup {}".format(user, [bn+"\n" for bn in params.get("backup_names")])
+                       "logs": lambda user, params: '{} deleted backup "{}"'.format(user, params.get("backup_name"))
                        },
 })
