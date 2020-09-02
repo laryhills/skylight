@@ -10,6 +10,9 @@ import pdfkit
 from colorama import init, Fore, Style
 from flask import render_template, send_from_directory, url_for
 
+# workaround for windows not passing app context to the child process
+from sms.config import app as current_app
+
 from sms.config import CACHE_BASE_DIR
 from sms.src import course_details
 from sms.src.course_reg_utils import process_personal_info
@@ -52,7 +55,7 @@ def get(acad_session, level=None, first_sem_only=False, raw_score=False, to_prin
     t0 = perf_counter()
     context = (acad_session, index_to_display, file_dir, first_sem_only)
     use_workers = True if len(registered_students_for_session) > 1 else False
-    multiprocessing_wrapper(render_html, registered_students_for_session.items(), context, use_workers, max_workers=5)
+    multiprocessing_wrapper(render_html, registered_students_for_session.items(), context, use_workers)
     print('htmls rendered in', perf_counter() - t0, 'seconds')
 
     # generate pdfs or pngs
@@ -123,8 +126,9 @@ def render_html(item, acad_session, index_to_display, file_dir, first_sem_only=F
     len_second_sem_carryovers = max(len_second_sem_carryovers, fix_table_column_width_error)
 
     if first_sem_only or len_first_sem_carryovers + len_second_sem_carryovers < 18: pagination = 15
-    elif len(second_sem_courses) == 1: pagination = 16
+    elif len(second_sem_courses) == 1: pagination = 15
     else: pagination = 18
+
     iters = len(students) // pagination
 
     for ite in range(iters+1):
@@ -135,26 +139,28 @@ def render_html(item, acad_session, index_to_display, file_dir, first_sem_only=F
         else:
             paginated_students = dictify(students[left:])
 
-        html = render_template(
-            'broad_sheet.html', enumerate=enumerate, sum=sum, int=int, url_for=url_for, start_index=left,
-            len_first_sem_carryovers=len_first_sem_carryovers, len_second_sem_carryovers=len_second_sem_carryovers,
-            index_to_display=index_to_display, empty_value=empty_value, color_map=color_map,
-            first_sem_courses=first_sem_courses, second_sem_courses=second_sem_courses,
-            first_sem_options=first_sem_options, second_sem_options=second_sem_options,
-            students=paginated_students, session=acad_session, level=level, first_sem_only=first_sem_only,
-        )
-        open(os.path.join(CACHE_BASE_DIR, file_dir, '{}_{}_render.html'.format(level, ite + 1)), 'w').write(html)
+        with current_app.app_context():
+            html = render_template(
+                'broad_sheet.html', enumerate=enumerate, sum=sum, int=int, url_for=url_for, start_index=left,
+                len_first_sem_carryovers=len_first_sem_carryovers, len_second_sem_carryovers=len_second_sem_carryovers,
+                index_to_display=index_to_display, empty_value=empty_value, color_map=color_map,
+                first_sem_courses=first_sem_courses, second_sem_courses=second_sem_courses,
+                first_sem_options=first_sem_options, second_sem_options=second_sem_options,
+                students=paginated_students, session=acad_session, level=level, first_sem_only=first_sem_only,
+            )
+            open(os.path.join(CACHE_BASE_DIR, file_dir, '{}_{}_render.html'.format(level, ite + 1)), 'w').write(html)
 
 
 def generate_pdf(html_name, file_dir, file_format='pdf'):
     page = html_name.split('_')[1]
     footer_name = html_name.replace('render', 'footer')
+    current_date = date.today().strftime("%A, %B %e, %Y")
 
     # render the broadsheet footer
-    with open(os.path.join(CACHE_BASE_DIR, file_dir, footer_name), 'w') as footer:
-        footer.write(render_template('broad_sheet_footer.html',
-                                     current_date=date.today().strftime("%A, %B %-d, %Y"),
-                                     page=page))
+    with current_app.app_context():
+        footer_html = render_template('broad_sheet_footer.html', page=page, current_date=current_date)
+        open(os.path.join(CACHE_BASE_DIR, file_dir, footer_name), 'w').write(footer_html)
+
     options = {
         'footer-html': os.path.join(CACHE_BASE_DIR, file_dir, footer_name),
         'page-size': 'A3',
