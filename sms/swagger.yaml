@@ -527,6 +527,68 @@ paths:
         440:
           description: Session expired, login again
 
+  /results_stats_single:
+    get:
+      tags: [Results]
+      operationId: sms.src.results.get_single_results_stats
+      description: Gets the stats of the registered and entered credits for a single student
+      parameters:
+        - in: query
+          name: mat_no
+          type: string
+          required: true
+        - in: query
+          name: acad_session
+          type: integer
+          required: true
+        - in: query
+          name: level
+          type: integer
+          required: true
+      responses:
+        200:
+          description: Success
+          schema:
+            type: array
+            items: {}
+        400:
+          description: Bad request
+        401:
+          description: Unauthorised
+        403:
+          description: Forbidden
+        440:
+          description: Session expired, login again
+
+  /results_stats_multiple:
+    get:
+      tags: [Results]
+      operationId: sms.src.results.get_multiple_results_stats
+      description: Gets the stats of the registered and entered credits for all students in a level
+      parameters:
+        - in: query
+          name: acad_session
+          type: integer
+          required: true
+        - in: query
+          name: level
+          type: integer
+          required: true
+      responses:
+        200:
+          description: Success
+          schema:
+            type: array
+            items: {}
+        400:
+          description: Bad request
+        401:
+          description: Unauthorised
+        403:
+          description: Forbidden
+        440:
+          description: Session expired, login again
+
   /accounts:
     get:
       tags: [Accounts]
