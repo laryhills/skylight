@@ -289,7 +289,13 @@ fn_props = {
                     },
     "results.get_result_details": {"perms": {"levels", "read"},
                                    "logs": lambda user, params: "{} queried result details for {}".format(user, params.get("mat_no"))
-                    },
+                                   },
+    "results.get_single_results_stats": {"perms": {"levels", "read"},
+                                           "logs": lambda user, params: "{} queried the result stats for the {} for the {} academic session".format(user, params.get("mat_no"), params.get("acad_session"))
+                                        },
+    "results.get_multiple_results_stats": {"perms": {"levels", "read"},
+                                           "logs": lambda user, params: "{} queried all the result stats for the {} level students for the {} academic session".format(user, params.get("level"), params.get("acad_session"))
+                                        },
     "logs.get": {"perms": {"read"},
                  "logs": lambda user, params: "{} requested logs".format(user)
                  },
