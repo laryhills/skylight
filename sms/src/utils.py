@@ -95,20 +95,21 @@ def get_courses(mat_no, mode_of_entry=None):
     return level_courses
 
 
-def get_carryovers(mat_no, level=None, retJSON=True):
+def get_carryovers(mat_no, level=None, current=False, retJSON=True):
     """
     Returns a dictionary or JSON array of the carryovers for a student. Returns a JSON object if retJSON
     is true else a dictionary
 
     :param mat_no: mat number of student
     :param level: (Optional) level of the student
+    :param current: (Optional) if True returns carryovers up to the current academic session of the student
     :param retJSON: (Optional) if True returns a JSON array
     :return: Dictionary or JSON array of carryover courses
     """
     level = get_level(mat_no) if not level else level
     first_sem, second_sem = set(), set()
     results = loads(result_statement.get(mat_no))["results"]
-    for course in get_courses(mat_no)[:int(level/100-1)]:
+    for course in get_courses(mat_no)[:int(level/100-1) + bool(current)]:
         first_sem |= set(course[0] if course else set())
         second_sem |= set(course[1] if course else set())
 
