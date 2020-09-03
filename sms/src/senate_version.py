@@ -24,6 +24,19 @@ class_mapping = {
     'pass': 'Pass',
 }
 
+options = {
+        'page-size': 'A4',
+        'margin-top': '.8in',
+        'margin-bottom': '0.5in',
+        'margin-left': '0.8in',
+        'margin-right': '0.8in',
+        'header-spacing': 6.0,
+        'footer-right': '[date] [time]',
+        'footer-center': '[page]/[toPage]',
+        'footer-spacing': 3.0,
+        'footer-font-size': 8
+    }
+
 
 def get_groups_dict():
     groups_dict = dict()
@@ -71,6 +84,15 @@ def load_cat_section_500(cat, students, session):
     section = Template(section).render(no_s=no_s, no_sw=no_sw, session='{}/{}'.format(session, session + 1))
 
     return section
+
+
+def generate_header(file_name, params):
+    header_temp_path = os.path.join(cache_base_dir, file_name + '_header.html')
+    with app.app_context():
+        header_template = render_template('senate_version_header.html', **params)
+        open(header_temp_path, 'w').write(header_template)
+
+    return header_temp_path
 
 
 def get_100_to_400(entry_session, level):
@@ -128,10 +150,18 @@ def get_100_to_400(entry_session, level):
         'cat_total_sum': cat_total_sum,
         'best_students': best_students
     }
+
+    header_params = {
+        'dept': get_depat(),
+        'level': level,
+        'session': '{}/{}'.format(session, str(session + 1)[-2:]),
+    }
+
     template = Template(template.replace('{data}', data))
     html = template.render(**params)
     file_name = secrets.token_hex(8) + '.pdf'
-    pdfkit.from_string(html, os.path.join(cache_base_dir, file_name))
+    options['header-html'] = generate_header(file_name, header_params)
+    pdfkit.from_string(html, os.path.join(cache_base_dir, file_name), options=options)
     print(f'Senate version generated in {time.time() - start_time} seconds')
 
     return send_from_directory(cache_base_dir, file_name, as_attachment=True)
@@ -239,13 +269,20 @@ def get_500(entry_session):
         'best_students': best_students
     }
 
+    header_params = {
+        'dept': get_depat(),
+        'level': 500,
+        'session': '{}/{}'.format(session, str(session + 1)[-2:]),
+    }
+
     template = Template(template.replace('{data}', data))
     html = template.render(**params).replace('{{ no_s }}', str(total_num_of_successful_students)).replace(
         '{{ no_sw }}', num2words(total_num_of_successful_students))
     html = html.replace('{{ no_s }}', str(total_num_of_referred_students)).replace('{{ no_sw }}', num2words(
         total_num_of_referred_students))
     file_name = secrets.token_hex(8) + '.pdf'
-    pdfkit.from_string(html, os.path.join(cache_base_dir, file_name))
+    options['header-html'] = generate_header(file_name, header_params)
+    pdfkit.from_string(html, os.path.join(cache_base_dir, file_name), options=options)
     print(f'Senate version generated in {time.time() - start_time} seconds')
 
     return send_from_directory(cache_base_dir, file_name, as_attachment=True)
