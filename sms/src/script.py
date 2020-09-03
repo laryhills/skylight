@@ -4,8 +4,8 @@
 
 from sms.config import get_current_session
 from sms.src.users import get_level
-from sms.src.utils import load_session, get_depat, get_credits, get_gpa_credits, get_category
-from sms.models import courses
+from sms.src.utils import load_session, get_depat, get_credits, get_gpa_credits, get_category, get_carryovers
+from sms.models.courses import Courses
 from sms.models.master import Category, Category500
 
 class_mapping = {
@@ -31,7 +31,7 @@ def populate_course_list(level):
     course_list = []
 
     level = 500 if level > 500 else level
-    course_objs = eval('courses.Courses{}'.format(level)).query.all()
+    course_objs = Courses.query.filter_by(course_level=level).all()
     for obj in course_objs:
         course_list.append(obj.course_code)
 
@@ -224,17 +224,13 @@ def get_details_for_ref_students(mat_no, session):
         total_credits = 0
 
     # KeyError for the utils.get_carryovers function
-    # try:
-    #     carryovers_dict = get_carryovers(mat_no, retJSON=False)
-    # except KeyError as err:
-    #     print(mat_no)
-    #     raise KeyError(str(err))
-    # carryovers_credits = carryovers_dict['first_sem'] + carryovers_dict['second_sem']
-    # overall_carryover_courses = list(map(lambda x: x[0], carryovers_credits))
-    # outstanding_courses = []
-    # for course_code in overall_carryover_courses:
-    #     if course_code not in session_failed_courses:
-    #         outstanding_courses.append(course_code)
+    carryovers_dict = get_carryovers(mat_no, current=True, retJSON=False)
+    carryovers_credits = carryovers_dict['first_sem'] + carryovers_dict['second_sem']
+    overall_carryover_courses = list(map(lambda x: x[0], carryovers_credits))
+    outstanding_courses = []
+    for course_code in overall_carryover_courses:
+        if course_code not in session_failed_courses:
+            outstanding_courses.append(course_code)
 
     details = {
         'mat_no': mat_no,
@@ -242,7 +238,7 @@ def get_details_for_ref_students(mat_no, session):
         'session_carryover_courses': '  '.join(session_failed_courses),
         'cum_credits_to_date': total_credits_passed,
         'outstanding_credits': total_credits - total_credits_passed,
-        'outstanding_courses': '' # ' '.join(outstanding_courses)
+        'outstanding_courses': ' '.join(outstanding_courses)
     }
 
     return details
