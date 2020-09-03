@@ -11,15 +11,18 @@ curr_session = 2019
 
 if not os.path.exists(os.path.join(db_base_dir, 'courses.db')): sys.exit('Run course_details.py first')
 conn = sqlite3.connect(os.path.join(db_base_dir, 'courses.db'))
-stmt = 'SELECT COURSE_CODE, COURSE_CREDIT, COURSE_SEMESTER, START_DATE, END_DATE, OPTIONS from courses{};'
+stmt = 'SELECT COURSE_CODE, COURSE_CREDIT, COURSE_SEMESTER, START_DATE, END_DATE, OPTIONS from Courses where ' \
+       'COURSE_LEVEL = {}; '
 courses = [conn.execute(stmt.format(x * 100)).fetchall() for x in range(1, 6)]
 conn.close()
 
 
 def generate_courses_and_credits_table(conn, session):
     cursor = conn.cursor()
-    cursor.execute('CREATE TABLE Courses(MODE_OF_ENTRY INTEGER PRIMARY KEY, LEVEL100 TEXT, LEVEL200 TEXT, LEVEL300 TEXT, LEVEL400 TEXT, LEVEL500 TEXT);')
-    cursor.execute('CREATE TABLE Credits(MODE_OF_ENTRY INTEGER PRIMARY KEY, LEVEL100 INTEGER, LEVEL200 INTEGER, LEVEL300 INTEGER, LEVEL400 INTEGER, LEVEL500 INTEGER);')
+    cursor.execute('CREATE TABLE Courses(MODE_OF_ENTRY INTEGER PRIMARY KEY, LEVEL100 TEXT, LEVEL200 TEXT, LEVEL300 '
+                   'TEXT, LEVEL400 TEXT, LEVEL500 TEXT);')
+    cursor.execute('CREATE TABLE Credits(MODE_OF_ENTRY INTEGER PRIMARY KEY, LEVEL100 INTEGER, LEVEL200 INTEGER, '
+                   'LEVEL300 INTEGER, LEVEL400 INTEGER, LEVEL500 INTEGER);')
     options = {}
     _credits = [0, 0, 0, 0, 0]
     level_courses = [["", ""], ["", ""], ["", ""], ["", ""], ["", ""]]
