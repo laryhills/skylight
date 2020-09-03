@@ -130,8 +130,11 @@ def get_carryovers(mat_no, level=None, current=False, retJSON=True):
                     default = option["default"]
                     sem = course_details.get(default)["course_semester"]
                     if default != opt:
-                        [first_sem, second_sem][sem-1].remove(default)
-                        [first_sem, second_sem][sem-1].add(opt)
+                        try:
+                            [first_sem, second_sem][sem-1].remove(default)
+                            [first_sem, second_sem][sem-1].add(opt)
+                        except KeyError:
+                            pass
 
     for result in results:
         for record in result["first_sem"]:
@@ -372,29 +375,52 @@ def get_level_weightings(mod):
     else: return [0, 0, .25, .35, .4]
 
 
-def compute_category(mat_no, level_written, session_taken, total_credits, credits_passed):
-    entry_session = result_statement.get(mat_no, 0)['entry_session']
+def compute_category(mat_no, level_written, session_taken, tcr, tcp, owed_courses_exist=True):
+    """
+
+    :param mat_no:
+    :param level_written:
+    :param session_taken:
+    :param tcr: total credits registered for session
+    :param tcp: total credits passed
+    :param owed_courses_exist:
+    :return:
+    """
+    # todo: Handle condition for transfer
+    person = personal_info.get(mat_no)
+    res_poll = result_poll(mat_no, 0)
     creds = get_credits(mat_no)
-    # ensure to get the right value irrespective of the size of the list (PUTME vs DE students)
+
+    entry_session = person['session_admitted']
+    previous_categories = [x['category'] for x in res_poll if x and x['session'] < session_taken]
+
+    # ensure to get the right value of level_credits irrespective of the size of the list (PUTME vs DE students)
     index = (level_written // 100 - 1)
     level_credits = creds[index + (len(creds) - 5)]
-    previous_categories = [x['category'] for x in result_poll(mat_no, 0) if x and x['session'] < session_taken]
 
-    if total_credits == credits_passed: return 'A'
-    if level_written == 100 and entry_session >= 2014:
-        if credits_passed >= 36: return 'B'
-        elif 23 <= credits_passed < 36: return 'C'
-        else:
-            # todo: Handle condition for transfer
-            # todo: handle condition for 100 level probation
-            if 'C' in previous_categories: return 'E'
-            else: return 'D'
+    # add previous tcp to current for 100 level probation students
+    if level_written == 100 and 'C' in previous_categories:
+        tcp += sum([x['tcp'] for x in res_poll if x and x['level'] == level_written and x['session'] < session_taken])
+
+    if level_written >= 500:
+        if tcp == tcr and not owed_courses_exist: return 'A'
+        else: return 'B'
     else:
-        percent_passed = credits_passed / level_credits * 100
-        if percent_passed >= 50: return 'B'
-        elif 25 <= percent_passed < 50: return 'C'
+        if tcr == 0:
+            retval = 'D' if 'C' not in previous_categories else 'E'
+            return retval
+        elif tcp == tcr:
+            return 'A'
+        elif level_written == 100 and entry_session >= 2014:
+            if tcp >= 36: return 'B'
+            elif 23 <= tcp < 36: return 'C'
+            elif 'C' not in previous_categories: return 'D'
+            else: return 'E'
         else:
-            if 'C' not in previous_categories: return 'D'
+            percent_passed = tcp / level_credits * 100
+            if percent_passed >= 50: return 'B'
+            elif 25 <= percent_passed < 50: return 'C'
+            elif 'C' not in previous_categories: return 'D'
             else: return 'E'
 
 
@@ -469,7 +495,22 @@ def get_num_of_prize_winners():
     return 1
 
 
-def multiprocessing_wrapper(func, iterable, context, concurrency=False):
+def dictify(flat_list, key_index=0):
+    """
+    convert a flat list of lists (or tuples) to a dictionary, with the value at key_index as key
+    :param flat_list:
+    :param key_index:
+    :return:
+    """
+    dic = {}
+    for lis in flat_list:
+        lis = list(lis)
+        key = lis.pop(key_index)
+        dic[key] = lis[0] if len(lis) == 1 and isinstance(lis[0], dict) else lis
+    return dic
+
+
+def multiprocessing_wrapper(func, iterable, context, use_workers=True, max_workers=None):
     """
     use multiprocessing to call a function on members of an iterable
 
@@ -478,12 +519,14 @@ def multiprocessing_wrapper(func, iterable, context, concurrency=False):
     :param func: the function to call
     :param iterable: items you want to call func on
     :param context: params that are passed to all instances
-    :param concurrency: whether to use worker processes or not
+    :param use_workers: whether to spawn off child processes
+    :param max_workers: maximum number of child processes to use
     :return:
     """
-    if not concurrency:
+    if not use_workers:
         [func(item, *context) for item in iterable]
     else:
-        with ProcessPoolExecutor(max_workers=min(len(iterable), 5)) as executor:
+        max_workers = max_workers if max_workers else min(len(iterable), 4)
+        with ProcessPoolExecutor(max_workers=max_workers) as executor:
             [executor.submit(func, item, *context) for item in iterable]
 

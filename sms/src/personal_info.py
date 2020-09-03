@@ -4,15 +4,18 @@ from sms.src import utils
 from sms.src.users import access_decorator
 from sms.models.master import MasterSchema
 
-all_fields = {'date_of_birth', 'email_address', 'grad_stats', 'level', 'lga', 'mat_no', 'mode_of_entry', 'othernames',
+all_fields = {'date_of_birth', 'email_address', 'grad_status', 'level', 'lga', 'mat_no', 'mode_of_entry', 'othernames',
               'phone_no', 'session_admitted', 'session_grad', 'sex', 'sponsor_email_address', 'sponsor_phone_no',
               'state_of_origin', 'surname'}
-required = all_fields - {'grad_stats', 'session_grad'}
+required = all_fields - {'grad_status', 'session_grad'}
 
 
 @access_decorator
 def get_exp(mat_no):
-    return dumps(get(mat_no)), 200
+    output = get(mat_no)
+    if output:
+        return dumps(output), 200
+    return None, 404
 
 
 @access_decorator
@@ -38,21 +41,17 @@ def get(mat_no):
     personalinfo_schema = PersonalInfoSchema()
     personalinfo_obj = personalinfo_schema.dump(student_data)
     personalinfo_obj['level'] = abs(personalinfo_obj['level'])
-    personalinfo_obj.update({'grad_stats': student_data.grad_status})
+    personalinfo_obj.update({'grad_status': student_data.grad_status})
     return personalinfo_obj
 
 
 def post(data):
-    record_update = bool(utils.get_DB(data.get("mat_no")))
-
-    if record_update:
-        if not all([data.get(prop) for prop in (required & data.keys())]) or (data.keys() - all_fields):
-            # Empty value supplied or Invalid field supplied
-            return "Invalid field supplied"
-    else:
-        if not all([data.get(prop) for prop in required]) or (data.keys() - all_fields):
-            # Empty value supplied or Invalid field supplied or Missing field present
-            return "Invalid field supplied or missing a compulsory field"
+    data = data.copy()
+    if utils.get_DB(data.get("mat_no")):
+        return "Student already exists"
+    if not all([data.get(prop) for prop in required]) or (data.keys() - all_fields):
+        # Empty value supplied or Invalid field supplied or Missing field present
+        return "Invalid field supplied or missing a compulsory field"
 
     session_admitted = data['session_admitted']
 
@@ -60,13 +59,11 @@ def post(data):
     database = "{}-{}.db".format(session_admitted, session_admitted + 1)
     master_model = master_schema.load({'mat_no': data['mat_no'], 'database': database})
 
-    db_name = "{}_{}".format(session_admitted, session_admitted + 1)
-    session = utils.load_session(db_name)
+    session = utils.load_session(session_admitted)
     personalinfo_schema = session.PersonalInfoSchema()
     data["is_symlink"] = 0
-    grad_status = data.pop('grad_stats')
+    data["level"] = abs(data["level"]) * [1,-1][data.pop("grad_status")]
     student_model = personalinfo_schema.load(data)
-    student_model.level *= 1 if not grad_status else -1
 
     db.session.add(master_model)
     db.session.commit()
@@ -74,3 +71,47 @@ def post(data):
     db_session = personalinfo_schema.Meta.sqla_session
     db_session.add(student_model)
     db_session.commit()
+
+
+@access_decorator
+def put(data):
+    data = data.copy()
+    session = utils.get_DB(data.get("mat_no"))
+    if not session:
+        return None, 404
+    if not all([data.get(prop) for prop in (required & data.keys())]) or (data.keys() - all_fields):
+        # Empty value supplied or Invalid field supplied
+        return "Invalid field supplied", 400
+
+    session = utils.load_session(session)
+    student = session.PersonalInfo.query.filter_by(mat_no=data["mat_no"])
+    level = abs(data.get("level",0)) or abs(student.first().level)
+    if "grad_status" in data:
+        data["level"] = level * [1,-1][data.pop("grad_status")]
+    elif "level" in data:
+        # Preserve grad status
+        data["level"] = level * [1,-1][student.first().grad_status]
+    student.update(data)
+    db_session = session.PersonalInfoSchema().Meta.sqla_session
+    db_session.commit()
+    return None, 200
+
+
+@access_decorator
+def patch(data):
+    data = data.copy()
+    session = utils.get_DB(data.get("mat_no"))
+    if not session:
+        return None, 404
+    if not all([data.get(prop) for prop in (required & data.keys())]) or (data.keys() - all_fields):
+        # Empty value supplied or Invalid field supplied
+        return "Invalid field supplied", 400
+
+    for prop in ("session_admitted", "session_grad", "level", "mode_of_entry", "grad_status"):
+        data.pop(prop, None)
+
+    session = utils.load_session(session)
+    student = session.PersonalInfo.query.filter_by(mat_no=data["mat_no"]).update(data)
+    db_session = session.PersonalInfoSchema().Meta.sqla_session
+    db_session.commit()
+    return None, 200

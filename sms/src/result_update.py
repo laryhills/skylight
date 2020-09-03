@@ -10,7 +10,7 @@ from zipfile import ZipFile, ZIP_DEFLATED
 from flask import render_template, send_from_directory
 
 from sms.src import result_statement
-from sms.config import app, cache_base_dir
+from sms.config import app, CACHE_BASE_DIR
 from sms.src.users import access_decorator
 from sms.src.ext.html_parser import split_html
 from sms.src.utils import get_gpa_credits, get_level_weightings
@@ -76,9 +76,9 @@ def get(mat_no, raw_score=False, to_print=False):
         }
         file_name = secrets.token_hex(8) + '.pdf'
         start_time = time.time()
-        pdfkit.from_string(html, os.path.join(cache_base_dir, file_name), options=options)
+        pdfkit.from_string(html, os.path.join(CACHE_BASE_DIR, file_name), options=options)
         print(f'pdf generated in {time.time() - start_time} seconds')
-        resp = send_from_directory(cache_base_dir, file_name, as_attachment=True)
+        resp = send_from_directory(CACHE_BASE_DIR, file_name, as_attachment=True)
     else:
         options = {
             'format': 'png',
@@ -87,14 +87,14 @@ def get(mat_no, raw_score=False, to_print=False):
             'quality': 50,
         }
         file_name = secrets.token_hex(8)
-        file_path = os.path.join(cache_base_dir, file_name + '.zip')
+        file_path = os.path.join(CACHE_BASE_DIR, file_name + '.zip')
         start_time = time.time()
         htmls = split_html(html)
         lock = threading.Lock()
         with ZipFile(file_path, 'w', ZIP_DEFLATED) as zf:
             generate_archive()
         print(f'{len(htmls)} images generated and archived in {time.time() - start_time} seconds')
-        resp = send_from_directory(cache_base_dir, file_name + '.zip', as_attachment=True)
+        resp = send_from_directory(CACHE_BASE_DIR, file_name + '.zip', as_attachment=True)
 
     return resp
 

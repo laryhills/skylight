@@ -7,8 +7,29 @@ from sms.models.user import User
 from sms.models.logs import LogsSchema
 from itsdangerous.exc import BadSignature
 from sms.models.master import Master, MasterSchema
-from sms.config import app, bcrypt, add_token, get_token, db
+from sms.config import app, bcrypt, add_token, get_token, remove_token, db
 from itsdangerous import JSONWebSignatureSerializer as Serializer
+
+
+fn_props = {
+    "users.login": {
+        "perms": {},
+        "logs": lambda user, params: "{} logged in".format(user)
+    },
+    "users.logout": {
+        "perms": {},
+        "logs": lambda user, params: "{} logged out".format(user)
+    },
+    "backups.backup_databases": {
+        "perms": {},
+        "logs": lambda user, params: "{}: database backup{} complete".format(
+                                      user, ["", " before restore"][int(bool(params.get("before_restore")))])
+    },
+    "jobs.clear_cache_base_dir": {
+        "perms": {},
+        "logs": lambda user, params: "{}: program cache cleared".format(user)
+    }
+}
 
 
 def session_key():
@@ -22,20 +43,6 @@ def hash_key(session_key = session_key()):
 
 
 serializer = Serializer(hash_key())
-
-
-def login(token):
-    try:
-        user = detokenize(token['token'])
-        stored_user = User.query.filter_by(username=user['username']).first()
-        if bcrypt.check_password_hash(stored_user.password, user['password']):
-            token_dict = {'token': token['token']}
-            add_token(token['token'], stored_user.username, loads(stored_user.permissions))
-            token_dict['title'] = stored_user.title
-            return token_dict, 200
-        return None, 401
-    except Exception:
-        return None, 401
 
 
 def tokenize(text, s=serializer):
@@ -60,7 +67,7 @@ def access_decorator(func):
             # IN PROD replace with `.get("token") and rm try and exc block`
             token = request.headers["token"]
         except Exception:
-            print ("Running from command line or swagger UI, token not supplied!")
+            print("Running from command line or swagger UI, token not supplied!")
             token = tokenize("ucheigbeka:testing")
             # abort(401)
         req_perms, token_dict = fn_props[qual_name]["perms"].copy(), get_token("TESTING_token") or get_token(token)
@@ -68,14 +75,14 @@ def access_decorator(func):
             # Not logged in (using old session token)
             return None, 440
         user_perms = token_dict["perms"]
-        print ("your perms", user_perms)
+        print("your perms", user_perms)
         has_access = True
         if "levels" in req_perms:
             params = get_kwargs(func, args, kwargs)
             level = params.get("level") or params.get("data", {}).get("level")
             mat_no = params.get("mat_no") or params.get("data", {}).get("mat_no")
             if mat_no and not level:
-                level = get_level(mat_no)
+                level = get_level(mat_no, parse=False)
                 if not level:
                     return None, 404
             has_access = False
@@ -165,32 +172,8 @@ def get_DB(mat_no):
     return db_name.replace('-', '_')[:-3]
 
 
-# def get_level(mat_no):
-#     # 600-800 - is spill, 100-500 spill not inc, grad_status - graduated
-#     db_name = get_DB(mat_no)
-#     if not db_name:
-#         return None
-#     session = load_session(db_name)
-#     PersonalInfo = session.PersonalInfo
-#     student_data = PersonalInfo.query.filter_by(mat_no=mat_no).first()
-#     current_level = student_data.level
-#     if current_level == 500:
-#         if student_data.is_symlink and student_data.grad_stats == 0:
-#             # Spillover students
-#             for level in [800, 700, 600]:
-#                 course_reg_obj = eval('session.CourseReg{}'.format(level)).query.filter_by(mat_no=mat_no).first()
-#                 if course_reg_obj:
-#                     current_level = course_reg_obj.level
-#                     break
-#             else:
-#                 # Just a backup
-#                 affiliated_session = int(student_data.database.split('-')[0])
-#                 current_level += (affiliated_session - student_data.session_admitted + student_data.mode_of_entry - 1) * 100
-#     return current_level
-
-
-def get_level(mat_no):
-    # 600-800 - is spill, 100-500 spill not inc, grad_status - graduated
+def get_level(mat_no, parse=True):
+    # 600-800 - is spill, 100-500 spill not inc, -ve val if not parse = graduated
     db_name = get_DB(mat_no)
     if not db_name:
         return None
@@ -198,22 +181,11 @@ def get_level(mat_no):
     PersonalInfo = session.PersonalInfo
     student_data = PersonalInfo.query.filter_by(mat_no=mat_no).first()
     current_level = student_data.level
-
-    return current_level if abs(current_level) == current_level else current_level * -1
-
-
-def get_level_new(mat_no):
-    # 600-800 - is spill, 100-500 spill not inc, grad_status - graduated
-    db_name = get_DB(mat_no)
-    if not db_name:
-        return None
-    session = load_session(db_name)
-    PersonalInfo = session.PersonalInfo
-    student_data = PersonalInfo.query.filter_by(mat_no=mat_no).first()
-    current_level = student_data.level
+    if parse:
+        return abs(current_level)
     return current_level
 
-  
+
 # USER-specific functions
 def dict_render(dictionary, indent = 0):
     rendered_dict = ""
@@ -237,6 +209,27 @@ def get_kwargs(func, args, kwargs):
     return my_kwargs
 
 
+def login(token):
+    try:
+        user = detokenize(token['token'])
+        stored_user = User.query.filter_by(username=user['username']).first()
+        if bcrypt.check_password_hash(stored_user.password, user['password']):
+            token_dict = {'token': token['token']}
+            add_token(token['token'], stored_user.username, loads(stored_user.permissions))
+            token_dict['title'] = stored_user.title
+            log(user['username'], 'users.login', login, [], [])
+            return token_dict, 200
+        return None, 401
+    except Exception:
+        return None, 401
+
+
+@access_decorator
+def logout(token):
+    remove_token(token['token'])
+    return None, 200
+
+
 # PERFORM LOGIN, REMOVE IN PROD
 my_token = {'token': tokenize("ucheigbeka:testing")}
 print("Using token ", my_token['token'])
@@ -244,12 +237,18 @@ login(my_token)
 
 
 # Function mapping to perms and logs
-fn_props = {
+fn_props.update({
     "personal_info.get_exp": {"perms": {"levels", "read"},
                           "logs": lambda user, params: "{} requested personal details of {}".format(user, params.get("mat_no"))
                         },
     "personal_info.post_exp": {"perms": {"levels", "write"},
                            "logs": lambda user, params: "{} added personal details for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
+                        },
+    "personal_info.put": {"perms": {"superuser", "write"},
+                          "logs": lambda user, params: "{} modified personal details of {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
+                        },
+    "personal_info.patch": {"perms": {"levels", "write"},
+                           "logs": lambda user, params: "{} managed personal details for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
                         },
     "course_details.post": {"perms": {"superuser", "write"},
                             "logs": lambda user, params: "{} added course {}:-\n{}".format(user, params.get("course_code"), dict_render(params))
@@ -282,10 +281,10 @@ fn_props = {
                     "logs": lambda user, params: "{} queried results for {}".format(user, params.get("mat_no"))
                     },
     "results.post": {"perms": {"levels", "write"},
-                     "logs": lambda user, params: "{} added {} result entries:-\n{}".format(user, len(params.get("list_of_results")), dict_render(params))
+                     "logs": lambda user, params: "{} added {} result entries:-\n{}".format(user, len(params.get("data")), dict_render(params))
                      },
     "results.put": {"perms": {"superuser", "write"},
-                    "logs": lambda user, params: "{} added {} result entries:-\n{}".format(user, len(params.get("list_of_results")), dict_render(params))
+                    "logs": lambda user, params: "{} added {} result entries:-\n{}".format(user, len(params.get("data")), dict_render(params))
                     },
     "results.get_result_details": {"perms": {"levels", "read"},
                                    "logs": lambda user, params: "{} queried result details for {}".format(user, params.get("mat_no"))
@@ -327,4 +326,20 @@ fn_props = {
     "grading_rules.get": {"perms": {"levels", "read"},
                           "logs": lambda user, params: "{} requested for the grading rules for the {} academic session".format(user, params.get('acad_session'))
                          },
-}
+    "backups.get": {"perms": {"usernames", "read"},
+                    "logs": lambda user, params: "{} requested list of backups".format(user)
+                    },
+    "backups.download": {"perms": {"superuser", "read"},
+                         "logs": lambda user, params: "{} requested backups files, with:\n{}".format(user, dict_render(params))
+                         },
+    "backups.backup": {"perms": {"superuser", "write"},
+                       "logs": lambda user, params: "{} initialized database backup".format(user)
+                       },
+    "backups.restore": {"perms": {"superuser", "read"},
+                        "logs": lambda user, params: '{} restored backup "{}"{}'.format(user, params.get("backup_name"),
+                            ["", "; previous account details included"][int(bool(params.get("include_accounts")))])
+                        },
+    "backups.delete": {"perms": {"superuser", "read"},
+                       "logs": lambda user, params: '{} deleted backup "{}"'.format(user, params.get("backup_name"))
+                       },
+})

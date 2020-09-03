@@ -1,27 +1,34 @@
 """ ======= COURSE_REG FORMAT =======
     mat_no: 'ENGxxxxxxx'
-    personal_info: {...}
+
+    personal_info: { ... }
+
     table_to_populate: 'CourseRegxxx'
-    course_reg_session: 20xx
-    course_reg_level: x00
+
+    course_reg_session: <int> 20xx
+
+    course_reg_level: <int> x00
+
     max_credits: <int>
+
     courses: {
                first_sem: [ ('course_code_1', 'course_title_1', 'course_credits_1'),
                             ('course_code_2', 'course_title_2', 'course_credits_2'), ...]
-               second_sem: []
+               second_sem: [ ... ]
              }
     choices: {
                first_sem: [ ('course_code_1', 'course_title_1', 'course_credits_1'),
                             ('course_code_2', 'course_title_2', 'course_credits_2'), ...]
-               second_sem: []
+               second_sem: [ ... ]
              }
     probation_status: <int>
+
     fees_status: <int>
+
     others: ''
+
     =======================
 
-example...
-c_reg = {'mat_no': 'ENG1503886', personal_info: {}, 'table_to_populate': 'CourseReg500', 'course_reg_session': 2019, 'course_reg_level': 500, 'max_credits': 50, 'courses': {'first_sem': ['MEE521', 'MEE451', 'MEE561', 'MEE571', 'EMA481', 'MEE502'], 'second_sem': []}, 'probation_status': 0, 'fees_status': None, 'others': None}
 """
 from sms.src import course_reg_utils, results, utils
 from sms.src.users import access_decorator
@@ -79,7 +86,7 @@ def check_registration_eligibility(mat_no, acad_session):
     s_personal_info = course_reg_utils.process_personal_info(mat_no)
     table_to_populate = course_reg_utils.get_table_to_populate(current_level, acad_session, res_poll, course_reg)
     probation_status, previous_category = course_reg_utils.get_probation_status_and_prev_category(res_poll, acad_session)
-    graduation_status = s_personal_info['grad_stats']
+    graduation_status = s_personal_info['grad_status']
 
     # handle special cases
     error_text = ''
@@ -222,13 +229,18 @@ def post_course_reg(data):
     db_session = course_reg_xxx_schema.Meta.sqla_session
     db_session.add(course_registration)
     db_session.commit()
+    db_session.close()
+
+    success_text = 'course registration successful'
 
     # Here we check if there were any stray results waiting in unusual results for this session
     session_results = [x for x in utils.result_poll(mat_no) if x and (x['session'] == course_reg_session)]
     if session_results and 'unusual_results' in session_results[0] and session_results[0]['unusual_results']:
         unusual_results = session_results[0]['unusual_results'].split(',')
         unusual_results = [[x.split(' ')[0], course_reg_session, mat_no, x.split(' ')[1]] for x in unusual_results]
-        results.post(unusual_results)
+        log = results.add_result_records(unusual_results)
 
-    print('\n====>>  ', 'course registration successful')
-    return 'course registration successful', 201
+        if log[0]: success_text += '; results for unregistered courses still remain in database'
+
+    print('\n====>>  ', success_text)
+    return success_text, 201

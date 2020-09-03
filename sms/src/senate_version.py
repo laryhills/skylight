@@ -9,7 +9,7 @@ from flask import render_template, send_from_directory
 from sms.src.users import access_decorator
 from sms.src.script import get_students_details_by_category, get_final_year_students_by_category
 from sms.models.master import Category, Category500
-from sms.config import app, cache_base_dir
+from sms.config import app, CACHE_BASE_DIR
 from sms.src.utils import get_depat, get_num_of_prize_winners
 
 base_dir = os.path.dirname(__file__)
@@ -87,7 +87,7 @@ def load_cat_section_500(cat, students, session):
 
 
 def generate_header(file_name, params):
-    header_temp_path = os.path.join(cache_base_dir, file_name + '_header.html')
+    header_temp_path = os.path.join(CACHE_BASE_DIR, file_name + '_header.html')
     with app.app_context():
         header_template = render_template('senate_version_header.html', **params)
         open(header_temp_path, 'w').write(header_template)
@@ -161,10 +161,10 @@ def get_100_to_400(entry_session, level):
     html = template.render(**params)
     file_name = secrets.token_hex(8) + '.pdf'
     options['header-html'] = generate_header(file_name, header_params)
-    pdfkit.from_string(html, os.path.join(cache_base_dir, file_name), options=options)
+    pdfkit.from_string(html, os.path.join(CACHE_BASE_DIR, file_name), options=options)
     print(f'Senate version generated in {time.time() - start_time} seconds')
 
-    return send_from_directory(cache_base_dir, file_name, as_attachment=True)
+    return send_from_directory(CACHE_BASE_DIR, file_name, as_attachment=True)
 
 
 def get_500(entry_session):
@@ -235,7 +235,7 @@ def get_500(entry_session):
                     cgpas[idx] = student['cgpa']
                     prize_winners[idx] = student
                 elif student['cgpa'] == min_cgpa:
-                    # find a way to resolve ties
+                    # todo: find a way to resolve ties
                     pass
             break
     keys = list(class_mapping.keys())
@@ -282,10 +282,10 @@ def get_500(entry_session):
         total_num_of_referred_students))
     file_name = secrets.token_hex(8) + '.pdf'
     options['header-html'] = generate_header(file_name, header_params)
-    pdfkit.from_string(html, os.path.join(cache_base_dir, file_name), options=options)
+    pdfkit.from_string(html, os.path.join(CACHE_BASE_DIR, file_name), options=options)
     print(f'Senate version generated in {time.time() - start_time} seconds')
 
-    return send_from_directory(cache_base_dir, file_name, as_attachment=True)
+    return send_from_directory(CACHE_BASE_DIR, file_name, as_attachment=True)
 
 
 @access_decorator

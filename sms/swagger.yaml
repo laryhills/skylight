@@ -41,6 +41,28 @@ paths:
         401:
           description: Authentication failed
 
+  /logout:
+    post:
+      tags: [Login]
+      operationId: sms.src.users.logout
+      summary: User authentication
+      description: Logs out a user using supplied token
+      parameters:
+        - in: body
+          name: token
+          schema:
+            type: object
+            required:
+              - token
+            properties:
+              token:
+                type: string
+      responses:
+        200:
+          description: User manually logged out
+        401:
+          description: Not previously signed in
+
   /session_key:
     get:
       tags: [Login]
@@ -160,6 +182,8 @@ paths:
               type: string
         401:
           description: Authentication failed
+        404:
+          description: Course not found
         440:
           description: Session expired, login again
     delete:
@@ -308,6 +332,10 @@ paths:
           name: raw_score
           type: boolean
           required: false
+        - in: query
+          name: to_print
+          type: boolean
+          required: false
       responses:
         200:
           description: Success
@@ -446,10 +474,11 @@ paths:
       tags: [Results]
       operationId: sms.src.results.post
       summary: Add result records
-      description: Post results to the database as a list of list ==> [ [course_code, session, mat_no, score], [next record], ... ]
+      description: Post results to the database
       parameters:
         - in: body
-          name: list_of_results
+          name: data
+          required: true
           schema:
             $ref: '#/definitions/Results_post'
       responses:
@@ -473,10 +502,10 @@ paths:
       tags: [Results]
       operationId: sms.src.results.put
       summary: Edit past result records, requires elevated access
-      description: Post results to the database as a list of list ==> [ [course_code, session, mat_no, score], [next record], ... ]
+      description: Post results to the database, admin
       parameters:
         - in: body
-          name: list_of_results
+          name: data
           schema:
             $ref: '#/definitions/Results_post'
       responses:
@@ -712,6 +741,124 @@ paths:
         440:
           description: Session expired, login again
 
+  /backups:
+    get:
+      tags: [Backups]
+      operationId: sms.src.backups.get
+      summary: Get list of backups
+      description: Get list of database backups
+      responses:
+        200:
+          description: Backups retrieved successfully
+          schema:
+            type: array
+            items:
+              type: object
+              properties:
+                file_name:
+                  type: string
+                file_size:
+                  type: number
+                last_modified_time:
+                  type: number
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+    post:
+      tags: [Backups]
+      operationId: sms.src.backups.backup
+      summary: Initiate backup
+      description: Backup the current databases
+      responses:
+        200:
+          description: Backup successful
+          schema:
+            type: string
+        400:
+          description: Something went wrong
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+    patch:
+      tags: [Backups]
+      operationId: sms.src.backups.restore
+      summary: Restore backup
+      description: Restore specific backup
+      parameters:
+        - in: query
+          name: backup_name
+          type: string
+          required: true
+        - in: query
+          name: include_accounts
+          type: boolean
+          required: false
+      responses:
+        200:
+          description: Restore successful
+        400:
+          description: Something went wrong
+        401:
+          description: Authentication failed
+        404:
+          description: File not found
+        440:
+          description: Session expired, login again
+    delete:
+      tags: [Backups]
+      operationId: sms.src.backups.delete
+      summary: Delete a backup
+      description: Delete a specific backup
+      parameters:
+        - in: query
+          name: backup_name
+          type: string
+          required: true
+      responses:
+        200:
+          description: Backup deleted successfully
+          schema:
+            type: string
+        400:
+          description: Something went wrong
+        401:
+          description: Authentication failed
+        404:
+          description: File not found
+        440:
+          description: Session expired, login again
+
+  /backup_download:
+    get:
+      tags: [ Backups ]
+      operationId: sms.src.backups.download
+      summary: Download backups
+      description: Download backups from a list of backup_names or get the "limit" most recent backups
+      produces:
+        - application/octet-stream
+      parameters:
+        - in: query
+          name: backup_names
+          type: array
+          items:
+            type: string
+          required: false
+        - in: query
+          name: limit
+          type: integer
+          required: false
+      responses:
+        200:
+          description: Success
+          schema:
+            type: file
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+
   /grading_rules:
     get:
       operationId: sms.src.grading_rules.get
@@ -761,7 +908,7 @@ definitions:
         type: string
       sponsor_email_address:
         type: string
-      grad_stats:
+      grad_status:
         type: integer
       is_symlink:
         type: integer
@@ -869,10 +1016,18 @@ definitions:
         type: string
 
   Results_post:
-    type: array
-    items:
-      type: array
-      items: {}
+    type: object
+    properties:
+      level:
+        type: integer
+      list_of_results:
+        type: array
+        items:
+          type: array
+          items: {}
+    example:
+      level: 500
+      list_of_results: [[course_code_1, session_1, mat_no_1, score_1], [course_code_2, session_2, mat_no_2, score_2]]
 
   Results_Single_get:
     type: object

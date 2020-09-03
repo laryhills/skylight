@@ -12,9 +12,12 @@ well as updating gpa record of the student
 """
 import os.path
 from copy import deepcopy
+from colorama import init, Fore, Style
 from sms.src import course_reg_utils, personal_info, course_details, utils
 from sms.src.users import access_decorator
 from sms.src.script import get_students_by_level
+
+init()  # initialize colorama
 
 
 @access_decorator
@@ -38,9 +41,15 @@ def get_multiple_results_stats(acad_session, level):
 
 
 @access_decorator
-def post(list_of_results):
+def post(data):
+    level = data.get('level', None)
+    list_of_results = data.get('list_of_results', [])
+
     if not list_of_results:
         return 'No result record supplied', 400
+
+    if not level:
+        return 'Result entry level was not supplied', 400
 
     result_acad_sessions = list(set(list(zip(*list_of_results))[1]))
     current_session = utils.get_current_session()
@@ -50,13 +59,16 @@ def post(list_of_results):
 
     elif int(result_acad_sessions[0]) != current_session:
         return 'You are not authorised to add results for the past session: ' \
-               '{}/{}'.format(current_session, current_session + 1), 401
+               '{}/{}'.format(int(result_acad_sessions[0]), int(result_acad_sessions[0]) + 1), 401
 
-    return add_result_records(list_of_results)
+    return add_result_records(list_of_results, level)
 
 
 @access_decorator
-def put(list_of_results):
+def put(data):
+    level = data.get('level', None)
+    list_of_results = data.get('list_of_results', [])
+
     if not list_of_results:
         return 'No result record supplied', 400
     return add_result_records(list_of_results)
@@ -79,17 +91,16 @@ def get_results_for_acad_session(mat_no, acad_session, return_empty=False):
 
     if results:
         # remove extra fields from results
-        results, level_written, tcp, category = refine_res_poll_item(results)
-
-        regular_courses = split_courses_by_semester(multisort(results['regular_courses']), 4)
-        carryovers = split_courses_by_semester(multisort(results['carryovers']), 4)
-        unusual_results = split_courses_by_semester(multisort(results['unusual_results']), 4)
-
+        result, level_written, tcp, category = refine_res_poll_item(results)
     elif return_empty:
-        regular_courses, carryovers, unusual_results = [], [], []
+        result = {'regular_courses': [], 'carryovers': [], 'unusual_results': []}
         level_written, tcp, category = '', 0, ''
     else:
         return 'No result available for entered session', 404
+
+    regular_courses = split_courses_by_semester(multisort(result['regular_courses']), 4)
+    carryovers = split_courses_by_semester(multisort(result['carryovers']), 4)
+    unusual_results = split_courses_by_semester(multisort(result['unusual_results']), 4)
 
     frame = {'mat_no': mat_no,
              'table': table_to_populate,
@@ -122,7 +133,7 @@ def get_results_for_level(mat_no, level_written, return_empty=False):
         if result:
             result, level_written, tcp, category = refine_res_poll_item(result)
         elif return_empty:
-            regular_courses, carryovers, unusual_results = [], [], []
+            result = {'regular_courses': [], 'carryovers': [], 'unusual_results': []}
             level_written, tcp, category = '', 0, ''
         else:
             continue
@@ -244,73 +255,95 @@ def _get_single_results_stats(mat_no, level, acad_session):
     return [mat_no, name, tcr, tce, remark], 200
 
 
-def add_result_records(list_of_results):
+def add_result_records(list_of_results, level=None):
     """  ==== JSON FORMAT FOR THE RESULTS ====
 
     res =[
-            ["MEE351", "2019", "ENG1503886", "98"],
-            ["MEE491", "2019", "ENG1503886", "98"],
-            ["EMA481", "2019", "ENG1503886", "98"],
-            ["MEE531", "2019", "ENG1503886", "98"],
-            ["MEE561", "2019", "ENG1503886", "98"],
-            ["MEE571", "2019", "ENG1503886", "98"]
+             [course_code_1, session_written_1, mat_no_1, score_1]
+
+             [course_code_2, session_written_2, mat_no_2, score_2],
+
+             ...
         ]
     """
     base_dir = os.path.dirname(__file__)
     result_errors_file = open(os.path.join(base_dir, '../../result_errors.txt'), 'a')
     error_log = []
 
-    # todo: initialize a dictionary of course details here and pass to "add_single_result_record"
-    #       this should include all the courses in set(list_of_results[*][0])
-    #       or grow this dictionary lazily
+    # Initialize a dictionary of course details for all courses in list_of_results
+    courses = list(set(list(zip(*list_of_results))[0]))
+    try:
+        course_details_dict = {course: course_details.get(course) for course in courses}
+    except:
+        # for any error, set this to an empty dict, individual calls will be made
+        # and the error course would fail gracefully
+        course_details_dict = {}
 
     for index, result_details in enumerate(list_of_results):
-        errors, status_code = add_single_result_record(index, result_details, result_errors_file)
+        errors, status_code = add_single_result_record(index, result_details, result_errors_file, course_details_dict, level)
         error_log.extend(errors)
 
     result_errors_file.close()
-    print('\n====>>  ', '{} result entries added with {} errors'.format(len(list_of_results), len(error_log)))
+    print(Fore.CYAN, '\n ====>>  ', '{} result entries added with {} errors'.format(
+        len(list_of_results), len(error_log)), Style.RESET_ALL)
 
     return error_log, 200
 
 
-def add_single_result_record(index, result_details, result_errors_file):
+def add_single_result_record(index, result_details, result_errors_file, course_details_dict, level=None):
     """
 
     :param index: position of entry in the larger list --for tracking
     :param result_details: [course_code, session_written, mat_no, score]
     :param result_errors_file: file object in write or append mode for logging important errors
+    :param course_details_dict:
+    :param level: the level for which results is being entered
     :return:
     """
     course_code, session_taken, mat_no, score = result_details
     session_taken, score = map(int, [session_taken, score])
     grade = utils.compute_grade(score, utils.get_DB(mat_no))
+    current_level = utils.get_level(mat_no)
     error_log = []
 
-    # Error check on grade and score
+    # Error check on level, grade and score
+    if level:
+        levels = [600, 700, 800] if level == 600 else [level]
+        if current_level not in levels:
+            error_text = "You are not allowed to enter results for {} at index {} whose current level is {}. " \
+                         "Please meet the {} level course adviser".format(mat_no, index, current_level, current_level)
+            result_errors_file.writelines(str(result_details) + '  error: ' + error_text + '\n')
+            error_log.append(error_text)
+            print(Fore.RED, '[WARNING]: ', error_log[-1], Style.RESET_ALL)
+            return error_log, 403
+
     if not (0 <= score <= 100):
         error_text = "Unexpected value for score, '{}', for {} at index {}; " \
                      "result not added".format(score, mat_no, index)
         result_errors_file.writelines(str(result_details) + '  error: ' + error_text + '\n')
         error_log.append(error_text)
-        print('\n[WARNING]: ', error_log[-1])
+        print(Fore.RED, '[WARNING]: ', error_log[-1], Style.RESET_ALL)
         return error_log, 403
 
     if not grade:
         error_text = '{0} at index {1} was not found in the database'.format(mat_no, index)
         result_errors_file.writelines(str(result_details) + '  error: ' + error_text + '\n')
         error_log.append(error_text)
-        print('\n[WARNING]: ', error_log[-1])
+        print(Fore.RED, '[WARNING]: ', error_log[-1], Style.RESET_ALL)
         return error_log, 404
 
-    try:
+    if course_code in course_details_dict and course_details_dict[course_code]:
+        course_dets = course_details_dict[course_code]
+    else:
+        # if there was error in initializing course_details_dict, individual calls would be made
         course_dets = course_details.get(course_code)
-    except Exception as e:
-        error_text = '{} at index {} was not found in the database'.format(course_code, index)
-        result_errors_file.writelines(str(result_details) + '  error: ' + error_text + '\n')
-        error_log.append(error_text)
-        print('\n[WARNING]: ', error_log[-1])
-        return error_log, 404
+        if not course_dets:
+            # fail on non-existent course(s)
+            error_text = '{} at index {} was not found in the database'.format(course_code, index)
+            result_errors_file.writelines(str(result_details) + '  error: ' + error_text + '\n')
+            error_log.append(error_text)
+            print(Fore.RED, '[WARNING]: ', error_log[-1], Style.RESET_ALL,)
+            return error_log, 404
 
     course_credit = course_dets['course_credit']
     course_level = course_dets['course_level']
@@ -319,18 +352,18 @@ def add_single_result_record(index, result_details, result_errors_file):
     course_registration = course_reg_utils.get_course_reg_at_acad_session(session_taken, full_course_reg)
 
     if course_registration == {}:
-        course_registration = {'course_reg_level': utils.get_level(mat_no), 'courses': []}
+        course_registration = {'course_reg_level': current_level, 'courses': []}
         is_unusual = True
         error_log.append('No course registration found for {0} at index {1} for the '
                          '{2}/{3} session'.format(mat_no, index, session_taken, session_taken + 1))
-        print('\n====>>  ', error_log[-1])
+        print(Fore.RED, '[WARNING]: ', error_log[-1], Style.RESET_ALL)
 
     courses_registered = course_registration['courses']
     if not is_unusual and course_code not in courses_registered:
         is_unusual = True
         error_log.append('{0} at index {1} did not register {2} in the {3}/{4} '
                          'session'.format(mat_no, index, course_code, session_taken, session_taken + 1))
-        print('\n====>>  ', error_log[-1])
+        print(Fore.RED, '[WARNING]: ', error_log[-1], Style.RESET_ALL)
 
     try:
         db_name = utils.get_DB(mat_no)
@@ -380,15 +413,14 @@ def add_single_result_record(index, result_details, result_errors_file):
             result_record['carryovers'] = ','.join(carryovers)
 
     # get the session category
+    owed_courses_exist = check_owed_courses_exists(mat_no, level_written, course_dets) if not is_unusual else True
     if not courses_registered:
-        # todo test this for when it should be 'D'
-        previous_categories = [x['category'] for x in res_poll if x and x['category'] and x['session'] < session_taken]
-        result_record['category'] = 'E' if 'C' in previous_categories else 'D'
+        tcr, tcp = 0, 0
     else:
         if grade not in ['F', 'ABS'] and previous_grade in ['F', 'ABS', ''] and not is_unusual:
             result_record['tcp'] += course_credit
         tcr, tcp = course_registration['tcr'], result_record['tcp']
-        result_record['category'] = utils.compute_category(mat_no, level_written, session_taken, tcr, tcp)
+    result_record['category'] = utils.compute_category(mat_no, level_written, session_taken, tcr, tcp, owed_courses_exist)
 
     res_record = result_xxx_schema.load(result_record)
     db_session = result_xxx_schema.Meta.sqla_session
@@ -502,7 +534,8 @@ def get_previous_grade_and_log_changes(result_details, result_record, is_unusual
     course_code, session_taken, mat_no, score = result_details
 
     if not is_unusual and result_record['unusual_results'] and course_code in result_record['unusual_results']:
-        print('\n====>>  ', 'moving result record {} for {} from store to result table'.format(course_code, mat_no))
+        print(Fore.CYAN, '[INFO]  ', 'moving result record {} for {} from store to result table'.format(
+            course_code, mat_no), Style.RESET_ALL)
 
     elif (course_code in result_record and result_record[course_code]) or (
             course_code in result_record['carryovers']) or (course_code in result_record['unusual_results']):
@@ -521,12 +554,27 @@ def get_previous_grade_and_log_changes(result_details, result_record, is_unusual
             previous_grade = ''
 
         if previous_score not in ['-1', score]:
-            print('\n====>>   overwriting previous {} result of {} for the {}/{} session: '
+            print(Fore.CYAN, '[INFO]   overwriting previous {} result of {} for the {}/{} session: '
                   '{} ==> {}'.format(course_code, mat_no, session_taken, int(session_taken) + 1, previous_score, score))
         
         if previous_grade != 'ABS':
             return previous_grade
     return ''
+
+
+def check_owed_courses_exists(mat_no, level_written, course_dets):
+    if level_written >= 500:
+        # we search for carryovers with param level=900 to bypass get_carryovers ignoring unregistered
+        # 500 level courses when the when the student's level is 500
+        owed_courses = utils.get_carryovers(mat_no, level=900, retJSON=False)
+        owed_courses = utils.dictify(owed_courses['first_sem']), utils.dictify(owed_courses['second_sem'])
+        course_code, course_semester = course_dets['course_code'], course_dets['course_semester']
+        if course_code in owed_courses[course_semester - 1]:
+            owed_courses[course_semester - 1].pop(course_code)
+
+        if not owed_courses[0] and not owed_courses[1]:
+            return False
+    return True
 
 
 def calculate_category_deprecated(result_record, courses_registered):
@@ -570,23 +618,9 @@ def split_courses_by_semester(course_list, semester_value_index):
     """
     split_course_list = [list(filter(lambda x: x[semester_value_index] == sem, course_list)) for sem in (1, 2)]
     dic = {
-        'first_sem': dictify(split_course_list[0], key_index=0),
-        'second_sem': dictify(split_course_list[1], key_index=0),
+        'first_sem': utils.dictify(split_course_list[0], key_index=0),
+        'second_sem': utils.dictify(split_course_list[1], key_index=0),
     }
-    return dic
-
-
-def dictify(flat_list, key_index=0):
-    """
-    convert a flat list of lists (or tuples) to a dictionary, with the value at key_index as key
-    :param flat_list:
-    :param key_index:
-    :return:
-    """
-    dic = {}
-    for lis in flat_list:
-        lis = list(lis)
-        dic[lis.pop(key_index)] = lis
     return dic
 
 

@@ -54,13 +54,13 @@ def test_course_reg_table():
                 for prop in dir(course_reg):
                     if re.match("[A-Z][A-Z][A-Z][0-9][0-9][0-9]", prop):
                         if int(course_reg.__getattribute__(prop)):
-                            expected_TCR += course_details.get(prop,0)["course_credit"]
+                            expected_TCR += course_details.get(prop)["course_credit"]
                 for course in course_reg.carryovers.split(","):
                     # TODO Remove re check after carryover100 set to NULL
                     if re.match("[A-Z][A-Z][A-Z][0-9][0-9][0-9]", course):
                         # Assert course isn't from a higher level
-                        assert course_reg.level >= course_details.get(course,0)["course_level"]
-                        expected_TCR += course_details.get(course,0)["course_credit"]
+                        assert course_reg.level >= course_details.get(course)["course_level"]
+                        expected_TCR += course_details.get(course)["course_credit"]
                 assert expected_TCR == course_reg.tcr
             elif table_blanks[1]:
                 table_blanks = (table_blanks[1], 0) # Met a blank
@@ -90,15 +90,15 @@ def test_results_table():
                         # Ensure score matches grade
                         assert utils.compute_grade(int(score), student.database) == grade
                         if grade not in ("F", "ABS"):
-                            expected_TCP += course_details.get(prop,0)["course_credit"]
+                            expected_TCP += course_details.get(prop)["course_credit"]
                 if result.carryovers:
                     for course, score, grade in [x.split() for x in result.carryovers.split(",")]:
                         # Assert course isn't from a higher level
-                        assert result.level >= course_details.get(course,0)["course_level"]
+                        assert result.level >= course_details.get(course)["course_level"]
                         # Ensure score matches grade
                         assert utils.compute_grade(int(score), student.database) == grade
                         if grade not in ("F", "ABS"):
-                            expected_TCP += course_details.get(course,0)["course_credit"]
+                            expected_TCP += course_details.get(course)["course_credit"]
                 assert expected_TCP == result.tcp
             elif table_blanks[1]:
                 table_blanks = (table_blanks[1], 0) # Met a blank
@@ -114,7 +114,7 @@ def test_credits_of_course():
                 courses_sems = eval("courses.level{}".format(lvl)).split(" ")
                 courses_lvl = courses_sems[0].split(",") + courses_sems[1].split(",")
                 credits_lvl = eval("credits.level{}".format(lvl))
-                lvl_total = sum([course_details.get(course, 0)["course_credit"] for course in courses_lvl if course])
+                lvl_total = sum([course_details.get(course)["course_credit"] for course in courses_lvl if course])
                 # verify corresponding cells in courses and credits table have same credits total
                 assert lvl_total == credits_lvl
 
