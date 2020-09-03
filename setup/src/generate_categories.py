@@ -10,7 +10,7 @@ categories = [
         'group': 'successful students',
         'description': 'Successful Students',
         'text': 'The following {{ no_sw }} ({{ no_s }}) students have satisfied the Examiners in all the courses '
-                'which they registered for in the {{ session }} Session and have earned all the assigned credits.',
+                'which they registered for in the {{ session }} session and have earned all the assigned credits.',
         'headers': 'S/N, Mat. No., Full Name (Surname Last in Block Letters), Total Credits earned in the '
                    '{{ session }} session',
         'sizes': '3, 22, 48, 24'
