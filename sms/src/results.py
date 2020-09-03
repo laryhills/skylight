@@ -14,6 +14,7 @@ import os.path
 from copy import deepcopy
 from sms.src import course_reg_utils, personal_info, course_details, utils
 from sms.src.users import access_decorator
+from sms.src.script import get_students_by_level
 
 
 @access_decorator
@@ -24,6 +25,16 @@ def get(mat_no, acad_session):
 @access_decorator
 def get_result_details(mat_no, acad_session):
     return get_results(mat_no, acad_session)
+
+
+@access_decorator
+def get_single_results_stats(mat_no, level, acad_session):
+    return _get_single_results_stats(mat_no, level, acad_session)
+
+
+@access_decorator
+def get_multiple_results_stats(acad_session, level):
+    return _get_multiple_results_stats(acad_session, level)
 
 
 @access_decorator
@@ -135,11 +146,6 @@ def get_results_for_level(mat_no, level_written, return_empty=False):
     return result_for_level, 200
 
 
-def get_course_details(course_code):
-    details = course_details.get(course_code, retJSON=False)
-    return [details['course_title'], details['course_credit'], details['course_semester']]
-
-
 def get_results(mat_no, acad_session):
     from sms.src.course_reg import get_existing_course_reg
 
@@ -149,16 +155,19 @@ def get_results(mat_no, acad_session):
 
     res, _ = utils.get_result_at_acad_session(acad_session, mat_no=mat_no)
     if not res:
-        return 'No result available for entered session', 404
-
-    regular_reg_courses = reg['courses']['first_sem'] + reg['courses']['second_sem']
-    carryover_reg_courses = reg['choices']['first_sem'] + reg['choices']['second_sem']
+        session = reg.pop('course_reg_session')
+        level = reg.pop('course_reg_level')
+        carryovers = []
+        unusual_results = ''
+    else:
+        session = res.pop('session')
+        level = res.pop('level')
+        carryovers = res.pop('carryovers')
+        unusual_results = res.pop('unusual_results')
 
     details = reg['personal_info']
-    session = res.pop('session')
-    level = res.pop('level')
-    carryovers = res.pop('carryovers')
-    unusual_results = res.pop('unusual_results')
+    regular_reg_courses = reg['courses']['first_sem'] + reg['courses']['second_sem']
+    carryover_reg_courses = reg['choices']['first_sem'] + reg['choices']['second_sem']
 
     carryovers_dict = {}
     carryovers_list = [] if not carryovers else carryovers.split(',')
@@ -168,18 +177,23 @@ def get_results(mat_no, acad_session):
 
     for course_dets in regular_reg_courses:
         course_code = course_dets[0]
-        if course_code in carryovers_dict:
+        course_level = course_dets[-1]
+        if course_level != level:
             carryover_reg_courses.append(course_dets)
-            regular_reg_courses.remove(course_dets)
             continue
         score, grade = res.get(course_code, ',').split(',')
+        score, grade = ('', '') if score == '-1' else (score, grade)
         score = score if not score.isdecimal() else int(score)
+        course_dets.pop()
         course_dets.extend([score, grade])
 
     for course_dets in carryover_reg_courses:
+        if course_dets in regular_reg_courses:
+            regular_reg_courses.remove(course_dets)
         course_code = course_dets[0]
-        score, grade = carryovers_dict.get(course_code, ',').split(',')
-        score = score if not score.isdecimal() else int(score)
+        score, grade = carryovers_dict.get(course_code, ['', ''])
+        score, grade = ('', '') if score == '-1' else (score, grade)
+        course_dets.pop()
         course_dets.extend([score, grade])
 
     result_details = {
@@ -193,6 +207,41 @@ def get_results(mat_no, acad_session):
     }
 
     return result_details, 200
+
+
+def _get_multiple_results_stats(acad_session, level):
+    entry_session = acad_session - (level / 100) + 1
+    students = get_students_by_level(entry_session, level)
+    result_details = []
+
+    for mat_no in students:
+        details, _ = _get_single_results_stats(mat_no, level, acad_session)
+        result_details.append(details)
+
+    return result_details, 200
+
+
+def _get_single_results_stats(mat_no, level, acad_session):
+    info = personal_info.get(mat_no)
+    name = info['surname'] + ' ' + info['othernames']
+    reg_courses = utils.get_registered_courses(mat_no, level)[level]
+    reg_course_codes = reg_courses.get('courses', [])
+    tcr = reg_courses.get('tcr', 0)
+    res, _ = utils.get_result_at_acad_session(acad_session, mat_no=mat_no)
+    tce, carryovers_dict, remark = 0, {}, ''
+
+    if res:
+        carryovers = res.pop('carryovers')
+        carryovers_list = [] if not carryovers else carryovers.split(',')
+        for course_dets in carryovers_list:
+            code, _, _ = course_dets.split(' ')
+            carryovers_dict[code] = True
+
+    for course_code in reg_course_codes:
+        if res.get(course_code) not in [None, '-1,ABS'] or carryovers_dict.get(course_code) not in [None, '-1,ABS']:
+            tce += course_details.get(course_code)['course_credit']
+
+    return [mat_no, name, tcr, tce, remark], 200
 
 
 def add_result_records(list_of_results):
