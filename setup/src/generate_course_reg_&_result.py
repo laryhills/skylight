@@ -23,7 +23,7 @@ if not os.path.exists(db_base_dir) and not os.path.exists(os.path.join(db_base_d
 def create_table_schema():
     global courses_dict, courses
     # Generate result and course reg tables
-    stmt = 'SELECT COURSE_CODE, COURSE_CREDIT FROM Courses{}'
+    stmt = 'SELECT COURSE_CODE, COURSE_CREDIT FROM Courses where COURSE_LEVEL = {}'
     conn = sqlite3.connect(os.path.join(db_base_dir, 'courses.db'))
     courses = [conn.execute(stmt.format(x)).fetchall() for x in range(100, 600, 100)]
     courses_dict = [dict(x) for x in courses]
@@ -48,7 +48,7 @@ def create_table_schema():
                 arg_res = 'CARRYOVERS TEXT'
             else:
                 course_list = [str(x) for x in courses[result_session - session]]
-                arg_course_reg = ' INTEGER, '.join(course_list[:]) + ' INTEGER'
+                arg_course_reg = ' INTEGER, '.join(course_list[:]) + ' TEXT'
                 arg_res = ' TEXT, '.join(course_list[:]) + ' TEXT'
             try:
                 conn.execute(result_stmt.format(((result_session - session + 1) * 100), arg_res))
@@ -71,7 +71,7 @@ def generate_table_dtype():
         else:
             course_list = courses[num]
 
-            reg_dtype = ['INTEGER'] * len(course_list)
+            reg_dtype = ['INTEGER'] * (len(course_list) - 1) + ['TEXT']
             reg_tbl_dtype = dict(list(zip(course_list, reg_dtype)))
             reg_tbl_dtype['MATNO'] = 'TEXT'
             reg_tbl_dtype['PROBATION'] = 'INTEGER'
@@ -83,12 +83,6 @@ def generate_table_dtype():
             tbl_dtype['MATNO'] = 'TEXT'
             tbl_dtype['CATEGORY'] = 'TEXT'
             result_dtype.append(tbl_dtype)
-
-            # result_dtype.append(tbl_dtype.copy())
-            # del tbl_dtype['CATEGORY']
-            # tbl_dtype['PROBATION'] = 'INTEGER'
-            # tbl_dtype['OTHERS'] = 'TEXT'
-            # course_reg_dtype.append(tbl_dtype)
 
     return result_dtype, course_reg_dtype
 
@@ -209,11 +203,21 @@ def failed_credits(entry_session, level, result_df):
     return total_credits_failed
 
 
+def total_level_credits(entry_session, mod, level):
+    db_name = '{}-{}.db'.format(entry_session, entry_session + 1)
+    level = level * 100 if level < 5 else 500
+    conn = sqlite3.connect(os.path.join(db_base_dir, db_name))
+    total_credits = conn.execute('SELECT LEVEL{} FROM Credits WHERE MODE_OF_ENTRY = ?'.format(level), (mod,)).fetchone()
+    conn.close()
+
+    return total_credits[0]
+
+
 def get_category(entry_session, level, mod, on_probation, total_credits, total_credits_passed):
     if total_credits == total_credits_passed: return 'A'
     if level == 1 and entry_session >= 2014:
         if total_credits_passed >= 36: return 'B'
-        elif total_credits_passed >= 23 and total_credits_passed < 36: return 'C'
+        elif 23 <= total_credits_passed < 36: return 'C'
         else:
             # bool_df = on_probation == 1
             # if bool_df.all(): return 'E'
@@ -227,7 +231,7 @@ def get_category(entry_session, level, mod, on_probation, total_credits, total_c
             return 'B'
         else:
             if percent_passed >= 50: return 'B'
-            elif percent_passed >= 25 and percent_passed < 50: return 'C'
+            elif 25 <= percent_passed < 50: return 'C'
             else:
                 if not on_probation: return 'D'
                 else: return 'E'
@@ -323,7 +327,7 @@ def store_gpa(conn, mat_no, level, result_frame, on_probation, mod):
             total_level_credits = conn.execute('SELECT * FROM Credits;').fetchall()[mod - 1][course_level_index]
             passed_level_credits += courses_dict[course_level - 1][course_code] if grade_weight.get(grade, 0) else 0
             gpa = prev_gpa + (grade_weight.get(grade, 0) * courses_dict[course_level - 1][course_code] / total_level_credits)
-            cgpa += ((gpa - prev_gpa) * level_weightings[mod - 1][level - 1])
+            cgpa += ((gpa - prev_gpa) * level_weightings[mod - 1][course_level - 1])
             try:
                 conn.execute('INSERT INTO GPA_CREDITS (MATNO, LEVEL{}, CGPA) VALUES (?, ?, ?);'.format(course_level_index * 100), (mat_no, '{},{}'.format(round(gpa, 4), passed_level_credits), round(cgpa, 4)))
             except sqlite3.IntegrityError:
@@ -356,6 +360,18 @@ def set_student_stat(conn, mat_no, entry_session, stat):
         new_conn.close()
 
 
+def delete_record(conn, mat_no):
+    stmt1 = 'DELETE FROM PersonalInfo WHERE MATNO = ?'
+    conn.execute(stmt1, (mat_no,))
+    conn.commit()
+
+    master_db = sqlite3.connect(os.path.join(db_base_dir, 'master.db'))
+    stmt2 = 'DELETE FROM Main WHERE MATNO = ?'
+    master_db.execute(stmt2, (mat_no,))
+    master_db.commit()
+    master_db.close()
+
+
 def populate_db(conn, mat_no, entry_session, mod):
     global result_dtype_glob, course_reg_dtype_glob, num_probation
     num_probation = 0
@@ -366,6 +382,10 @@ def populate_db(conn, mat_no, entry_session, mod):
     groups = sorted(groups, key=lambda x: x.SESSION.iloc[0])
     levels = [groups[num].SESSION.iloc[0] for num in range(len(groups))]
     if not levels or len(groups) > (9 - mod):
+        store_unusual_students(mat_no, entry_session)
+        return
+    if len(groups) == 0:
+        delete_record(conn, mat_no)
         store_unusual_students(mat_no, entry_session)
         return
     progressive_sum = int(len(levels) / 2.0 * (2 * levels[0] + len(levels) - 1))
@@ -411,9 +431,11 @@ def populate_db(conn, mat_no, entry_session, mod):
 
         course_reg_df['PROBATION'] = on_probation
         num_probation += on_probation
+        # total_credits = total_level_credits(entry_session, mod, count)
         total_credits_registered = total_registered_credits(count, course_reg_df)
         total_credits_passed = get_passed_credits(entry_session, count, student_result)
         category = get_category(entry_session, count, mod, on_probation, total_credits_registered, total_credits_passed)
+        # category = get_category(entry_session, count, mod, on_probation, total_credits, total_credits_passed)
         student_result['CATEGORY'] = category
         if category == 'C' : on_probation = 1
         else: on_probation = 0
@@ -476,7 +498,7 @@ def populate_db(conn, mat_no, entry_session, mod):
                 if exam_level > 500:
                     is_symlink = 1
                     if gap_in_sessions:
-                        new_session = exam_session - 4  # very skeptical about this. exam session could be flawed
+                        new_session = exam_session - 4
                     else:
                         new_session = entry_session - (mod - 1) + int((exam_level - 500) / 100)
                     database = '{}-{}.db'.format(new_session, new_session + 1)
@@ -513,6 +535,10 @@ def populate_db(conn, mat_no, entry_session, mod):
                         # new_session = entry_session - (mod - 1) + num_probation + 1
                         new_session = entry_session - (mod - 1) + num_probation + on_probation
                     database = '{}-{}.db'.format(new_session, new_session + 1)
+                elif gap_in_sessions:
+                    is_symlink = 1
+                    new_session = exam_session - 4
+                    database = '{}-{}.db'.format(new_session, new_session + 1)
                 else:
                     is_symlink = 0
                     database = ''
@@ -542,6 +568,7 @@ if __name__ == '__main__':
     create_table_schema()
     create_gpa_schema()
     result_dtype_glob, course_reg_dtype_glob = generate_table_dtype()
+
     for index, series in student_frame.iterrows():
         print('Populating result for {}...'.format(series.MATNO))
         curr_db = series.DATABASE
