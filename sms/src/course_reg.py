@@ -69,6 +69,22 @@ def put(data):
     return post_course_reg(data)
 
 
+@access_decorator
+def open_course_reg_entry():
+    from sms.src.users import fn_props
+    fn_props['course_reg.post']['perms'].remove('superuser')
+    fn_props['course_reg.post']['perms'].add('levels')
+    return None, 200
+
+
+@access_decorator
+def close_course_reg_entry():
+    from sms.src.users import fn_props
+    fn_props['course_reg.post']['perms'].remove('levels')
+    fn_props['course_reg.post']['perms'].add('superuser')
+    return None, 200
+
+
 # ==============================================================================================
 #                                  Core functions
 # ==============================================================================================
