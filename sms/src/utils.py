@@ -3,7 +3,7 @@ from json import loads, dumps
 from sms.src import personal_info, course_details, result_statement, users
 from sms import config
 from sms.models.courses import Options, OptionsSchema
-from sms.models.master import Category, Category500
+from sms.models.master import Category, Category500, Props
 
 '''
 Handle frequently called or single use simple utility functions
@@ -52,10 +52,10 @@ def get_credits(mat_no, mode_of_entry=None, session=None):
 
 
 def get_maximum_credits_for_course_reg():
-    # todo: get this from db
-
-    return {'normal': 50,
-            'clause_of_51': 51}
+    normal = int(Props.query.filter_by(key="MaxRegCredits").first().value)
+    clause_of_51 = int(Props.query.filter_by(key="CondMaxRegCredits500").first().value)
+    return {'normal': normal,
+            'clause_of_51': clause_of_51}
 
 
 def get_courses(mat_no, mode_of_entry=None):
