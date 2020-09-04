@@ -102,6 +102,11 @@ def access_decorator(func):
             has_access |= mat_no in mat_nos
             has_access |= superuser
             req_perms.remove("levels")
+        if "result_edit" in req_perms:
+            superuser = user_perms.get("superuser", False)
+            result_edit = bool(Props.query.filter_by(key="ResultEdit").first().valueint)
+            has_access &= (result_edit or superuser)
+            req_perms.remove("result_edit")
         for perm in req_perms:
             has_access &= bool(user_perms.get(perm))
         if has_access:
@@ -292,7 +297,7 @@ fn_props.update({
     "results.get": {"perms": {"levels", "read"},
                     "logs": lambda user, params: "{} queried results for {}".format(user, params.get("mat_no"))
                     },
-    "results.post": {"perms": {"levels", "write"},
+    "results.post": {"perms": {"levels", "write", "result_edit"},
                      "logs": lambda user, params: "{} added {} result entries:-\n{}".format(user, len(params.get("data")), dict_render(params))
                      },
     "results.put": {"perms": {"superuser", "write"},
