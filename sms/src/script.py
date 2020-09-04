@@ -31,7 +31,7 @@ def populate_course_list(level):
     course_list = []
 
     level = 500 if level > 500 else level
-    course_objs = eval('courses.Courses{}'.format(level)).query.all()
+    course_objs = courses.Courses.query.filter_by(course_level=level).all()
     for obj in course_objs:
         course_list.append(obj.course_code)
 
