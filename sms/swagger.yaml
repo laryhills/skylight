@@ -75,6 +75,18 @@ paths:
           schema:
             type: string
 
+  /current_session:
+    get:
+      tags: [Props]
+      operationId: sms.config.get_current_session
+      summary: Current Academic Session
+      description: Get the current academic session
+      responses:
+        200:
+          description: Returns the current academic session
+          schema:
+            type: integer
+
   /personal_info:
     get:
       tags: [Personal Information]
