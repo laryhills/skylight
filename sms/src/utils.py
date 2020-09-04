@@ -52,8 +52,8 @@ def get_credits(mat_no, mode_of_entry=None, session=None):
 
 
 def get_maximum_credits_for_course_reg():
-    normal = int(Props.query.filter_by(key="MaxRegCredits").first().value)
-    clause_of_51 = int(Props.query.filter_by(key="CondMaxRegCredits500").first().value)
+    normal = Props.query.filter_by(key="MaxRegCredits").first().valueint
+    clause_of_51 = Props.query.filter_by(key="CondMaxRegCredits500").first().valueint
     return {'normal': normal,
             'clause_of_51': clause_of_51}
 

@@ -56,7 +56,7 @@ def remove_token(token):
 
 def get_current_session():
     from sms.models.master import Props
-    current_session = Props.query.filter_by(key="CurrentSession").first().value
+    current_session = Props.query.filter_by(key="CurrentSession").first().valueint
     return int(current_session)
 
 

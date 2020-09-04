@@ -61,9 +61,9 @@ def detokenize(token, parse=True, s=serializer):
 
 def backup_counter():
     query = Props.query.filter_by(key="DBWriteCounter").first()
-    query.value = int(query.value) + 1
+    query.valueint = query.valueint + 1
     db.session.commit()
-    if int(query.value) % 100 == 0:
+    if int(query.valueint) % 100 == 0:
         # TODO Launch baackup here
         print ("Begin backups")
 
