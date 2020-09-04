@@ -6,7 +6,7 @@ from flask import abort, request
 from sms.models.user import User
 from sms.models.logs import LogsSchema
 from itsdangerous.exc import BadSignature
-from sms.models.master import Master, MasterSchema
+from sms.models.master import Master, MasterSchema, Props
 from sms.config import app, bcrypt, add_token, get_token, remove_token, db
 from itsdangerous import JSONWebSignatureSerializer as Serializer
 
@@ -59,6 +59,15 @@ def detokenize(token, parse=True, s=serializer):
         return None
 
 
+def backup_counter():
+    new_count = int(Props.query.filter_by(key="DBWriteCounter").first().value) + 1
+    db.session.update({"key":"DBWriteCounter", "value": new_count})
+    db.session.commit()
+    if new_count % 100 == 0:
+        # TODO Launch baackup here
+        print ("Begin backups")
+
+
 def access_decorator(func):
     qual_name = func.__module__.split('.')[-1] + "." + func.__name__
 
@@ -98,6 +107,8 @@ def access_decorator(func):
         if has_access:
             if not get_token("TESTING_token"):
                 log(token_dict["user"], qual_name, func, args, kwargs)
+            if "write" in req_perms:
+                backup_counter()
             return func(*args, **kwargs)
         else:
             return None, 401
@@ -112,8 +123,7 @@ def accounts_decorator(func):
             # IN PROD replace with `.get("token") and rm try and exc block`
             token = request.headers["token"]
         except Exception:
-            print("Running from command line or swagger UI, token not supplied!")
-            print("func", func, "args", args, "kwargs", kwargs)
+            # print("Running from command line or swagger UI, token not supplied!")
             token = tokenize("ucheigbeka:testing")
             # abort(401)
         req_perms, token_dict = fn_props[qual_name]["perms"].copy(), get_token("TESTING_token") or get_token(token)
@@ -121,7 +131,7 @@ def accounts_decorator(func):
             # Not logged in (using old session token)
             return None, 440
         user_perms = token_dict["perms"]
-        print ("your perms", user_perms)
+        # print ("your perms", user_perms)
         has_access = True
         if "usernames" in req_perms:
             params = get_kwargs(func, args, kwargs)
@@ -137,6 +147,8 @@ def accounts_decorator(func):
         if has_access:
             if not get_token("TESTING_token"):
                 log(token_dict["user"], qual_name, func, args, kwargs)
+            if "write" in req_perms:
+                backup_counter()
             return func(*args, **kwargs)
         else:
             return None, 401
