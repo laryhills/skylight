@@ -55,8 +55,9 @@ def remove_token(token):
 
 
 def get_current_session():
-    # Code stub that returns current session, TODO take from master.db
-    return 2019
+    from sms.models.master import Props
+    current_session = Props.query.filter_by(key="CurrentSession").first().value
+    return int(current_session)
 
 
 @app.before_first_request
