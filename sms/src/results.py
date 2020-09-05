@@ -76,22 +76,6 @@ def put(data):
     return add_result_records(list_of_results)
 
 
-@access_decorator
-def open_result_entry():
-    from sms.src.users import fn_props
-    fn_props['results.post']['perms'].remove('superuser')
-    fn_props['results.post']['perms'].add('levels')
-    return None, 200
-
-
-@access_decorator
-def close_result_entry():
-    from sms.src.users import fn_props
-    fn_props['results.post']['perms'].remove('levels')
-    fn_props['results.post']['perms'].add('superuser')
-    return None, 200
-
-
 # ==============================================================================================
 #                                  Core functions
 # ==============================================================================================
