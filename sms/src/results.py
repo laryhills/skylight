@@ -15,8 +15,26 @@ from copy import deepcopy
 from colorama import init, Fore, Style
 from sms.src import course_reg_utils, personal_info, course_details, utils
 from sms.src.users import access_decorator
+from sms.models.master import Props
+from sms.config import db
 
 init()  # initialize colorama
+
+
+def get_resultedit():
+    state = Props.query.filter_by(key="ResultEdit").first().valueint
+    return state, 200
+
+
+@access_decorator
+def set_resultedit(state=None):
+    query = Props.query.filter_by(key="ResultEdit").first()
+    if state == None:
+        query.valueint = int(not(query.valueint))
+    else:
+        query.valueint = int(bool(state))
+    db.session.commit()
+    return query.valueint, 200
 
 
 @access_decorator
