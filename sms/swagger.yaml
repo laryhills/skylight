@@ -91,8 +91,8 @@ paths:
     get:
       tags: [Personal Information]
       operationId: sms.src.personal_info.get_exp
-      summary: Personal_info query
-      description: Gets a student or a group of students bio data
+      summary: Get Personal Info
+      description: Gets a student's bio data
       parameters:
         - name: mat_no
           in: query
@@ -112,7 +112,47 @@ paths:
 
     post:
       tags: [Personal Information]
+      summary: Initial Personal Info Entry
+      description: Create student's personal information record
       operationId: sms.src.personal_info.post_exp
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/PersonalInfo'
+      responses:
+        200:
+          description: Record successfully added
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+
+    put:
+      tags: [Personal Information]
+      summary: Admin Edit
+      description: Edit student's personal information
+      operationId: sms.src.personal_info.put
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/PersonalInfo'
+      responses:
+        200:
+          description: Record successfully added
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+
+    patch:
+      tags: [Personal Information]
+      summary: Course Adviser Edit
+      description: Edit student's personal information
+      operationId: sms.src.personal_info.patch
       parameters:
         - name: data
           in: body
@@ -538,6 +578,32 @@ paths:
         440:
           description: Session expired, login again
 
+  /results_edit:
+    get:
+      tags: [Results]
+      operationId: sms.src.results.get_resultedit
+      summary: Get Result Edit Status
+      description: Get the Result Edit Period Status
+      responses:
+        200:
+          description: Operation Successful
+          schema:
+            type: integer
+    post:
+      tags: [Results]
+      operationId: sms.src.results.set_resultedit
+      summary: Open Result Edit Period
+      description: Open Result Edit Period for Course Advisers
+      parameters:
+        - in: body
+          name: state
+          schema:
+            type: integer
+          required: false
+      responses:
+        200:
+          description: Operation Successful
+
   /accounts:
     get:
       tags: [Accounts]
@@ -961,5 +1027,6 @@ definitions:
           type: string
         gpas:
           type: array
+          items: {}
         cgpa:
           type: number
