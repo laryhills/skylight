@@ -303,6 +303,9 @@ fn_props.update({
     "results.put": {"perms": {"superuser", "write"},
                     "logs": lambda user, params: "{} added {} result entries:-\n{}".format(user, len(params.get("data")), dict_render(params))
                     },
+    "results.set_resultedit": {"perms": {"superuser", "write"},
+                    "logs": lambda user, params: "{} toggled result edit mode".format(user)
+                    },
     "logs.get": {"perms": {"read"},
                  "logs": lambda user, params: "{} requested logs".format(user)
                  },
