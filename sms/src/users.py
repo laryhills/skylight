@@ -3,12 +3,13 @@ from hashlib import md5
 from base64 import b64encode
 from json import loads, dumps
 from flask import abort, request
+from itsdangerous.exc import BadSignature
+from itsdangerous import JSONWebSignatureSerializer as Serializer
+
 from sms.models.user import User
 from sms.models.logs import LogsSchema
-from itsdangerous.exc import BadSignature
 from sms.models.master import Master, MasterSchema, Props
 from sms.config import app, bcrypt, add_token, get_token, remove_token, db
-from itsdangerous import JSONWebSignatureSerializer as Serializer
 
 
 fn_props = {
@@ -63,9 +64,10 @@ def backup_counter():
     query = Props.query.filter_by(key="DBWriteCounter").first()
     query.valueint = query.valueint + 1
     db.session.commit()
-    if int(query.valueint) % 100 == 0:
-        # TODO Launch baackup here
-        print ("Begin backups")
+    if int(query.valueint) % 50 == 0:
+        from sms.src.backups import backup_databases
+        print("Begin backups")
+        backup_databases()
 
 
 def access_decorator(func):
@@ -162,7 +164,7 @@ def accounts_decorator(func):
 
 def log(user, qual_name, func, args, kwargs):
     params = get_kwargs(func, args, kwargs)
-    print ("log msg => " + fn_props[qual_name]["logs"](user, params))
+    print("log msg => " + fn_props[qual_name]["logs"](user, params))
     log_data = {"timestamp": int(time()), "operation": qual_name, "user": user, "params": dumps(params)}
     log_record = LogsSchema().load(log_data)
     db.session.add(log_record)
@@ -256,16 +258,16 @@ login(my_token)
 # Function mapping to perms and logs
 fn_props.update({
     "personal_info.get_exp": {"perms": {"levels", "read"},
-                          "logs": lambda user, params: "{} requested personal details of {}".format(user, params.get("mat_no"))
+                              "logs": lambda user, params: "{} requested personal details of {}".format(user, params.get("mat_no"))
                         },
     "personal_info.post_exp": {"perms": {"levels", "write"},
-                           "logs": lambda user, params: "{} added personal details for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
+                              "logs": lambda user, params: "{} added personal details for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
                         },
     "personal_info.put": {"perms": {"superuser", "write"},
                           "logs": lambda user, params: "{} modified personal details of {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
                         },
     "personal_info.patch": {"perms": {"levels", "write"},
-                           "logs": lambda user, params: "{} managed personal details for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
+                            "logs": lambda user, params: "{} managed personal details for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
                         },
     "course_details.post": {"perms": {"superuser", "write"},
                             "logs": lambda user, params: "{} added course {}:-\n{}".format(user, params.get("course_code"), dict_render(params))
@@ -282,6 +284,15 @@ fn_props.update({
     "course_form.get": {"perms": {"levels", "read"},
                         "logs": lambda user, params: "{} requested course form for {}".format(user, params.get("mat_no"))
                         },
+    "broad_sheet.get": {"perms": {"superuser", "read"},
+                        "logs": lambda user, params: "{} requested broad-sheets for the {} session".format(user, params.get('acad_session'))
+                        },
+    "senate_version.get": {"perms": {"superuser", "read"},
+                           "logs": lambda user, params: "{} requested senate version for the {} session".format(user,params.get('acad_session'))
+                           },
+    "gpa_cards.get": {"perms": {"levels", "read"},
+                      "logs": lambda user, params: "{} requested {} level gpa card".format(user, params.get('level'))
+                      },
     "course_reg.get": {"perms": {"levels", "read"},
                            "logs": lambda user, params: "{} queried course registration for {}".format(user, params.get("mat_no"))
                         },
@@ -304,8 +315,8 @@ fn_props.update({
                     "logs": lambda user, params: "{} added {} result entries:-\n{}".format(user, len(params.get("data")), dict_render(params))
                     },
     "results.set_resultedit": {"perms": {"superuser", "write"},
-                    "logs": lambda user, params: "{} toggled result edit mode".format(user)
-                    },
+                               "logs": lambda user, params: "{} {} result edit mode".format(user, ['closed', 'opened'][params.get('state')])
+                               },
     "logs.get": {"perms": {"read"},
                  "logs": lambda user, params: "{} requested logs".format(user)
                  },
@@ -323,16 +334,6 @@ fn_props.update({
                      },
     "accounts.delete": {"perms": {"superuser", "write"},
                         "logs": lambda user, params: "{} deleted an account with username {}".format(user, params.get("username"))
-                     },
-    "broad_sheet.get": {"perms": {"superuser", "read"},
-                        "logs": lambda user, params: "{} requested broad-sheets for the {} session".format(
-                            user, params.get('acad_session'))
-                        },
-    "senate_version.get": {"perms": {"superuser", "read"},
-                           "logs": lambda user, params: "{} requested senate version for the {} session".format(user, params.get('acad_session'))
-                     },
-    "gpa_cards.get": {"perms": {"levels", "read"},
-                      "logs": lambda user, params: "{} requested {} level gpa card".format(user, params.get('level'))
                      },
     "backups.get": {"perms": {"usernames", "read"},
                     "logs": lambda user, params: "{} requested list of backups".format(user)
