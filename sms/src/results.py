@@ -40,37 +40,43 @@ def get(mat_no, acad_session):
 
 
 @access_decorator
-def post(data):
+def post(data, superuser=False):
     level = data.get('level', None)
     list_of_results = data.get('list_of_results', [])
 
-    if not list_of_results:
-        return 'No result record supplied', 400
+    if not list_of_results: return 'No result record supplied', 400
+    if not level: return 'Result entry level was not supplied', 400
 
-    if not level:
-        return 'Result entry level was not supplied', 400
-
-    result_acad_sessions = list(set(list(zip(*list_of_results))[1]))
-    current_session = utils.get_current_session()
-    if len(result_acad_sessions) > 1:
-        return 'You are only authorised to add results for the current session. ' \
-               'Remove entries from other sessions and try again', 401
-
-    elif int(result_acad_sessions[0]) != current_session:
-        return 'You are not authorised to add results for the past session: ' \
-               '{}/{}'.format(int(result_acad_sessions[0]), int(result_acad_sessions[0]) + 1), 401
+    if not superuser:
+        result_acad_sessions = list(set(list(zip(*list_of_results))[1]))
+        current_session = utils.get_current_session()
+        if len(result_acad_sessions) > 1:
+            return 'You are only authorised to add results for the current session. ' \
+                   'Remove entries from other sessions and try again', 401
+        elif int(result_acad_sessions[0]) != current_session:
+            return 'You are not authorised to add results for the past session: ' \
+                   '{}/{}'.format(int(result_acad_sessions[0]), int(result_acad_sessions[0]) + 1), 401
+    else: level = None
 
     return add_result_records(list_of_results, level)
 
 
-@access_decorator
-def put(data):
-    level = data.get('level', None)
-    list_of_results = data.get('list_of_results', [])
+# @access_decorator
+# def put(data):
+#     level = data.get('level', None)
+#     list_of_results = data.get('list_of_results', [])
+#
+#     if not list_of_results:
+#         return 'No result record supplied', 400
+#     return add_result_records(list_of_results)
 
-    if not list_of_results:
-        return 'No result record supplied', 400
-    return add_result_records(list_of_results)
+
+@access_decorator
+def delete(mat_no, acad_session, superuser=False):
+    current_session = utils.get_current_session
+    if not superuser and acad_session != current_session:
+        return 'You do not have authorization to delete results outside the current session', 401
+    return delete_result_entry()
 
 
 # ==============================================================================================
@@ -157,15 +163,17 @@ def get_results_for_level(mat_no, level_written, return_empty=False):
 
 
 def add_result_records(list_of_results, level=None):
-    """  ==== JSON FORMAT FOR THE RESULTS ====
-
-    res =[
-             [course_code_1, session_written_1, mat_no_1, score_1]
+    """
+    list_of_results =[
+             [course_code_1, session_written_1, mat_no_1, score_1],
 
              [course_code_2, session_written_2, mat_no_2, score_2],
 
              ...
         ]
+    :param list_of_results:
+    :param level: level for the results being entered; to control course advisers' access
+    :return: 
     """
     base_dir = os.path.dirname(__file__)
     result_errors_file = open(os.path.join(base_dir, '../../result_errors.txt'), 'a')
@@ -366,6 +374,7 @@ def update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_leve
     mode_of_entry = personal_info.get(mat_no)['mode_of_entry']
     weights = utils.get_level_weightings(mode_of_entry)
     while 0 in weights: weights.remove(0)
+
     for idx in range(1, len(weights)+1):
         cgpa += weights[-idx] * gpa_credits[-idx][0] if gpa_credits[-idx] and gpa_credits[-idx][0] else 0
 
@@ -381,6 +390,10 @@ def update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_leve
     return '', 200
 
 
+def delete_result_entry():
+    pass
+
+
 # =========================================================================================
 #                                   Utility functions
 # =========================================================================================
@@ -388,7 +401,6 @@ def update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_leve
 def multisort(iters):
     iters = sorted(iters, key=lambda x: x[0])
     iters = sorted(iters, key=lambda x: x[0][3])
-    # iters = sorted(iters, key=lambda x: x[4])  # no longer be needed as I'm splitting the semesters later on
     return iters
 
 

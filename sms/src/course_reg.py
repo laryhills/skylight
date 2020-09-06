@@ -56,23 +56,23 @@ def get(mat_no, acad_session):
 
 
 @access_decorator
-def post(data):
+def post(data, superuser=False):
     current_session = utils.get_current_session()
-    if data['course_reg_session'] != current_session:
+    if not superuser and data['course_reg_session'] != current_session:
         return 'You do not have authorization to perform course registration outside the current session', 401
     return post_course_reg(data)
 
 
-@access_decorator
-def put(data):
-    print('Elevated course_reg write access granted')
-    return post_course_reg(data)
+# @access_decorator
+# def put(data):
+#     print('Elevated course_reg write access granted')
+#     return post_course_reg(data)
 
 
 @access_decorator
-def delete(mat_no, acad_session, admin=False):
+def delete(mat_no, acad_session, superuser=False):
     current_session = utils.get_current_session()
-    if not admin and acad_session != current_session:
+    if not superuser and acad_session != current_session:
         return 'You do not have authorization to delete course registration outside the current session', 401
     return delete_course_reg_entry(mat_no, acad_session)
 
