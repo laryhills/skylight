@@ -108,12 +108,12 @@ def test_post_dets_info():
     row_values[6] *= -1
 
 
-def test_put_dets():
+def test_patch_dets_superuser():
     insert_student(row_values)
     new_info = dict(zip(info_keys, row_values_2))
     new_info.pop(None)
     new_info["grad_status"] = int(0 > new_info["level"])
-    output, ret_code = personal_info.put(new_info)
+    output, ret_code = personal_info.patch(new_info, True)
     assert (output, ret_code) == (None, 200)
     new_info["level"] = abs(new_info["level"]) * [1, -1][new_info["grad_status"]]
     info_row = get_student(new_info["mat_no"])
@@ -123,14 +123,14 @@ def test_put_dets():
 
     # Flip grad status alone
     new_info_2 = {"mat_no": new_info["mat_no"], "grad_status": int(not new_info["grad_status"])}
-    output, ret_code = personal_info.put(new_info_2)
+    output, ret_code = personal_info.patch(new_info_2, True)
     assert (output, ret_code) == (None, 200)
     info_row = get_student(new_info_2["mat_no"])
     assert info_row["current_level"] == -new_info["level"]
 
     # Insert level alone and inherit grad_status
     new_info_3 = {"mat_no": new_info["mat_no"], "level": 500}
-    output, ret_code = personal_info.put(new_info_3)
+    output, ret_code = personal_info.patch(new_info_3, True)
     assert (output, ret_code) == (None, 200)
     info_row = get_student(new_info_3["mat_no"])
     assert (info_row["current_level"] > 0) == (-new_info["level"] > 0)
@@ -138,7 +138,7 @@ def test_put_dets():
     delete_student(new_info["mat_no"])
 
 
-def test_patch_dets():
+def test_patch_dets_regular():
     insert_student(row_values)
     new_info = dict(zip(info_keys, row_values_2))
     new_info.pop(None)
@@ -170,25 +170,6 @@ def test_post_dets_new_errors():
     dummy_info.pop("mode_of_entry")
     output, ret_code = personal_info.post_exp(dummy_info)
     assert (output, ret_code) == ("Invalid field supplied or missing a compulsory field", 400)
-
-
-def test_put_dets_errors():
-    # Modify invalid mat_no
-    output, ret_code = personal_info.put({"mat_no":"INVALIDMAT"})
-    assert (output, ret_code) == (None, 404)
-    # Put initialization
-    insert_student(row_values)
-    dummy_info = info_base.copy()
-    # Inserting an extra field
-    dummy_info["extra"] = "extra"
-    output, ret_code = personal_info.put(dummy_info)
-    assert (output, ret_code) == ("Invalid field supplied", 400)
-    dummy_info.pop("extra")
-    # Set a required field to empty/None/zero
-    dummy_info["level"] = 0
-    output, ret_code = personal_info.put(dummy_info)
-    assert (output, ret_code) == ("Invalid field supplied", 400)
-    delete_student(dummy_info["mat_no"])
 
 
 def test_patch_dets_errors():
