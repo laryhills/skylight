@@ -98,7 +98,7 @@ def access_decorator(func):
             if mat_no and not level:
                 level = get_level(mat_no, parse=False)
                 if not level:
-                    return "Mat number not found in database", 404
+                    return None, 404
             has_access = False
             levels = user_perms.get("levels", [])
             mat_nos = user_perms.get("mat_nos", [])
@@ -271,11 +271,8 @@ fn_props.update({
     "personal_info.post_exp": {"perms": {"levels", "write"},
                               "logs": lambda user, params: "{} added personal details for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
                         },
-    "personal_info.put": {"perms": {"levels", "write"},
-                          "logs": lambda user, params: "{} modified personal details of {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
-                        },
     "personal_info.patch": {"perms": {"levels", "write"},
-                            "logs": lambda user, params: "{} managed personal details for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
+                            "logs": lambda user, params: "{} modified personal details for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
                         },
     "course_details.post": {"perms": {"superuser", "write"},
                             "logs": lambda user, params: "{} added course {}:-\n{}".format(user, params.get("course_code"), dict_render(params))
