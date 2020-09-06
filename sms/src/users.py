@@ -95,7 +95,7 @@ def access_decorator(func):
             if mat_no and not level:
                 level = get_level(mat_no, parse=False)
                 if not level:
-                    return None, 404
+                    return "Mat number not found in database", 404
             has_access = False
             levels = user_perms.get("levels", [])
             mat_nos = user_perms.get("mat_nos", [])
