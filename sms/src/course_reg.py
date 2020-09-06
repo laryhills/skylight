@@ -71,7 +71,7 @@ def put(data):
 
 @access_decorator
 def delete(mat_no, acad_session, admin=False):
-    current_session = utils.get_current_session
+    current_session = utils.get_current_session()
     if not admin and acad_session != current_session:
         return 'You do not have authorization to delete course registration outside the current session', 401
     return delete_course_reg_entry(mat_no, acad_session)
