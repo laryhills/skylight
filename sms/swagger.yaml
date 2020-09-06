@@ -612,6 +612,32 @@ paths:
 #        440:
 #          description: Session expired, login again
 
+    delete:
+      tags: [Results]
+      operationId: sms.src.results.delete
+      summary: Delete result entries
+      description: Remove results entries from the database
+      parameters:
+        - in: query
+          name: mat_no
+          type: string
+          required: true
+        - in: query
+          name: acad_session
+          type: integer
+          required: true
+        - in: query
+          name: superuser
+          type: boolean
+          required: false
+      responses:
+        200:
+          description: Success
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+
   /results_edit:
     get:
       tags: [Results]
