@@ -43,32 +43,9 @@ def post(data):
 
 
 @accounts_decorator
-def put(data):
-    if not all([data.get(prop) for prop in (required & data.keys())]) or (data.keys() - all_fields):
-        # Empty value supplied or Invalid field supplied
-        return "Invalid field supplied", 400
-    username, password = data.get("username"), data.get("password")
-    # TODO not recv password in plain text, do decode here
-    if not User.query.filter_by(username=username).first():
-        return "Invalid username", 404
-    if password:
-        password = detokenize(password, parse=False)
-        if not detokenize(data["password"], parse=False):
-            return "Invalid password hash", 400
-        data['password'] = bcrypt.generate_password_hash(password).decode('utf-8')
-    if "title" in data:
-        user = User.query.filter_by(title=data["title"]).first()
-        if user and user.username != username:
-            return "Duplicate title supplied", 400
-    User.query.filter_by(username=username).update(data)
-    db.session.commit()
-    return None, 200
-
-
-@accounts_decorator
-def manage(data):
-    if "permissions" in data:
-        data.pop("permissions")
+def patch(data, superuser=False):
+    if not superuser:
+        data.pop("permissions", None)
     if not all([data.get(prop) for prop in (required & data.keys())]) or (data.keys() - all_fields):
         # Empty value supplied or Invalid field supplied
         return "Invalid field supplied", 400
