@@ -686,42 +686,17 @@ paths:
           description: Unauthorised
     patch:
       tags: [Accounts]
-      operationId: sms.src.accounts.manage
-      parameters:
-        - in: body
-          name: data
-          required: true
-          schema:
-            type: object
-            properties:
-              username:
-                type: string
-              password:
-                type: string
-              title:
-                type: string
-              fullname:
-                type: string
-              email:
-                type: string
-      responses:
-        200:
-          description: Account successfully updated
-        400:
-          description: Account modification failed. Empty, invalid or duplicate field supplied
-        401:
-          description: Unauthorised
-        404:
-          description: Account not found
-    put:
-      tags: [Accounts]
-      operationId: sms.src.accounts.put
+      operationId: sms.src.accounts.patch
       parameters:
         - in: body
           name: data
           required: true
           schema:
             $ref: '#/definitions/Accounts_post'
+        - in: query
+          name: superuser
+          type: boolean
+          required: false
       responses:
         200:
           description: Account successfully updated
