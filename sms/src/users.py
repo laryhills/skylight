@@ -87,9 +87,12 @@ def access_decorator(func):
             return None, 440
         user_perms = token_dict["perms"]
         # print("your perms", user_perms)
+        params = get_kwargs(func, args, kwargs)
+        if params.get("superuser"):
+            if not user_perms.get("superuser"):
+                return None, 401
         has_access = True
         if "levels" in req_perms:
-            params = get_kwargs(func, args, kwargs)
             level = params.get("level") or params.get("data", {}).get("level")
             mat_no = params.get("mat_no") or params.get("data", {}).get("mat_no")
             if mat_no and not level:
@@ -140,9 +143,12 @@ def accounts_decorator(func):
             return None, 440
         user_perms = token_dict["perms"]
         # print ("your perms", user_perms)
+        params = get_kwargs(func, args, kwargs)
+        if params.get("superuser"):
+            if not user_perms.get("superuser"):
+                return None, 401
         has_access = True
         if "usernames" in req_perms:
-            params = get_kwargs(func, args, kwargs)
             username = params.get("username") or params.get("data",{}).get("username")
             has_access = False
             usernames = user_perms.get("usernames", [])
@@ -265,7 +271,7 @@ fn_props.update({
     "personal_info.post_exp": {"perms": {"levels", "write"},
                               "logs": lambda user, params: "{} added personal details for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
                         },
-    "personal_info.put": {"perms": {"superuser", "write"},
+    "personal_info.put": {"perms": {"levels", "write"},
                           "logs": lambda user, params: "{} modified personal details of {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
                         },
     "personal_info.patch": {"perms": {"levels", "write"},
