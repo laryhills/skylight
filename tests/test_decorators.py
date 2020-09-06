@@ -45,6 +45,8 @@ perms_list = [
 
 ]
 
+#TODO add result_post decorator test inc props result_edit test
+#TODO add personal_info patch decorator tests
 
 def test_personal_info_get():
     # Levels & read perms
@@ -62,8 +64,7 @@ def test_personal_info_get():
 def test_personal_info_post():
     # Levels & write perms
     dummy_access_fn.__module__ = "personal_info"
-    dummy_access_fn.__name__ = "post_exp" \
-                               ""
+    dummy_access_fn.__name__ = "post_exp"
     student_data = {"mat_no": "ENG1603123", "level": 400}
     for perms in perms_list:
         config.add_token("TESTING_token", username, perms)
