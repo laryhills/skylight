@@ -129,28 +129,9 @@ paths:
         440:
           description: Session expired, login again
 
-    put:
-      tags: [Personal Information]
-      summary: Admin Edit
-      description: Edit student's personal information
-      operationId: sms.src.personal_info.put
-      parameters:
-        - name: data
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/PersonalInfo'
-      responses:
-        200:
-          description: Record successfully added
-        401:
-          description: Authentication failed
-        440:
-          description: Session expired, login again
-
     patch:
       tags: [Personal Information]
-      summary: Course Adviser Edit
+      summary: PersonalInfo Edit
       description: Edit student's personal information
       operationId: sms.src.personal_info.patch
       parameters:
@@ -159,6 +140,10 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/PersonalInfo'
+        - in: query
+          name: superuser
+          type: boolean
+          required: false
       responses:
         200:
           description: Record successfully added
