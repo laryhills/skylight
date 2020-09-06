@@ -70,19 +70,11 @@ def put(data):
 
 
 @access_decorator
-def open_course_reg_entry():
-    from sms.src.users import fn_props
-    fn_props['course_reg.post']['perms'].remove('superuser')
-    fn_props['course_reg.post']['perms'].add('levels')
-    return None, 200
-
-
-@access_decorator
-def close_course_reg_entry():
-    from sms.src.users import fn_props
-    fn_props['course_reg.post']['perms'].remove('levels')
-    fn_props['course_reg.post']['perms'].add('superuser')
-    return None, 200
+def delete(mat_no, acad_session, admin=False):
+    current_session = utils.get_current_session
+    if not admin and acad_session != current_session:
+        return 'You do not have authorization to delete course registration outside the current session', 401
+    return delete_course_reg_entry(mat_no, acad_session)
 
 
 # ==============================================================================================
@@ -260,3 +252,21 @@ def post_course_reg(data):
 
     print('\n====>>  ', success_text)
     return success_text, 201
+
+
+def delete_course_reg_entry(mat_no, acad_session):
+    course_reg = course_reg_utils.get_course_reg_at_acad_session(acad_session, mat_no=mat_no)
+    if not course_reg:
+        return 'Course Registration for session {}/{} not found'.format(acad_session, acad_session+1), 404
+
+    db_name = utils.get_DB(mat_no)
+    session = utils.load_session(db_name)
+    courses_reg_schema = getattr(session, course_reg['table'] + 'Schema')
+
+    courses_reg = courses_reg_schema.Meta.model.query.filter_by(mat_no=mat_no).first()
+    db_session = courses_reg_schema.Meta.sqla_session
+    db_session.delete(courses_reg)
+    db_session.commit()
+    db_session.close()
+
+    return 'Record Deleted Successfully', 200

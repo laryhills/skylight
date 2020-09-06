@@ -305,6 +305,9 @@ fn_props.update({
     "course_reg.put": {"perms": {"superuser", "write"},
                        "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
                        },
+    "course_reg.delete": {"perms": {"levels", "write"},
+                          "logs": lambda user, params: "{} deleted {}/{} course registration entry for {}".format(user, params.get("acad_session"), params.get("acad_session")+1, params.get("mat_no"))
+                          },
     "results.get": {"perms": {"levels", "read"},
                     "logs": lambda user, params: "{} queried results for {}".format(user, params.get("mat_no"))
                     },
