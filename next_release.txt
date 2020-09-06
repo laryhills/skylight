@@ -1,10 +1,8 @@
-1)  props in MasterDB -> grading rule, current session, maximum credits for course_reg
-2)  Clear all logs (superuser)
-4)  Create session expose, change session updates personal info level (big red button)
-5)  Search student by surname
-6)  An asterisk next to level GPAs in reports, sheets when the courses for that level are not all passed
-7)  Sheets report generation
-8)  Make open_result_edit possible to activate for a single user
-9)
+1)  Create session expose, change session updates personal info level (big red button)
+2)  Search student by surname
+3)  An asterisk next to level GPAs in reports, sheets when the courses for that level are not all passed
+4)  Sheets report generation
+5)  Clear all logs (superuser)
+6)
 
 ** add delete endpoint to results and carryovers
