@@ -30,8 +30,12 @@ def delete_account(username):
     conn.commit()
 
 
-def test_get_all_accounts():
+def test_setup_env():
     config.add_token("TESTING_token", "accounts_test", perms)
+    delete_account(acct_base["username"])
+
+
+def test_get_all_accounts():
     user_list, ret_code = accounts.get()
     assert ret_code == 200
     user_count = len(cur.execute("SELECT username FROM user").fetchall())
@@ -44,7 +48,6 @@ def test_get_all_accounts():
 
 
 def test_get_one_account():
-    config.add_token("TESTING_token", "accounts_test", perms)
     user_rows = cur.execute("SELECT * FROM user").fetchall()
     user_row = sample(user_rows, 1)[0]
     user, ret_code = accounts.get(user_row["username"])
@@ -55,13 +58,11 @@ def test_get_one_account():
 
 
 def test_get_invalid_username():
-    config.add_token("TESTING_token", "accounts_test", perms)
     user, ret_code = accounts.get("invalid_username_" + str(time()))
     assert ret_code == 404
 
 
 def test_post_new_account():
-    config.add_token("TESTING_token", "accounts_test", perms)
     dummy_acct = acct_base.copy()
     output, ret_code = accounts.post(data=dummy_acct)
     assert ret_code == 200
@@ -72,7 +73,6 @@ def test_post_new_account():
 
 
 def test_post_errors():
-    config.add_token("TESTING_token", "accounts_test", perms)
     dummy_acct = acct_base.copy()
     dummy_acct["extra_field"] = "extra"
     output, ret_code = accounts.post(data=dummy_acct)
@@ -105,7 +105,6 @@ def test_post_errors():
 
 
 def test_delete_account():
-    config.add_token("TESTING_token", "accounts_test", perms)
     insert_account(acct_values)
     output, ret_code = accounts.delete(username=acct_base["username"])
     assert ret_code == 200
@@ -113,16 +112,14 @@ def test_delete_account():
 
 
 def test_delete_invalid_username():
-    config.add_token("TESTING_token", "accounts_test", perms)
     user, ret_code = accounts.delete("invalid_username_" + str(time()))
     assert ret_code == 404
 
 
-def test_put_account():
-    config.add_token("TESTING_token", "accounts_test", perms)
+def test_patch_account_superuser():
     dummy_acct = acct_base.copy()
     insert_account((dummy_acct["username"], "somepwdhash", "{}", "Mutable Test", "TBD", "accts@te.st"))
-    output, ret_code = accounts.put(data=dummy_acct)
+    output, ret_code = accounts.patch(data=dummy_acct, superuser=True)
     assert ret_code == 200
     user_row = get_account(dummy_acct["username"])
     dummy_acct.pop("password")
@@ -131,43 +128,41 @@ def test_put_account():
     delete_account(dummy_acct["username"])
 
 
-def test_put_errors():
-    config.add_token("TESTING_token", "accounts_test", perms)
+def test_patch_errors_superuser():
     dummy_acct = acct_base.copy()
     insert_account((dummy_acct["username"], "somepwdhash", "{}", "Mutable Test", "TBD", "accts@te.st"))
     dummy_acct["extra_field"] = "extra"
-    output, ret_code = accounts.put(data=dummy_acct)
+    output, ret_code = accounts.patch(data=dummy_acct, superuser=True)
     assert (output, ret_code) == ("Invalid field supplied", 400)
     dummy_acct.pop("extra_field")
     for prop in accounts.required & dummy_acct.keys():
         tmp = dummy_acct.pop(prop)
         dummy_acct[prop] = ""
-        output, ret_code = accounts.put(data=dummy_acct)
+        output, ret_code = accounts.patch(data=dummy_acct, superuser=True)
         # Required field present but empty
         assert (output, ret_code) == ("Invalid field supplied", 400)
         dummy_acct[prop] = tmp
     dummy_acct["username"] = "invalid_username_" + str(time())
-    output, ret_code = accounts.put(data=dummy_acct)
+    output, ret_code = accounts.patch(data=dummy_acct, superuser=True)
     # Test can't edit non-existing user
     assert (output, ret_code) == ("Invalid username", 404)
     dummy_acct["username"] = acct_base["username"]
     dummy_acct["password"] = "invalid password"
-    output, ret_code = accounts.put(data=dummy_acct)
+    output, ret_code = accounts.patch(data=dummy_acct, superuser=True)
     assert (output, ret_code) == ("Invalid password hash", 400)
     dummy_acct["password"] = acct_base["password"]
     title = cur.execute("SELECT * FROM user").fetchone()["title"]
     dummy_acct["title"] = title
-    output, ret_code = accounts.put(data=dummy_acct)
+    output, ret_code = accounts.patch(data=dummy_acct, superuser=True)
     assert (output, ret_code) == ("Duplicate title supplied", 400)
     delete_account(dummy_acct["username"])
 
 
-def test_manage_account():
-    config.add_token("TESTING_token", "accounts_test", perms)
+def test_patch_account_regular():
     dummy_acct = acct_base.copy()
     old_props = (dummy_acct["username"], "somepwdhash", "{}", "Mutable Test", "TBD", "accts@te.st")
     insert_account(old_props)
-    output, ret_code = accounts.manage(data=dummy_acct)
+    output, ret_code = accounts.patch(data=dummy_acct)
     assert ret_code == 200
     dummy_acct.pop("password")
     user_row = get_account(dummy_acct["username"])
@@ -178,36 +173,35 @@ def test_manage_account():
     delete_account(dummy_acct["username"])
 
 
-def test_manage_errors():
-    config.add_token("TESTING_token", "accounts_test", perms)
+def test_patch_errors_regular():
     dummy_acct = acct_base.copy()
     insert_account((dummy_acct["username"], "somepwdhash", "{}", "Mutable Test", "TBD", "accts@te.st"))
     dummy_acct["extra_field"] = "extra"
-    output, ret_code = accounts.manage(data=dummy_acct)
+    output, ret_code = accounts.patch(data=dummy_acct)
     assert (output, ret_code) == ("Invalid field supplied", 400)
     dummy_acct.pop("extra_field")
     for prop in (accounts.required - {"permissions"}) & dummy_acct.keys():
         tmp = dummy_acct.pop(prop)
         dummy_acct[prop] = ""
-        output, ret_code = accounts.manage(data=dummy_acct)
+        output, ret_code = accounts.patch(data=dummy_acct)
         # Required field present but empty
         assert (output, ret_code) == ("Invalid field supplied", 400)
         dummy_acct[prop] = tmp
     dummy_acct["username"] = "invalid_username_" + str(time())
-    output, ret_code = accounts.manage(data=dummy_acct)
+    output, ret_code = accounts.patch(data=dummy_acct)
     # Test can't edit non-existing user
     assert (output, ret_code) == ("Invalid username", 404)
     dummy_acct["username"] = acct_base["username"]
     dummy_acct["password"] = "invalid password"
-    output, ret_code = accounts.manage(data=dummy_acct)
+    output, ret_code = accounts.patch(data=dummy_acct)
     assert (output, ret_code) == ("Invalid password hash", 400)
     dummy_acct["password"] = acct_base["password"]
     title = cur.execute("SELECT * FROM user").fetchone()["title"]
     dummy_acct["title"] = title
-    output, ret_code = accounts.manage(data=dummy_acct)
+    output, ret_code = accounts.patch(data=dummy_acct)
     assert (output, ret_code) == ("Duplicate title supplied", 400)
     delete_account(dummy_acct["username"])
 
 
-if __name__ == '__main__':
-    test_get_all_accounts()
+def test_teardown_env():
+    test_setup_env()
