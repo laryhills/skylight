@@ -617,20 +617,18 @@ paths:
     post:
       tags: [Results]
       operationId: sms.src.results.set_resultedit
-      summary: Open Result Edit Period
-      description: Open Result Edit Period for Course Advisers
+      summary: Set Result Edit Mode
+      description: Set Result Edit Mode for Course Advisers
       parameters:
-        - in: body
-          name: data
-          schema:
-            type: object
-            properties:
-              state:
-                type: integer
-          required: false
+        - in: query
+          name: state
+          type: integer
+          required: true
       responses:
         200:
           description: Operation Successful
+          schema:
+            type: integer
 
   /accounts:
     get:

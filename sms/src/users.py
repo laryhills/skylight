@@ -112,11 +112,12 @@ def access_decorator(func):
         for perm in req_perms:
             has_access &= bool(user_perms.get(perm))
         if has_access:
-            if not get_token("TESTING_token"):
-                log(token_dict["user"], qual_name, func, args, kwargs)
             if "write" in req_perms:
                 backup_counter()
-            return func(*args, **kwargs)
+            (output, ret_code) = func(*args, **kwargs)
+            if (ret_code == 200) and not get_token("TESTING_token"):
+                log(token_dict["user"], qual_name, func, args, kwargs)
+            return (output, ret_code)
         else:
             return None, 401
     return inner1
@@ -152,11 +153,12 @@ def accounts_decorator(func):
         for perm in req_perms:
             has_access &= bool(user_perms.get(perm))
         if has_access:
-            if not get_token("TESTING_token"):
-                log(token_dict["user"], qual_name, func, args, kwargs)
             if "write" in req_perms:
                 backup_counter()
-            return func(*args, **kwargs)
+            (output, ret_code) = func(*args, **kwargs)
+            if (ret_code == 200) and not get_token("TESTING_token"):
+                log(token_dict["user"], qual_name, func, args, kwargs)
+            return (output, ret_code)
         else:
             return None, 401
     return inner1
@@ -318,7 +320,7 @@ fn_props.update({
                     "logs": lambda user, params: "{} added {} result entries:-\n{}".format(user, len(params.get("data")), dict_render(params))
                     },
     "results.set_resultedit": {"perms": {"superuser", "write"},
-                               "logs": lambda user, params: "{} {} result edit mode".format(user, 'toggled') #['closed', 'opened'][int(bool(params.get('data').get('state')))])
+                               "logs": lambda user, params: "{} {} result edit mode".format(user, ['closed', 'opened'][bool(params.get('state'))])
                                },
     "logs.get": {"perms": {"read"},
                  "logs": lambda user, params: "{} requested logs".format(user)
