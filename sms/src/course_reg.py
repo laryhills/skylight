@@ -251,7 +251,7 @@ def post_course_reg(data):
         if log[0]: success_text += '; results for unregistered courses still remain in database'
 
     print('\n====>>  ', success_text)
-    return success_text, 201
+    return success_text, 200
 
 
 def delete_course_reg_entry(mat_no, acad_session):

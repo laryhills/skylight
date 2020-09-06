@@ -559,7 +559,7 @@ paths:
           schema:
             $ref: '#/definitions/Results_post'
       responses:
-        201:
+        200:
           description: Success
           schema:
             type: array
@@ -586,7 +586,7 @@ paths:
           schema:
             $ref: '#/definitions/Results_post'
       responses:
-        201:
+        200:
           description: Success
           schema:
             type: array
