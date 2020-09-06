@@ -27,13 +27,9 @@ def get_resultedit():
 
 
 @access_decorator
-def set_resultedit(data=None):
+def set_resultedit(state):
     query = Props.query.filter_by(key="ResultEdit").first()
-    if not data:
-        query.valueint = int(not query.valueint)
-    else:
-        state = data.get('state')
-        query.valueint = int(bool(state))
+    query.valueint = int(bool(state))
     db.session.commit()
     return query.valueint, 200
 
