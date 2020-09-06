@@ -29,7 +29,7 @@ def post_exp(data):
 # ==============================================================================================
 #                                  Core functions
 # ==============================================================================================
-
+# TODO add delete mat no, fix post to work with DE200 & DE300
 def get(mat_no):
     db_name = utils.get_DB(mat_no)
     if not db_name:
@@ -74,7 +74,7 @@ def post(data):
 
 
 @access_decorator
-def put(data):
+def patch(data, superuser=False):
     data = data.copy()
     session = utils.get_DB(data.get("mat_no"))
     if not session:
@@ -85,33 +85,19 @@ def put(data):
 
     session = utils.load_session(session)
     student = session.PersonalInfo.query.filter_by(mat_no=data["mat_no"])
-    level = abs(data.get("level",0)) or abs(student.first().level)
-    if "grad_status" in data:
-        data["level"] = level * [1,-1][data.pop("grad_status")]
-    elif "level" in data:
-        # Preserve grad status
-        data["level"] = level * [1,-1][student.first().grad_status]
+
+    if superuser:
+        level = abs(data.get("level",0)) or abs(student.first().level)
+        if "grad_status" in data:
+            data["level"] = level * [1,-1][data.pop("grad_status")]
+        elif "level" in data:
+            # Preserve grad status
+            data["level"] = level * [1,-1][student.first().grad_status]
+    else:
+        for prop in ("session_admitted", "session_grad", "level", "mode_of_entry", "grad_status"):
+            data.pop(prop, None)
+
     student.update(data)
-    db_session = session.PersonalInfoSchema().Meta.sqla_session
-    db_session.commit()
-    return None, 200
-
-
-@access_decorator
-def patch(data):
-    data = data.copy()
-    session = utils.get_DB(data.get("mat_no"))
-    if not session:
-        return None, 404
-    if not all([data.get(prop) for prop in (required & data.keys())]) or (data.keys() - all_fields):
-        # Empty value supplied or Invalid field supplied
-        return "Invalid field supplied", 400
-
-    for prop in ("session_admitted", "session_grad", "level", "mode_of_entry", "grad_status"):
-        data.pop(prop, None)
-
-    session = utils.load_session(session)
-    student = session.PersonalInfo.query.filter_by(mat_no=data["mat_no"]).update(data)
     db_session = session.PersonalInfoSchema().Meta.sqla_session
     db_session.commit()
     return None, 200
