@@ -596,9 +596,12 @@ paths:
       description: Open Result Edit Period for Course Advisers
       parameters:
         - in: body
-          name: state
+          name: data
           schema:
-            type: integer
+            type: object
+            properties:
+              state:
+                type: integer
           required: false
       responses:
         200:
