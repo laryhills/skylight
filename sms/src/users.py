@@ -334,11 +334,8 @@ fn_props.update({
     "accounts.post": {"perms": {"superuser", "write"},
                       "logs": lambda user, params: "{} added a new account with username {}".format(user, params.get("data").get("username"))
                      },
-    "accounts.put": {"perms": {"superuser", "write"},
+    "accounts.patch": {"perms": {"usernames", "write"},
                      "logs": lambda user, params: "{} modified {}'s account".format(user, params.get("data").get("username"))
-                     },
-    "accounts.manage": {"perms": {"usernames", "write"},
-                     "logs": lambda user, params: "{} managed {}'s account".format(user, params.get("data").get("username"))
                      },
     "accounts.delete": {"perms": {"superuser", "write"},
                         "logs": lambda user, params: "{} deleted an account with username {}".format(user, params.get("username"))
