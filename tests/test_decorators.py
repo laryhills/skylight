@@ -93,7 +93,7 @@ def test_course_details_post():
 def test_course_details_put():
     # Superuser and write perms
     dummy_access_fn.__module__ = "course_details"
-    dummy_access_fn.__name__ = "put"
+    dummy_access_fn.__name__ = "patch"
     for perms in perms_list:
         config.add_token("TESTING_token", username, perms)
         if perms.get("write") and perms.get("superuser"):

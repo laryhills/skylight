@@ -203,7 +203,7 @@ paths:
       tags: [Course Details]
       summary: Course details update
       description: Modifies existing courses
-      operationId: sms.src.course_details.put
+      operationId: sms.src.course_details.patch
       parameters:
         - in: body
           name: data

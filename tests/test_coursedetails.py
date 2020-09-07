@@ -98,10 +98,10 @@ def test_put_one():
     course_add["course_credit"] = 3
     course_add["course_semester"] = 2
     course_list = [course_add]
-    assert course_details.put(course_list) == (None, 404)
+    assert course_details.patch(course_list) == (None, 404)
     cur.execute(*sql_ins_course())
     conn.commit()
-    assert course_details.put(course_list) == (None, 200)
+    assert course_details.patch(course_list) == (None, 200)
     course_row = cur.execute(*sql_get_course(inv_crs_val[0])).fetchone()
     assert course_row["course_credit"] == 3
     assert course_row["course_semester"] == 2
@@ -119,13 +119,13 @@ def test_put_mult():
     course_list = [course_add, course_add_2]
     cur.execute(*sql_ins_course())
     conn.commit()
-    assert course_details.put(course_list) == (None, 404)
+    assert course_details.patch(course_list) == (None, 404)
     course_row = cur.execute(*sql_get_course(inv_crs_val[0])).fetchone()
     assert course_row["course_credit"] != 3
     assert course_row["course_semester"] != 2
     cur.execute(*sql_ins_course(inv_crs_val_2))
     conn.commit()
-    assert course_details.put(course_list) == (None, 200)
+    assert course_details.patch(course_list) == (None, 200)
     course_row = cur.execute(*sql_get_course(inv_crs_val[0])).fetchone()
     assert course_row["course_credit"] == 3
     assert course_row["course_semester"] == 2

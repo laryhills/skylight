@@ -277,7 +277,7 @@ fn_props.update({
     "course_details.post": {"perms": {"superuser", "write"},
                             "logs": lambda user, params: "{} added course {}:-\n{}".format(user, params.get("course_code"), dict_render(params))
                         },
-    "course_details.put": {"perms": {"superuser", "write"},
+    "course_details.patch": {"perms": {"superuser", "write"},
                            "logs": lambda user, params: "{} updated courses:-\n{}".format(user, dict_render(params))
                         },
     "course_details.delete": {"perms": {"superuser", "write"},
