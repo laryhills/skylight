@@ -63,12 +63,6 @@ def post(data, superuser=False):
     return post_course_reg(data)
 
 
-# @access_decorator
-# def put(data):
-#     print('Elevated course_reg write access granted')
-#     return post_course_reg(data)
-
-
 @access_decorator
 def delete(mat_no, acad_session, superuser=False):
     current_session = utils.get_current_session()

@@ -461,27 +461,6 @@ paths:
         440:
           description: Session expired, login again
 
-#    put:
-#      tags: [Course Registration]
-#      operationId: sms.src.course_reg.put
-#      summary: Edit old course registration, requires elevated access
-#      parameters:
-#        - in: body
-#          name: data
-#          schema:
-#            $ref: '#/definitions/CourseRegistration'
-#      responses:
-#        200:
-#          description: Success
-#        401:
-#          description: Authentication failed
-#        403:
-#          description: Forbidden
-#          schema:
-#            type: string
-#        440:
-#          description: Session expired, login again
-
     delete:
       tags: [Course Registration]
       operationId: sms.src.course_reg.delete
@@ -569,33 +548,6 @@ paths:
           description: Not found
         440:
           description: Session expired, login again
-#    put:
-#      tags: [Results]
-#      operationId: sms.src.results.put
-#      summary: Edit past result records, requires elevated access
-#      description: Post results to the database, admin
-#      parameters:
-#        - in: body
-#          name: data
-#          schema:
-#            $ref: '#/definitions/Results_post'
-#      responses:
-#        200:
-#          description: Success
-#          schema:
-#            type: array
-#            items:
-#              type: string
-#        400:
-#          description: Bad request
-#        401:
-#          description: Unauthorised
-#        403:
-#          description: Forbidden
-#        404:
-#          description: Not found
-#        440:
-#          description: Session expired, login again
 
     delete:
       tags: [Results]

@@ -61,16 +61,6 @@ def post(data, superuser=False):
     return add_result_records(list_of_results, level)
 
 
-# @access_decorator
-# def put(data):
-#     level = data.get('level', None)
-#     list_of_results = data.get('list_of_results', [])
-#
-#     if not list_of_results:
-#         return 'No result record supplied', 400
-#     return add_result_records(list_of_results)
-
-
 @access_decorator
 def delete(mat_no, acad_session, superuser=False):
     current_session = utils.get_current_session
