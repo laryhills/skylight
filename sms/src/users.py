@@ -115,7 +115,7 @@ def access_decorator(func):
         for perm in req_perms:
             has_access &= bool(user_perms.get(perm))
         if has_access:
-            if "write" in req_perms:
+            if "write" in req_perms and not get_token("TESTING_token"):
                 backup_counter()
             (output, ret_code) = func(*args, **kwargs)
             if (ret_code == 200) and not get_token("TESTING_token"):
@@ -159,7 +159,7 @@ def accounts_decorator(func):
         for perm in req_perms:
             has_access &= bool(user_perms.get(perm))
         if has_access:
-            if "write" in req_perms:
+            if "write" in req_perms and not get_token("TESTING_token"):
                 backup_counter()
             (output, ret_code) = func(*args, **kwargs)
             if (ret_code == 200) and not get_token("TESTING_token"):
@@ -327,6 +327,12 @@ fn_props.update({
                                },
     "logs.get": {"perms": {"read"},
                  "logs": lambda user, params: "{} requested logs".format(user)
+                 },
+    "logs.delete": {"perms": {"write", "superuser"},
+                 "logs": lambda user, params: "{} deleted {} log entr{}".format(user, len(params.get("ids")), ["y", "ies"][len(params.get("ids")) > 1])
+                 },
+    "logs.delete_all": {"perms": {"write", "superuser"},
+                 "logs": lambda user, params: "{} cleared all logs".format(user)
                  },
     "accounts.get": {"perms": {"usernames", "read"},
                      "logs": lambda user, params: "{} requested {} account details".format(user, params.get("username", "all"))
