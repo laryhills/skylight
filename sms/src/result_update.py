@@ -23,14 +23,14 @@ uniben_logo_path = 'file:///' + os.path.join(os.path.split(base_dir)[0], 'templa
 def get(mat_no, raw_score=False, to_print=False):
     result_stmt = result_statement.get(mat_no, 0)
 
-    no_of_pages = len(result_stmt['results']) + 1
     name = result_stmt['name'].replace(',', '')
     depat = capwords(result_stmt['depat'])
     dob = result_stmt['dob']
     mod = ['PUTME', 'DE(200)', 'DE(300)'][result_stmt['mode_of_entry'] - 1]
     entry_session = result_stmt['entry_session']
     grad_session = result_stmt['grad_session']
-    results = multisort(result_stmt['results'])
+    results = multisort(remove_empty(result_stmt['results']))
+    no_of_pages = len(results) + 1
     credits = result_stmt['credits']
     gpas, level_credits = get_gpa_credits(mat_no)
     gpas = list(map(lambda x: x if x else 0, gpas))
@@ -122,4 +122,19 @@ def multisort(results):
                 fails = sorted(fails, key=lambda x: x[1])
                 fails = sorted(fails, key=lambda x: x[1][3])
                 results[session][semester].extend(fails)
+    return results
+
+
+def remove_empty(results):
+    """
+    This function is to remove result records which contain only "unusual results", that is, no course registration
+
+    :param results:
+    :return:
+    """
+    for index, result in enumerate(results):
+        if not (result['first_sem'] and result['second_sem']):
+            results[index] = []
+    while [] in results:
+        results.remove([])
     return results
