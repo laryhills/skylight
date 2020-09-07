@@ -329,10 +329,7 @@ fn_props.update({
                  "logs": lambda user, params: "{} requested logs".format(user)
                  },
     "logs.delete": {"perms": {"write", "superuser"},
-                 "logs": lambda user, params: "{} deleted {} log entr{}".format(user, len(params.get("ids")), ["y", "ies"][len(params.get("ids")) > 1])
-                 },
-    "logs.delete_all": {"perms": {"write", "superuser"},
-                 "logs": lambda user, params: "{} cleared all logs".format(user)
+                 "logs": lambda user, params: "{} cleared {} logs".format(user, len(params.get("ids")) if params.get("ids") else "all")
                  },
     "accounts.get": {"perms": {"usernames", "read"},
                      "logs": lambda user, params: "{} requested {} account details".format(user, params.get("username", "all"))
