@@ -63,10 +63,10 @@ def post(data, superuser=False):
     return post_course_reg(data)
 
 
-@access_decorator
-def put(data):
-    print('Elevated course_reg write access granted')
-    return post_course_reg(data)
+# @access_decorator
+# def put(data):
+#     print('Elevated course_reg write access granted')
+#     return post_course_reg(data)
 
 
 @access_decorator
