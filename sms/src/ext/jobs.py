@@ -8,7 +8,7 @@ from apscheduler.schedulers import SchedulerAlreadyRunningError
 from apscheduler.triggers.cron import CronTrigger
 from apscheduler.triggers.interval import IntervalTrigger
 
-from backups import backup_databases
+from sms.src.backups import backup_databases
 from sms.src.users import log
 from sms.config import CACHE_BASE_DIR
 
