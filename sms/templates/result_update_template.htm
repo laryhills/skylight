@@ -492,7 +492,9 @@ ul
                 </td>
                 <td class={{ 'Base' if index % 2 else 'Base1' }} width=10% style='border-top:none;border-left:none;'>
                 <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-          text-align:center;line-height:normal'><span>{% if raw_score %} {{ res[4] }} {% endif %}</span></p>
+          text-align:center;line-height:normal'>
+                    <span>{% if raw_score %} {{ res[4] if res[4] != -1 else '-'}} {% endif %}</span>
+                </p>
                 </td>
                 <td class={{ 'Base' if index % 2 else 'Base1' }} width=10% style='border-top:none;border-left:none;'>
                 <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
@@ -688,7 +690,7 @@ ul
 
     <table width=20% style="border-collapse:collapse">
         <thead>
-            <td class="Base" style="text-align: center;padding: 2pt 0pt 2pt 3pt">
+            <td class="Base" style="text-align: center;padding: 3pt 0pt 3pt 0pt">
                 <p class=MsoNormal style="margin-bottom: 0pt"><b>
                     1970/71 to 1980/81<br/>
                     <span>and</span>
@@ -698,32 +700,32 @@ ul
         </thead>
         <tbody style="margin-bottom:1pt">
             <tr>
-                <td class="Base" style="border-bottom:none;border-top:none;padding: 2pt 0pt 1pt 3pt">
+                <td class="Base" style="border-bottom:none;border-top:none;padding: 3pt 0pt 1pt 5pt">
                     <p class=MsoNormal align="left" style="margin-bottom:0pt;"><b>A:</b> &nbsp;70% - 100%</p>
                 </td>
             </tr>
             <tr>
-                <td class="Base" style="border-bottom:none;border-top:none;padding: 1pt 0pt 1pt 3pt">
+                <td class="Base" style="border-bottom:none;border-top:none;padding: 1pt 0pt 1pt 5pt">
                     <p class=MsoNormal align="left" style="margin-bottom:0pt;"><b>B:</b> &nbsp;60% - 69%</p>
                 </td>
             </tr>
             <tr>
-                <td class="Base" style="border-bottom:none;border-top:none;padding: 1pt 0pt 1pt 3pt">
+                <td class="Base" style="border-bottom:none;border-top:none;padding: 1pt 0pt 1pt 5pt">
                     <p class=MsoNormal align="left" style="margin-bottom:0pt;"><b>C:</b> &nbsp;50% - 59%</p>
                 </td>
             </tr>
             <tr>
-                <td class="Base" style="border-bottom:none;border-top:none;padding: 1pt 0pt 1pt 3pt">
+                <td class="Base" style="border-bottom:none;border-top:none;padding: 1pt 0pt 1pt 5pt">
                     <p class=MsoNormal align="left" style="margin-bottom:0pt;"><b>D:</b> &nbsp;45% - 49%</p>
                 </td>
             </tr>
             <tr>
-                <td class="Base" style="border-bottom:none;border-top:none;padding: 1pt 0pt 1pt 3pt">
+                <td class="Base" style="border-bottom:none;border-top:none;padding: 1pt 0pt 1pt 5pt">
                     <p class=MsoNormal align="left" style="margin-bottom:0pt;"><b>E:</b> &nbsp;40% - 44%</p>
                 </td>
             </tr>
             <tr>
-                <td class="Base" style="border-top:none;padding: 1pt 0pt 2pt 3pt">
+                <td class="Base" style="border-top:none;padding: 1pt 0pt 3pt 5pt">
                     <p class=MsoNormal align="left" style="margin-bottom:0pt;"><b>F:</b> &nbsp;&nbsp;&nbsp;0% - 39%</p>
                 </td>
             </tr>
