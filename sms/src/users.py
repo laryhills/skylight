@@ -308,9 +308,6 @@ fn_props.update({
     "course_reg.post": {"perms": {"levels", "write"},
                         "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
                         },
-    "course_reg.put": {"perms": {"superuser", "write"},
-                       "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
-                       },
     "course_reg.delete": {"perms": {"levels", "write"},
                           "logs": lambda user, params: "{} deleted {}/{} course registration entry for {}".format(user, params.get("acad_session"), params.get("acad_session")+1, params.get("mat_no"))
                           },
@@ -320,9 +317,6 @@ fn_props.update({
     "results.post": {"perms": {"levels", "write", "result_edit"},
                      "logs": lambda user, params: "{} added {} result entries:-\n{}".format(user, len(params.get("data")), dict_render(params))
                      },
-    "results.put": {"perms": {"superuser", "write"},
-                    "logs": lambda user, params: "{} added {} result entries:-\n{}".format(user, len(params.get("data")), dict_render(params))
-                    },
     "results.set_resultedit": {"perms": {"superuser", "write"},
                                "logs": lambda user, params: "{} {} result edit mode".format(user, ['closed', 'opened'][bool(params.get('state'))])
                                },
