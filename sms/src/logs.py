@@ -21,7 +21,11 @@ def get(limit=5, offset=0):
 
 
 @access_decorator
-def delete(ids):
+def delete(ids=[]):
+    if not ids:
+        Logs.query.delete()
+        db.session.commit()
+        return None, 200
     logs = []
     for _id in ids:
         logs.append(Logs.query.filter_by(id=_id).first())
@@ -29,13 +33,5 @@ def delete(ids):
         for log in logs:
             db.session.delete(log)
         db.session.commit()
-    else:
-        return None, 404
-    return None, 200
-
-
-@access_decorator
-def delete_all():
-    Logs.query.delete()
-    db.session.commit()
-    return None, 200
+        return None, 200
+    return None, 404
