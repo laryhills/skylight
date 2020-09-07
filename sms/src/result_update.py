@@ -1,8 +1,8 @@
 import os
-import secrets
+import time
 import pdfkit
 import imgkit
-import time
+import secrets
 import threading
 import concurrent.futures
 from string import capwords
@@ -10,11 +10,10 @@ from zipfile import ZipFile, ZIP_DEFLATED
 from flask import render_template, send_from_directory
 
 from sms.src import result_statement
-from sms.config import app, CACHE_BASE_DIR
+from sms.config import app as current_app, CACHE_BASE_DIR
 from sms.src.users import access_decorator
 from sms.src.ext.html_parser import split_html
-from sms.src.utils import get_gpa_credits, get_level_weightings
-
+from sms.src.utils import get_gpa_credits, get_level_weightings, get_carryovers
 
 base_dir = os.path.dirname(__file__)
 uniben_logo_path = 'file:///' + os.path.join(os.path.split(base_dir)[0], 'templates', 'static', 'Uniben_logo.png')
@@ -39,13 +38,20 @@ def get(mat_no, raw_score=False, to_print=False):
     level_weightings = get_level_weightings(result_stmt['mode_of_entry'])
     weighted_gpas = list(map(lambda x, y: round(x * y, 4), gpas, level_weightings))
 
-    with app.app_context():
-        html = render_template('result_update_template.htm', uniben_logo_path=uniben_logo_path,
+    owed_courses = get_carryovers(mat_no, retJSON=False)
+    owed_courses = owed_courses['first_sem'] + owed_courses['second_sem']
+    gpa_check = [''] * 5
+    for course in owed_courses:
+        index = course[2] // 100 - 1
+        gpa_check[index] = '*'
+
+    with current_app.app_context():
+        html = render_template('result_update_template.htm', uniben_logo_path=uniben_logo_path, any=any,
                                no_of_pages=no_of_pages, mat_no=mat_no, name=name, depat=depat, dob=dob,
                                mode_of_entry=mod, entry_session=entry_session, grad_session=grad_session,
                                results=results, credits=credits, gpas=gpas, level_weightings=level_weightings,
                                weighted_gpas=weighted_gpas, enumerate=enumerate, raw_score=raw_score,
-                               level_credits=level_credits)
+                               level_credits=level_credits, gpa_check=gpa_check)
 
     def generate_img(args):
         i, page = args
@@ -96,7 +102,7 @@ def get(mat_no, raw_score=False, to_print=False):
         print(f'{len(htmls)} images generated and archived in {time.time() - start_time} seconds')
         resp = send_from_directory(CACHE_BASE_DIR, file_name + '.zip', as_attachment=True)
 
-    return resp
+    return resp, 200
 
 
 def multisort(results):

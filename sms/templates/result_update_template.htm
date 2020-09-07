@@ -609,203 +609,73 @@ ul
   text-align:center;line-height:normal'><b><span>WEIGTHED GPA</span></b></p>
                 </td>
             </tr>
+            {% for index in range(5) %}
+            {% set level = (index + 1) * 100 %}
             <tr>
-                <td width=20% style='border:solid 1.0pt;border-top:
+                <td width=20% style='border:solid 1.0pt;border-top:none;background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
+                    <p class=MsoNormal style='margin-bottom:.0001pt;text-align:center;
+                    line-height:normal'><b><span>{{ level }} Level</span></b></p>
+                </td>
+                <td width=20% style='border-top:none;border-left:none;border-bottom:solid 1.0pt;
+                border-right:solid 1.0pt;background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
+                    <p class=MsoNormal style='margin-right:40%;margin-bottom:.0001pt;text-align:right;
+                    line-height:normal'><span>{{ level_credits[index] }}</span></p>
+                </td>
+                <td width=20% style='border-top:none;border-left:none;border-bottom:solid 1.0pt;
+                border-right:solid 1.0pt;background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
+                    <p class=MsoNormal style='margin-left:30%;margin-bottom:.0001pt;text-align:left;
+                    line-height:normal'><span>{{ gpa_check[index] if gpa_check[index] else '&nbsp;' | safe }}
+                        {{ gpas[index] }}</span></p>
+                </td>
+                <td width=20% style='border-top:none;border-left:none;border-bottom:solid 1.0pt;
+                border-right:solid 1.0pt;background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
+                    <p class=MsoNormal style='margin-left:35%;margin-bottom:.0001pt;text-align:left;
+                    line-height:normal'><span>{{ level_weightings[index] }}</span></p>
+                </td>
+                <td width=20% style='border-top:none;border-left:none;border-bottom:solid 1.0pt;
+                border-right:solid 1.0pt;background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
+                    <p class=MsoNormal style='margin-left:30%;margin-bottom:.0001pt;text-align:left;
+                    line-height:normal'><span>{{ gpa_check[index] if gpa_check[index] else '&nbsp;' | safe }}
+                        {{ weighted_gpas[index] }}</span></p>
+                </td>
+            </tr>
+            {% endfor %}
+            <tr>
+                <td width=20% style='border:solid 1.0pt;border-top:none;padding:0in 5.4pt 0in 5.4pt'>
+                    <p class=MsoNormal style='margin-bottom:.0001pt;text-align:center;
+                    line-height:normal'><b><span>Overall</span></b></p>
+                </td>
+                <td width=20% style='border-top:none;border-left:none;border-bottom:solid 1.0pt;
+                border-right:solid 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+                    <p class=MsoNormal style='margin-right:40%;margin-bottom:.0001pt;text-align:right;
+                    line-height:normal'><span>{{ level_credits|sum }}</span></p>
+                </td>
+                <td width=20% style='border-top:none;border-left:none;border-bottom:solid 1.0pt;
+                border-right:solid 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+                    <p class=MsoNormal style='margin-left:30%;margin-bottom:.0001pt;text-align:left;
+                    line-height:normal'><span>&nbsp;</span></p>
+                </td>
+                <td width=20% style='border-top:none;border-left:none;border-bottom:solid 1.0pt;
+                border-right:solid 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+                    <p class=MsoNormal style='margin-left:35%;margin-bottom:.0001pt;text-align:left;
+                    line-height:normal'><span>1</span></p>
+                </td>
+                <td width=20% style='border-top:none;border-left:none;border-bottom:solid 1.0pt;
+                border-right:solid 1.0pt;padding:0in 5.4pt 0in 5.4pt'>
+                    <p class=MsoNormal style='margin-left:30%;margin-bottom:.0001pt;text-align:left;
+                    line-height:normal'><span>&nbsp;&nbsp;{{ weighted_gpas|sum|round(4) }}</span></p>
+                </td>
+            </tr>
+            <tr>
+                <td width=20% style ='border:solid 1.0pt;border-top:
   none;background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><b><span>100 Level</span></b></p>
+                    <p class=MsoNormal style='margin-bottom:.0001pt;text-align:center;line-height:normal'>
+                        <b><span>Remark</span></b></p>
                 </td>
-                <td width=20% style='border-top:none;border-left:none;
-  border-bottom:solid 1.0pt;border-right:solid 1.0pt;
-  background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span>{{ level_credits[0] }}</span></p>
-                </td>
-                <td width=20% style='border-top:none;border-left:none;
-  border-bottom:solid 1.0pt;border-right:solid 1.0pt;
-  background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span>{{ gpas[0] }}</span></p>
-                </td>
-                <td width=20% style='border-top:none;border-left:none;
-  border-bottom:solid 1.0pt;border-right:solid 1.0pt;
-  background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span>{{ level_weightings[0] }}</span></p>
-                </td>
-                <td width=20% style='border-top:none;border-left:none;
-  border-bottom:solid 1.0pt;border-right:solid 1.0pt;
-  background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span>{{ weighted_gpas[0] }}</span></p>
-                </td>
-            </tr>
-            <tr>
-                <td width=20% style='border:solid 1.0pt;border-top:
-  none;padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><b><span>200 Level</span></b></p>
-                </td>
-                <td width=20% style='border-top:none;border-left:none;
-  border-bottom:solid 1.0pt;border-right:solid 1.0pt;
-  padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span>{{ level_credits[1] }}</span></p>
-                </td>
-                <td width=20% style='border-top:none;border-left:none;
-  border-bottom:solid 1.0pt;border-right:solid 1.0pt;
-  padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span>{{ gpas[1] }}</span></p>
-                </td>
-                <td width=20% style='border-top:none;border-left:none;
-  border-bottom:solid 1.0pt;border-right:solid 1.0pt;
-  padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span>{{ level_weightings[1] }}</span></p>
-                </td>
-                <td width=20% style='border-top:none;border-left:none;
-  border-bottom:solid 1.0pt;border-right:solid 1.0pt;
-  padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span>{{ weighted_gpas[1] }}</span></p>
-                </td>
-            </tr>
-            <tr>
-                <td width=20% style='border:solid 1.0pt;border-top:
-  none;background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><b><span>300 Level</span></b></p>
-                </td>
-                <td width=20% style='border-top:none;border-left:none;
-  border-bottom:solid 1.0pt;border-right:solid 1.0pt;
-  background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span>{{ level_credits[2] }}</span></p>
-                </td>
-                <td width=20% style='border-top:none;border-left:none;
-  border-bottom:solid 1.0pt;border-right:solid 1.0pt;
-  background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span>{{ gpas[2] }}</span></p>
-                </td>
-                <td width=20% style='border-top:none;border-left:none;
-  border-bottom:solid 1.0pt;border-right:solid 1.0pt;
-  background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span>{{ level_weightings[2] }}</span></p>
-                </td>
-                <td width=20% style='border-top:none;border-left:none;
-  border-bottom:solid 1.0pt;border-right:solid 1.0pt;
-  background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span>{{ weighted_gpas[2] }}</span></p>
-                </td>
-            </tr>
-            <tr>
-                <td width=20% style='border:solid 1.0pt;border-top:
-  none;padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><b><span>400 Level</span></b></p>
-                </td>
-                <td width=20% style='border-top:none;border-left:none;
-  border-bottom:solid 1.0pt;border-right:solid 1.0pt;
-  padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span>{{ level_credits[3] }}</span></p>
-                </td>
-                <td width=20% style='border-top:none;border-left:none;
-  border-bottom:solid 1.0pt;border-right:solid 1.0pt;
-  padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span>{{ gpas[3] }}</span></p>
-                </td>
-                <td width=20% style='border-top:none;border-left:none;
-  border-bottom:solid 1.0pt;border-right:solid 1.0pt;
-  padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span>{{ level_weightings[3] }}</span></p>
-                </td>
-                <td width=20% style='border-top:none;border-left:none;
-  border-bottom:solid 1.0pt;border-right:solid 1.0pt;
-  padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span>{{ weighted_gpas[3] }}</span></p>
-                </td>
-            </tr>
-            <tr>
-                <td width=20% style='border:solid 1.0pt;border-top:
-  none;background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><b><span>500 Level</span></b></p>
-                </td>
-                <td width=20% style='border-top:none;border-left:none;
-  border-bottom:solid 1.0pt;border-right:solid 1.0pt;
-  background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span>{{ level_credits[4] }}</span></p>
-                </td>
-                <td width=20% style='border-top:none;border-left:none;
-  border-bottom:solid 1.0pt;border-right:solid 1.0pt;
-  background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span>{{ gpas[4] }}</span></p>
-                </td>
-                <td width=20% style='border-top:none;border-left:none;
-  border-bottom:solid 1.0pt;border-right:solid 1.0pt;
-  background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span>{{ level_weightings[4] }}</span></p>
-                </td>
-                <td width=20% style='border-top:none;border-left:none;
-  border-bottom:solid 1.0pt;border-right:solid 1.0pt;
-  background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span>{{ weighted_gpas[4] }}</span></p>
-                </td>
-            </tr>
-            <tr>
-                <td width=20% style='border:solid 1.0pt;border-top:
-  none;padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><b><span>Overall</span></b></p>
-                </td>
-                <td width=20% style='border-top:none;border-left:none;
-  border-bottom:solid 1.0pt;border-right:solid 1.0pt;
-  padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span>{{ level_credits|sum }}</span></p>
-                </td>
-                <td width=20% style='border-top:none;border-left:none;
-  border-bottom:solid 1.0pt;border-right:solid 1.0pt;
-  padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span>&nbsp;</span></p>
-                </td>
-                <td width=20% style='border-top:none;border-left:none;
-  border-bottom:solid 1.0pt;border-right:solid 1.0pt;
-  padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span>1</span></p>
-                </td>
-                <td width=20% style='border-top:none;border-left:none;
-  border-bottom:solid 1.0pt;border-right:solid 1.0pt;
-  padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span>{{ weighted_gpas|sum|round(4) }}</span></p>
-                </td>
-            </tr>
-            <tr>
-                <td width=20% style='border:solid 1.0pt;border-top:
-  none;background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><b><span>Remark</span></b></p>
-                </td>
-                <td width=481 colspan=4 style='width:360.7pt;border-top:none;border-left:
-  none;border-bottom:solid 1.0pt;border-right:solid 1.0pt;
-  background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
-                    <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-  text-align:center;line-height:normal'><span>&nbsp;</span></p>
+                <td width=80% colspan=4 style='width:360.7pt;border-top:none;border-left:none;
+                border-bottom:solid 1.0pt;border-right:solid 1.0pt;background:#F2F2F2;padding:0in 5.4pt 0in 5.4pt'>
+                    <p class=MsoNormal style='margin-bottom:.0001pt;text-align:center;line-height:normal'>
+                        <span>&nbsp;</span></p>
                 </td>
             </tr>
         </table>
@@ -816,44 +686,54 @@ ul
 
     <p class=MsoNormal style='line-height:normal'><b><span>Note:</span></b></p>
 
-    <table width=25% style="border-collapse:collapse">
-        <tr>
-            <td class="Base">
-                <p class=MsoNormal align="left" style="margin-bottom:0pt;"><b>1970/71 to 1980/81<br/>and<br/>1991/92 to Date</b></p>
+    <table width=20% style="border-collapse:collapse">
+        <thead>
+            <td class="Base" style="text-align: center;padding: 2pt 0pt 2pt 3pt">
+                <p class=MsoNormal style="margin-bottom: 0pt"><b>
+                    1970/71 to 1980/81<br/>
+                    <span>and</span>
+                    <br/>1991/92 to Date
+                </b></p>
             </td>
-        </tr>
-        <tr>
-            <td class="Base" style="border-bottom:none;border-top:none">
-                <p class=MsoNormal align="left" style="margin-bottom:0pt;">A: 70%-100%</p>
-            </td>
-        </tr>
-        <tr>
-            <td class="Base" style="border-bottom:none;border-top:none">
-                <p class=MsoNormal align="left" style="margin-bottom:0pt;">B: 60%-69%</p>
-            </td>
-        </tr>
-        <tr>
-            <td class="Base" style="border-bottom:none;border-top:none">
-                <p class=MsoNormal align="left" style="margin-bottom:0pt;">C: 50%-59%</p>
-            </td>
-        </tr>
-        <tr>
-            <td class="Base" style="border-bottom:none;border-top:none">
-                <p class=MsoNormal align="left" style="margin-bottom:0pt;">D: 45%-49%</p>
-            </td>
-        </tr>
-        <tr>
-            <td class="Base" style="border-bottom:none;border-top:none">
-                <p class=MsoNormal align="left" style="margin-bottom:0pt;">E: 40%-44%</p>
-            </td>
-        </tr>
-        <tr>
-            <td class="Base" style="border-top:none">
-                <p class=MsoNormal align="left" style="margin-bottom:0pt;">F: 0%-39%</p>
-            </td>
-        </tr>
+        </thead>
+        <tbody style="margin-bottom:1pt">
+            <tr>
+                <td class="Base" style="border-bottom:none;border-top:none;padding: 2pt 0pt 1pt 3pt">
+                    <p class=MsoNormal align="left" style="margin-bottom:0pt;"><b>A:</b> &nbsp;70% - 100%</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="Base" style="border-bottom:none;border-top:none;padding: 1pt 0pt 1pt 3pt">
+                    <p class=MsoNormal align="left" style="margin-bottom:0pt;"><b>B:</b> &nbsp;60% - 69%</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="Base" style="border-bottom:none;border-top:none;padding: 1pt 0pt 1pt 3pt">
+                    <p class=MsoNormal align="left" style="margin-bottom:0pt;"><b>C:</b> &nbsp;50% - 59%</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="Base" style="border-bottom:none;border-top:none;padding: 1pt 0pt 1pt 3pt">
+                    <p class=MsoNormal align="left" style="margin-bottom:0pt;"><b>D:</b> &nbsp;45% - 49%</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="Base" style="border-bottom:none;border-top:none;padding: 1pt 0pt 1pt 3pt">
+                    <p class=MsoNormal align="left" style="margin-bottom:0pt;"><b>E:</b> &nbsp;40% - 44%</p>
+                </td>
+            </tr>
+            <tr>
+                <td class="Base" style="border-top:none;padding: 1pt 0pt 2pt 3pt">
+                    <p class=MsoNormal align="left" style="margin-bottom:0pt;"><b>F:</b> &nbsp;&nbsp;&nbsp;0% - 39%</p>
+                </td>
+            </tr>
+        </tbody>
     </table>
-
+{% if any(gpa_check) %}
+    <p style="border-bottom: none; border-left: none; border-right: none; padding-top: 0.04cm; padding-bottom: 0cm;
+     padding-left: 0cm;padding-right: 0cm;font-family:Calibri,sans-serif;font-size: 9pt">
+        <i>* GPA not inclusive of owed courses</i></p>
+{% endif %}
 </div>
 
 </body>
