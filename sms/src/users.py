@@ -110,7 +110,8 @@ def access_decorator(func):
         if "result_edit" in req_perms:
             superuser = user_perms.get("superuser", False)
             result_edit = bool(Props.query.filter_by(key="ResultEdit").first().valueint)
-            has_access &= (result_edit or superuser)
+            if not (result_edit or superuser):
+                return "result edit mode not open", 401
             req_perms.remove("result_edit")
         for perm in req_perms:
             has_access &= bool(user_perms.get(perm))
