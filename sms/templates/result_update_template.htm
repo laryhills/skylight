@@ -187,7 +187,12 @@ ul
 
     <p class=MsoNormal style='line-height:normal;text-align: right;margin-bottom:0pt;'><i><span>{{ name }}</span></i></p>
 
-    <p class=MsoNormal style='line-height:normal'><b><u><span>{{ results[0]['level'] }} LEVEL {{ '{}/{}'.format(results[0]['session'], results[0]['session'] + 1) }} SESSION</span></u></b></p>
+    {% set level = results[0]['level'] %}
+    <p class=MsoNormal style='line-height:normal'><b><u>
+        <span>{{ level if level < 500 else 500 }} LEVEL
+            {{ '{}/{}'.format(results[0]['session'], results[0]['session'] + 1) }} SESSION
+        </span></u></b>
+    </p>
 
     <p class=MsoNormal style='line-height:normal'><b><i><span>First Semester</span></i></b></p>
 
@@ -235,7 +240,8 @@ ul
                 </td>
                 <td class={{ 'Base' if index % 2 else 'Base1' }} width=10% style='border-top:none;border-left:none;'>
                 <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-    text-align:center;line-height:normal'><span>{% if raw_score %} {{ res[4] }} {% endif %}</span></p>
+    text-align:center;line-height:normal'>
+                    <span>{% if raw_score %} {{ res[4] if res[4] != -1 else '-' }} {% endif %}</span></p>
                 </td>
                 <td class={{ 'Base' if index % 2 else 'Base1' }} width=10% style='border-top:none;border-left:none;'>
                 <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
@@ -296,7 +302,8 @@ ul
                 </td>
                 <td class={{ 'Base' if index % 2 else 'Base1' }} width=10% style='border-top:none;border-left:none;'>
                 <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-      text-align:center;line-height:normal'><span>{% if raw_score %} {{ res[4] }} {% endif %}</span></p>
+      text-align:center;line-height:normal'>
+                    <span>{% if raw_score %} {{ res[4] if res[4] != -1 else '-' }} {% endif %}</span></p>
                 </td>
                 <td class={{ 'Base' if index % 2 else 'Base1' }} width=10% style='border-top:none;border-left:none;'>
                 <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
@@ -383,7 +390,12 @@ ul
 <div class=WordSection{{ num }} style="page-break-before:always">
     <p class=MsoNormal style='line-height:normal;text-align: right;margin-bottom:0pt;'><i><span>{{ name }}</span></i></p>
 
-    <p class=MsoNormal style='line-height:normal'><b><u><span>{{ results[num]['level'] }} LEVEL {{ '{}/{}'.format(results[num]['session'], results[num]['session'] + 1) }} SESSION</span></u></b></p>
+   {% set level = results[num]['level'] %}
+    <p class=MsoNormal style='line-height:normal'><b><u>
+        <span>{{ level if level < 500 else 500 }} LEVEL
+            {{ '{}/{}'.format(results[num]['session'], results[num]['session'] + 1) }} SESSION
+        </span></u></b>
+    </p>
 
     <p class=MsoNormal style='line-height:normal'><b><i><span>First Semester</span></i></b></p>
 
@@ -431,7 +443,8 @@ ul
                 </td>
                 <td class={{ 'Base' if index % 2 else 'Base1' }} width=10% style='border-top:none;border-left:none;'>
                 <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
-        text-align:center;line-height:normal'><span>{% if raw_score %} {{ res[4] }} {% endif %}</span></p>
+        text-align:center;line-height:normal'>
+                    <span>{% if raw_score %} {{ res[4] if res[4] != -1 else '-' }} {% endif %}</span></p>
                 </td>
                 <td class={{ 'Base' if index % 2 else 'Base1' }} width=10% style='border-top:none;border-left:none;'>
                 <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
@@ -493,7 +506,7 @@ ul
                 <td class={{ 'Base' if index % 2 else 'Base1' }} width=10% style='border-top:none;border-left:none;'>
                 <p class=MsoNormal align=center style='margin-bottom:0in;margin-bottom:.0001pt;
           text-align:center;line-height:normal'>
-                    <span>{% if raw_score %} {{ res[4] if res[4] != -1 else '-'}} {% endif %}</span>
+                    <span>{% if raw_score %} {{ res[4] if res[4] != -1 else '-' }} {% endif %}</span>
                 </p>
                 </td>
                 <td class={{ 'Base' if index % 2 else 'Base1' }} width=10% style='border-top:none;border-left:none;'>
