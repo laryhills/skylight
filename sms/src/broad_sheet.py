@@ -77,7 +77,7 @@ def get(acad_session, level=None, first_sem_only=False, raw_score=False, to_prin
 
     print('===>> total generation done in', perf_counter() - start)
     resp = send_from_directory(os.path.join(CACHE_BASE_DIR, file_dir), zip_file_name, as_attachment=True)
-    return resp
+    return resp, 200
 
 
 def collect_renders_in_zip(file_dir, zip_file_name, file_format):
