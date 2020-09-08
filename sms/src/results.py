@@ -277,7 +277,6 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
         if is_unusual and grade == 'ABS':
             error_log.append('Unregistered course {} with grade "ABS" cannot be added for {}'.format(course_code, mat_no))
             print(Fore.RED, '[WARNING]: ', error_log[-1], Style.RESET_ALL)
-            # add error log entry on how Unregistered course {} with grade "ABS" cannot be added.format(course_code)
             return error_log, 200
 
         table_to_populate = get_table_to_populate(course_registration, res_poll)
@@ -323,6 +322,8 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
     res_record = result_xxx_schema.load(result_record)
     db_session = result_xxx_schema.Meta.sqla_session
     db_session.add(res_record)
+    if grade == 'ABS':
+        delete_if_empty(res_record, result_record, db_session)
     db_session.commit()
     db_session.close()
 
@@ -380,6 +381,14 @@ def update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_leve
     db_session.commit()
     db_session.close()
     return '', 200
+
+
+def delete_if_empty(res_record, result_record, db_session):
+    retval = strip_res_poll_item(result_record)
+    regulars_exist = any([res for res in retval[0] if retval[0][res] and retval[0][res] != '-1,ABS'])
+    # check carryovers, unusual results and regular courses in this order for any course
+    if not (retval[4] or retval[5] or regulars_exist):
+        db_session.delete(res_record)
 
 
 # =========================================================================================
@@ -520,15 +529,10 @@ def split_courses_by_semester(course_list, semester_value_index):
 
 
 def refine_res_poll_item(res_poll_item):
-    [res_poll_item.pop(key) for key in ['mat_no', 'session']]
-    category = res_poll_item.pop('category')
-    tcp = res_poll_item.pop('tcp')
-    level_written = res_poll_item.pop('level')
-    carryovers = utils.serialize_carryovers(res_poll_item.pop('carryovers'))
-    unusual_results = utils.serialize_carryovers(res_poll_item.pop('unusual_results'))
+    stripped_res_poll, category, tcp, level_written, carryovers, unusual_results = strip_res_poll_item(res_poll_item)
 
     # flatten the result dictionary
-    regular_courses = [[crse_code] + res_poll_item[crse_code].split(',') for crse_code in res_poll_item if res_poll_item[crse_code]]
+    regular_courses = [[crse_code] + stripped_res_poll[crse_code].split(',') for crse_code in stripped_res_poll if stripped_res_poll[crse_code]]
     regular_courses.extend(carryovers)
 
     # enrich the course lists
@@ -551,3 +555,14 @@ def refine_res_poll_item(res_poll_item):
         'unusual_results': unusual_results
     }
     return results, level_written, tcp, category
+
+
+def strip_res_poll_item(res_poll_item):
+    res_poll_item = res_poll_item.copy()
+    [res_poll_item.pop(key) for key in ['mat_no', 'session']]
+    category = res_poll_item.pop('category')
+    tcp = res_poll_item.pop('tcp')
+    level_written = res_poll_item.pop('level')
+    carryovers = utils.serialize_carryovers(res_poll_item.pop('carryovers'))
+    unusual_results = utils.serialize_carryovers(res_poll_item.pop('unusual_results'))
+    return res_poll_item, category, tcp, level_written, carryovers, unusual_results
