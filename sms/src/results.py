@@ -60,14 +60,6 @@ def post(data, superuser=False):
     return add_result_records(list_of_results, level)
 
 
-@access_decorator
-def delete(mat_no, acad_session, superuser=False):
-    current_session = utils.get_current_session
-    if not superuser and acad_session != current_session:
-        return 'You do not have authorization to delete results outside the current session', 401
-    return delete_result_entry()
-
-
 # ==============================================================================================
 #                                  Core functions
 # ==============================================================================================
@@ -388,10 +380,6 @@ def update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_leve
     db_session.commit()
     db_session.close()
     return '', 200
-
-
-def delete_result_entry():
-    pass
 
 
 # =========================================================================================
