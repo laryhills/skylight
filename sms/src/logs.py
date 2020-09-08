@@ -21,7 +21,7 @@ def get(limit=5, offset=0):
 
 
 @access_decorator
-def delete(ids=[]):
+def delete(ids=()):
     if not ids:
         Logs.query.delete()
         db.session.commit()
