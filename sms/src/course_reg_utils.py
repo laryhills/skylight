@@ -1,5 +1,5 @@
 from sms.src import personal_info, course_details
-from sms.src.utils import get_carryovers, get_depat
+from sms.src.utils import get_carryovers, get_depat, multisort
 
 
 def process_personal_info(mat_no):

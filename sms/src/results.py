@@ -93,9 +93,9 @@ def get_results_for_acad_session(mat_no, acad_session, return_empty=False):
     else:
         return 'No result available for entered session', 404
 
-    regular_courses = split_courses_by_semester(multisort(result['regular_courses']), 4)
-    carryovers = split_courses_by_semester(multisort(result['carryovers']), 4)
-    unusual_results = split_courses_by_semester(multisort(result['unusual_results']), 4)
+    regular_courses = split_courses_by_semester(utils.multisort(result['regular_courses']), 4)
+    carryovers = split_courses_by_semester(utils.multisort(result['carryovers']), 4)
+    unusual_results = split_courses_by_semester(utils.multisort(result['unusual_results']), 4)
 
     frame = {'mat_no': mat_no,
              'table': table_to_populate,
@@ -133,9 +133,9 @@ def get_results_for_level(mat_no, level_written, return_empty=False):
         else:
             continue
 
-        regular_courses = split_courses_by_semester(multisort(result['regular_courses']), 4)
-        carryovers = split_courses_by_semester(multisort(result['carryovers']), 4)
-        unusual_results = split_courses_by_semester(multisort(result['unusual_results']), 4)
+        regular_courses = split_courses_by_semester(utils.multisort(result['regular_courses']), 4)
+        carryovers = split_courses_by_semester(utils.multisort(result['carryovers']), 4)
+        unusual_results = split_courses_by_semester(utils.multisort(result['unusual_results']), 4)
 
         frame = {'mat_no': mat_no,
                  'table': table,
@@ -387,12 +387,6 @@ def delete_result_entry():
 # =========================================================================================
 #                                   Utility functions
 # =========================================================================================
-
-def multisort(iters):
-    iters = sorted(iters, key=lambda x: x[0])
-    iters = sorted(iters, key=lambda x: x[0][3])
-    return iters
-
 
 def get_table_to_populate(session_course_reg, full_res_poll):
     level_written = session_course_reg['course_reg_level']

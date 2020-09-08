@@ -533,3 +533,8 @@ def multiprocessing_wrapper(func, iterable, context, use_workers=True, max_worke
         with ProcessPoolExecutor(max_workers=max_workers) as executor:
             [executor.submit(func, item, *context) for item in iterable]
 
+
+def multisort(iters):
+    iters = sorted(iters, key=lambda x: x[0])
+    iters = sorted(iters, key=lambda x: x[0][3])
+    return iters
