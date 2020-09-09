@@ -275,6 +275,9 @@ fn_props.update({
     "personal_info.patch": {"perms": {"levels", "write"},
                             "logs": lambda user, params: "{} modified personal details for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
                         },
+    "personal_info.delete": {"perms": {"superuser", "write"},
+                            "logs": lambda user, params: "{} deleted student record for {}".format(user, params.get("mat_no"))
+                        },
     "course_details.post": {"perms": {"superuser", "write"},
                             "logs": lambda user, params: "{} added course {}:-\n{}".format(user, params.get("course_code"), dict_render(params))
                         },
