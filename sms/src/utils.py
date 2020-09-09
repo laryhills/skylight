@@ -28,6 +28,16 @@ def get_depat(form='long'):
     return 'MECHANICAL ENGINEERING'
 
 
+def get_session_from_level(entry_session, level):
+    # TODO: Make this calculation session independent
+    return entry_session + level // 100 - 1
+
+
+def get_entry_session_from_level(session, level):
+    # TODO: Make this calculation session independent
+    return session - level // 100 + 1
+
+
 def get_credits(mat_no, mode_of_entry=None, session=None):
     """
     For a given `mat_no` and `mode_of_entry`, it returns a list of all the total credits for each level
