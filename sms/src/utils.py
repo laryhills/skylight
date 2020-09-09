@@ -157,11 +157,15 @@ def get_carryovers(mat_no, level=None, retJSON=True):
 
     carryovers = {"first_sem":[],"second_sem":[]}
     for failed_course in first_sem:
-        credit = course_details.get(failed_course)["course_credit"]
-        carryovers["first_sem"].append([failed_course, str(credit)])
+        course_dets = course_details.get(failed_course)
+        credit = course_dets["course_credit"]
+        course_lvl = course_dets["course_level"]
+        carryovers["first_sem"].append([failed_course, str(credit), course_lvl])
     for failed_course in second_sem:
-        credit = course_details.get(failed_course)["course_credit"]
-        carryovers["second_sem"].append([failed_course, str(credit)])
+        course_dets = course_details.get(failed_course)
+        credit = course_dets["course_credit"]
+        course_lvl = course_dets["course_level"]
+        carryovers["second_sem"].append([failed_course, str(credit), course_lvl])
     if retJSON:
         return dumps(carryovers)
     return carryovers
@@ -529,3 +533,8 @@ def multiprocessing_wrapper(func, iterable, context, use_workers=True, max_worke
         with ProcessPoolExecutor(max_workers=max_workers) as executor:
             [executor.submit(func, item, *context) for item in iterable]
 
+
+def multisort(iters):
+    iters = sorted(iters, key=lambda x: x[0])
+    iters = sorted(iters, key=lambda x: x[0][3])
+    return iters

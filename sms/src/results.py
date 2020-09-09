@@ -5,9 +5,8 @@ well as updating gpa record of the student
 
 ******** IMPORTANT NOTICE ********
 
-* Unusual results are results for courses written but not registered
-     by the student for the session
-* Roses are red!
+* Unusual results are results for courses written but not registered by the student for the session
+* To delete a result entry, post the result as normal but with score = -1
 
 """
 import os.path
@@ -61,14 +60,6 @@ def post(data, superuser=False):
     return add_result_records(list_of_results, level)
 
 
-@access_decorator
-def delete(mat_no, acad_session, superuser=False):
-    current_session = utils.get_current_session
-    if not superuser and acad_session != current_session:
-        return 'You do not have authorization to delete results outside the current session', 401
-    return delete_result_entry()
-
-
 # ==============================================================================================
 #                                  Core functions
 # ==============================================================================================
@@ -93,9 +84,9 @@ def get_results_for_acad_session(mat_no, acad_session, return_empty=False):
     else:
         return 'No result available for entered session', 404
 
-    regular_courses = split_courses_by_semester(multisort(result['regular_courses']), 4)
-    carryovers = split_courses_by_semester(multisort(result['carryovers']), 4)
-    unusual_results = split_courses_by_semester(multisort(result['unusual_results']), 4)
+    regular_courses = split_courses_by_semester(utils.multisort(result['regular_courses']), 4)
+    carryovers = split_courses_by_semester(utils.multisort(result['carryovers']), 4)
+    unusual_results = split_courses_by_semester(utils.multisort(result['unusual_results']), 4)
 
     frame = {'mat_no': mat_no,
              'table': table_to_populate,
@@ -133,9 +124,9 @@ def get_results_for_level(mat_no, level_written, return_empty=False):
         else:
             continue
 
-        regular_courses = split_courses_by_semester(multisort(result['regular_courses']), 4)
-        carryovers = split_courses_by_semester(multisort(result['carryovers']), 4)
-        unusual_results = split_courses_by_semester(multisort(result['unusual_results']), 4)
+        regular_courses = split_courses_by_semester(utils.multisort(result['regular_courses']), 4)
+        carryovers = split_courses_by_semester(utils.multisort(result['carryovers']), 4)
+        unusual_results = split_courses_by_semester(utils.multisort(result['unusual_results']), 4)
 
         frame = {'mat_no': mat_no,
                  'table': table,
@@ -183,7 +174,7 @@ def add_result_records(list_of_results, level=None):
         error_log.extend(errors)
 
     result_errors_file.close()
-    print(Fore.CYAN, '\n ====>>  ', '{} result entries added with {} errors'.format(
+    print(Fore.CYAN, '====>>  ', '{} result entries added with {} errors'.format(
         len(list_of_results), len(error_log)), Style.RESET_ALL)
 
     return error_log, 200
@@ -216,7 +207,7 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
             print(Fore.RED, '[WARNING]: ', error_log[-1], Style.RESET_ALL)
             return error_log, 403
 
-    if not (0 <= score <= 100):
+    if not (-1 <= score <= 100):
         error_text = "Unexpected value for score, '{}', for {} at index {}; " \
                      "result not added".format(score, mat_no, index)
         result_errors_file.writelines(str(result_details) + '  error: ' + error_text + '\n')
@@ -275,7 +266,7 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
     result_record, table_to_populate = utils.get_result_at_acad_session(session_taken, res_poll)
 
     try:
-        result_xxx_schema = eval('session.{}Schema()'.format(table_to_populate))
+        result_xxx_schema = getattr(session, table_to_populate + 'Schema')()
     except AttributeError:
         # table_to_populate is empty, this would be redefined
         pass
@@ -283,6 +274,11 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
         return '{} table does not exist'.format(table_to_populate), 403
 
     if not result_record:
+        if is_unusual and grade == 'ABS':
+            error_log.append('Unregistered course {} with grade "ABS" cannot be added for {}'.format(course_code, mat_no))
+            print(Fore.RED, '[WARNING]: ', error_log[-1], Style.RESET_ALL)
+            return error_log, 200
+
         table_to_populate = get_table_to_populate(course_registration, res_poll)
         result_xxx_schema = eval('session.{}Schema()'.format(table_to_populate))
         params = mat_no, session_taken, courses_registered, result_xxx_schema, level_written
@@ -297,7 +293,7 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
         unusual_results = result_record['unusual_results'].split(',')
         index = [ind for ind, x in enumerate(unusual_results) if x.split(' ')[0] == course_code]
         if index: unusual_results.pop(index[0])
-        if is_unusual: unusual_results.append('{} {} {}'.format(course_code, score, grade))
+        if is_unusual and grade != "ABS": unusual_results.append('{} {} {}'.format(course_code, score, grade))
         while '' in unusual_results: unusual_results.remove('')
         result_record['unusual_results'] = ','.join(unusual_results)
     if not is_unusual:
@@ -312,28 +308,33 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
             result_record['carryovers'] = ','.join(carryovers)
 
     # get the session category
-    owed_courses_exist = check_owed_courses_exists(mat_no, level_written, course_dets) if not is_unusual else True
+    owed_courses_exist = check_owed_courses_exists(mat_no, level_written, grade, course_dets) if not is_unusual else True
     if not courses_registered:
         tcr, tcp = 0, 0
     else:
         if grade not in ['F', 'ABS'] and previous_grade in ['F', 'ABS', ''] and not is_unusual:
             result_record['tcp'] += course_credit
+        elif grade in ['F', 'ABS'] and previous_grade not in ['F', 'ABS', ''] and not is_unusual:
+            result_record['tcp'] -= course_credit
         tcr, tcp = course_registration['tcr'], result_record['tcp']
     result_record['category'] = utils.compute_category(mat_no, level_written, session_taken, tcr, tcp, owed_courses_exist)
 
     res_record = result_xxx_schema.load(result_record)
     db_session = result_xxx_schema.Meta.sqla_session
     db_session.add(res_record)
+    if grade == 'ABS':
+        delete_if_empty(res_record, result_record, db_session)
     db_session.commit()
     db_session.close()
 
+    status = 400
     if not is_unusual:
         # update GPA - Credits table
         error, status = update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_level)
         if status != 200:
-            return error, status
+            error_log.append(error)
 
-    return error_log, 400
+    return error_log, status
 
 
 def update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_level):
@@ -353,11 +354,13 @@ def update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_leve
         # ensure to get the right value irrespective of the size of the list (PUTME vs DE students)
         level_credits = creds[index + (len(creds) - 5)]
         grading_point_rule = utils.get_grading_point(utils.get_DB(mat_no))
-        grading_point = int(grading_point_rule[grade])
+        grading_point = int(grading_point_rule[grade]) if grade != 'ABS' else 0
         grading_point_old = int(grading_point_rule[previous_grade]) if previous_grade else 0
 
         level_gpa = level_gpa + ((course_credit * (grading_point - grading_point_old)) / level_credits)
-        level_credits_passed += course_credit
+
+        sign_multiplier = (grading_point - grading_point_old) // abs(grading_point - grading_point_old)
+        level_credits_passed += course_credit * sign_multiplier
 
     gpa_credits[index] = (round(level_gpa, 4), level_credits_passed)
     cgpa = 0
@@ -368,7 +371,7 @@ def update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_leve
     for idx in range(1, len(weights)+1):
         cgpa += weights[-idx] * gpa_credits[-idx][0] if gpa_credits[-idx] and gpa_credits[-idx][0] else 0
 
-    gpa_record = {'mat_no': mat_no, 'cgpa': cgpa}
+    gpa_record = {'mat_no': mat_no, 'cgpa': round(cgpa, 4)}
     for key, idx in [('level{}00'.format(lev+1), lev) for lev in range(5)]:
         gpa_record.update({key: ','.join(list(map(str, gpa_credits[idx]))) if gpa_credits[idx][0] else None})
 
@@ -380,19 +383,17 @@ def update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_leve
     return '', 200
 
 
-def delete_result_entry():
-    pass
+def delete_if_empty(res_record, result_record, db_session):
+    retval = strip_res_poll_item(result_record)
+    regulars_exist = any([res for res in retval[0] if retval[0][res] and retval[0][res] != '-1,ABS'])
+    # check carryovers, unusual results and regular courses in this order for any course
+    if not (retval[4] or retval[5] or regulars_exist):
+        db_session.delete(res_record)
 
 
 # =========================================================================================
 #                                   Utility functions
 # =========================================================================================
-
-def multisort(iters):
-    iters = sorted(iters, key=lambda x: x[0])
-    iters = sorted(iters, key=lambda x: x[0][3])
-    return iters
-
 
 def get_table_to_populate(session_course_reg, full_res_poll):
     level_written = session_course_reg['course_reg_level']
@@ -454,7 +455,7 @@ def get_previous_grade_and_log_changes(result_details, result_record, is_unusual
         elif course_code in result_record['unusual_results']:
             unusual_results = result_record['unusual_results'].split(',')
             previous_score = [x.split(' ')[1] for x in unusual_results if x.split(' ')[0] == course_code][0]
-            previous_grade = ''
+            previous_grade = ''  # the grade for unusual result should not be supplied as they contribute nothing
 
         if previous_score not in ['-1', score]:
             print(Fore.CYAN, '[INFO]   overwriting previous {} result of {} for the {}/{} session: '
@@ -465,7 +466,7 @@ def get_previous_grade_and_log_changes(result_details, result_record, is_unusual
     return ''
 
 
-def check_owed_courses_exists(mat_no, level_written, course_dets):
+def check_owed_courses_exists(mat_no, level_written, grade, course_dets):
     if level_written >= 500:
         # we search for carryovers with param level=900 to bypass get_carryovers ignoring unregistered
         # 500 level courses when the when the student's level is 500
@@ -475,7 +476,7 @@ def check_owed_courses_exists(mat_no, level_written, course_dets):
         if course_code in owed_courses[course_semester - 1]:
             owed_courses[course_semester - 1].pop(course_code)
 
-        if not owed_courses[0] and not owed_courses[1]:
+        if not owed_courses[0] and not owed_courses[1] and grade not in ['F', 'ABS']:
             return False
     return True
 
@@ -528,15 +529,10 @@ def split_courses_by_semester(course_list, semester_value_index):
 
 
 def refine_res_poll_item(res_poll_item):
-    [res_poll_item.pop(key) for key in ['mat_no', 'session']]
-    category = res_poll_item.pop('category')
-    tcp = res_poll_item.pop('tcp')
-    level_written = res_poll_item.pop('level')
-    carryovers = utils.serialize_carryovers(res_poll_item.pop('carryovers'))
-    unusual_results = utils.serialize_carryovers(res_poll_item.pop('unusual_results'))
+    stripped_res_poll, category, tcp, level_written, carryovers, unusual_results = strip_res_poll_item(res_poll_item)
 
     # flatten the result dictionary
-    regular_courses = [[crse_code] + res_poll_item[crse_code].split(',') for crse_code in res_poll_item if res_poll_item[crse_code]]
+    regular_courses = [[crse_code] + stripped_res_poll[crse_code].split(',') for crse_code in stripped_res_poll if stripped_res_poll[crse_code]]
     regular_courses.extend(carryovers)
 
     # enrich the course lists
@@ -559,3 +555,14 @@ def refine_res_poll_item(res_poll_item):
         'unusual_results': unusual_results
     }
     return results, level_written, tcp, category
+
+
+def strip_res_poll_item(res_poll_item):
+    res_poll_item = res_poll_item.copy()
+    [res_poll_item.pop(key) for key in ['mat_no', 'session']]
+    category = res_poll_item.pop('category')
+    tcp = res_poll_item.pop('tcp')
+    level_written = res_poll_item.pop('level')
+    carryovers = utils.serialize_carryovers(res_poll_item.pop('carryovers'))
+    unusual_results = utils.serialize_carryovers(res_poll_item.pop('unusual_results'))
+    return res_poll_item, category, tcp, level_written, carryovers, unusual_results

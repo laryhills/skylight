@@ -1,5 +1,5 @@
 from sms.src import personal_info, course_details
-from sms.src.utils import get_carryovers, get_depat
+from sms.src.utils import get_carryovers, get_depat, multisort
 
 
 def process_personal_info(mat_no):
@@ -137,6 +137,10 @@ def sum_credits_many(*args, index_for_credits=None):
     return tot_many
 
 
-def multisort(iters):
-    iters = sorted(iters, key=lambda x: x[0])
-    return sorted(iters, key=lambda x: x[0][3])
+def get_optional_courses(level=None):
+    level_courses = course_details.get_all(level=level, options=True)
+    first_sem_options = multisort([(x['course_code'], x['course_credit'], x['options']) for x in level_courses if
+                                   x['course_semester'] == 1 and x['options'] == 1])
+    second_sem_options = multisort([(x['course_code'], x['course_credit'], x['options']) for x in level_courses if
+                                    x['course_semester'] == 2 and x['options'] == 2])
+    return first_sem_options, second_sem_options

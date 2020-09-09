@@ -15,11 +15,11 @@ from sms.config import app as current_app
 
 from sms.config import CACHE_BASE_DIR
 from sms.src import course_details
-from sms.src.course_reg_utils import process_personal_info
-from sms.src.results import get_results_for_acad_session, multisort, get_results_for_level
+from sms.src.course_reg_utils import process_personal_info, get_optional_courses
+from sms.src.results import get_results_for_acad_session, get_results_for_level
 from sms.src.script import get_students_by_level
 from sms.src.users import access_decorator
-from sms.src.utils import multiprocessing_wrapper, compute_degree_class, get_cgpa, dictify, \
+from sms.src.utils import multiprocessing_wrapper, compute_degree_class, get_cgpa, dictify, multisort, \
     get_current_session, get_registered_courses, get_level
 
 init()  # initialize colorama
@@ -77,7 +77,7 @@ def get(acad_session, level=None, first_sem_only=False, raw_score=False, to_prin
 
     print('===>> total generation done in', perf_counter() - start)
     resp = send_from_directory(os.path.join(CACHE_BASE_DIR, file_dir), zip_file_name, as_attachment=True)
-    return resp
+    return resp, 200
 
 
 def collect_renders_in_zip(file_dir, zip_file_name, file_format):
@@ -106,11 +106,7 @@ def render_html(item, acad_session, index_to_display, file_dir, first_sem_only=F
                                     x['course_semester'] == 2])
 
     # get optional courses
-    level_courses = course_details.get_all(level=level, options=True)
-    first_sem_options = multisort([(x['course_code'], x['course_credit'], x['options']) for x in level_courses if
-                                   x['course_semester'] == 1 and x['options'] == 1])
-    second_sem_options = multisort([(x['course_code'], x['course_credit'], x['options']) for x in level_courses if
-                                    x['course_semester'] == 2 and x['options'] == 2])
+    first_sem_options, second_sem_options = get_optional_courses(level)
 
     courses = {
         'first_sem': dictify(first_sem_courses + first_sem_options),

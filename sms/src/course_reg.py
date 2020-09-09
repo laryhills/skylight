@@ -146,10 +146,10 @@ def init_new_course_reg(mat_no, acad_session, table_to_populate, current_level, 
                         'course_reg_session': acad_session,
                         'course_reg_level': current_level,
                         'max_credits': level_max_credits,
-                        'courses': {'first_sem': course_reg_utils.multisort(first_sem_carryover_courses),
-                                    'second_sem': course_reg_utils.multisort(second_sem_carryover_courses)},
-                        'choices': {'first_sem': course_reg_utils.multisort(first_sem_choices),
-                                    'second_sem': course_reg_utils.multisort(second_sem_choices)},
+                        'courses': {'first_sem': utils.multisort(first_sem_carryover_courses),
+                                    'second_sem': utils.multisort(second_sem_carryover_courses)},
+                        'choices': {'first_sem': utils.multisort(first_sem_choices),
+                                    'second_sem': utils.multisort(second_sem_choices)},
                         'probation_status': probation_status,
                         'fees_status': 0,
                         'others': ''}
@@ -176,8 +176,8 @@ def get_existing_course_reg(mat_no, acad_session, course_reg=None, s_personal_in
                         'course_reg_session': course_reg['course_reg_session'],
                         'course_reg_level': course_reg['course_reg_level'],
                         'max_credits': '',
-                        'courses': {'first_sem': course_reg_utils.multisort(courses[0]),
-                                    'second_sem': course_reg_utils.multisort(courses[1])},
+                        'courses': {'first_sem': utils.multisort(courses[0]),
+                                    'second_sem': utils.multisort(courses[1])},
                         'choices': {'first_sem': [],
                                     'second_sem': []},
                         'probation_status': course_reg['probation'],
@@ -187,12 +187,17 @@ def get_existing_course_reg(mat_no, acad_session, course_reg=None, s_personal_in
 
 
 def post_course_reg(data):
+    level_options = course_reg_utils.get_optional_courses(data['course_reg_level'])
+    level_options = utils.dictify(level_options[0] + level_options[1])
+    person_options = []
     courses = []
     tcr = [0, 0]
     for idx, sem in enumerate(['first_sem', 'second_sem']):
         for course_obj in data['courses'][sem]:
             courses.append(course_obj[0])
             tcr[idx] += course_obj[2]
+            if course_obj[0] in level_options:
+                person_options.append(course_obj[0])
     courses = sorted(courses)
     mat_no = data['mat_no']
     table_to_populate = data['table_to_populate']
@@ -205,8 +210,8 @@ def post_course_reg(data):
         return 'Student not found in database', 403
 
     try:
-        course_reg_xxx_schema = eval('session.{}Schema()'.format(table_to_populate))
-    except ImportError:
+        course_reg_xxx_schema = getattr(session, table_to_populate + 'Schema')()
+    except AttributeError:
         return '{} table does not exist'.format(table_to_populate), 403
 
     table_columns = course_reg_xxx_schema.load_fields.keys()
@@ -227,8 +232,13 @@ def post_course_reg(data):
     registration['others'] = data['others']
 
     course_registration = course_reg_xxx_schema.load(registration)
-    # db_session = scoped_session(sessionmaker(bind=db.get_engine(app, db_name.replace("_", "-"))))
     db_session = course_reg_xxx_schema.Meta.sqla_session
+
+    if person_options:
+        person = session.PersonalInfo.query.filter_by(mat_no=mat_no).first()
+        person.option = ','.join(person_options)
+        db_session.add(person)
+
     db_session.add(course_registration)
     db_session.commit()
     db_session.close()
