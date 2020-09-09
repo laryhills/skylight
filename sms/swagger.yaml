@@ -168,6 +168,26 @@ paths:
         440:
           description: Session expired, login again
 
+    delete:
+      tags: [Personal Information]
+      operationId: sms.src.personal_info.delete
+      summary: Delete Student
+      description: Delete all student's record
+      parameters:
+        - name: mat_no
+          in: query
+          type: string
+          required: true
+      responses:
+        200:
+          description: Student successfully deleted
+        404:
+          description: Mat no does not exist
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+
   /course_details:
     get:
       tags: [Course Details]
