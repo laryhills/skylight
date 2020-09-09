@@ -164,7 +164,7 @@ def get_100_to_400(entry_session, level):
     pdfkit.from_string(html, os.path.join(CACHE_BASE_DIR, file_name), options=options)
     print(f'Senate version generated in {time.time() - start_time} seconds')
 
-    return send_from_directory(CACHE_BASE_DIR, file_name, as_attachment=True)
+    return send_from_directory(CACHE_BASE_DIR, file_name, as_attachment=True), 200
 
 
 def get_500(entry_session):
@@ -286,7 +286,7 @@ def get_500(entry_session):
     pdfkit.from_string(html, os.path.join(CACHE_BASE_DIR, file_name), options=options)
     print(f'Senate version generated in {time.time() - start_time} seconds')
 
-    return send_from_directory(CACHE_BASE_DIR, file_name, as_attachment=True)
+    return send_from_directory(CACHE_BASE_DIR, file_name, as_attachment=True), 200
 
 
 @access_decorator

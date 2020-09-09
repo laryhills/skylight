@@ -50,4 +50,4 @@ def get(level):
     entry_session = get_current_session() - int(level / 100) + 1
     students = get_students_by_level(entry_session, level, retDB=True)
     student_details = get_students_details(students, entry_session)
-    return student_details
+    return student_details, 200
