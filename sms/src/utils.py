@@ -3,7 +3,7 @@ from json import loads, dumps
 from sms.src import personal_info, course_details, result_statement, users
 from sms import config
 from sms.models.courses import Options, OptionsSchema
-from sms.models.master import Category, Category500
+from sms.models.master import Category, Category500, Props
 
 '''
 Handle frequently called or single use simple utility functions
@@ -62,10 +62,10 @@ def get_credits(mat_no, mode_of_entry=None, session=None):
 
 
 def get_maximum_credits_for_course_reg():
-    # todo: get this from db
-
-    return {'normal': 50,
-            'clause_of_51': 51}
+    normal = Props.query.filter_by(key="MaxRegCredits").first().valueint
+    clause_of_51 = Props.query.filter_by(key="CondMaxRegCredits500").first().valueint
+    return {'normal': normal,
+            'clause_of_51': clause_of_51}
 
 
 def get_courses(mat_no, mode_of_entry=None):
@@ -168,11 +168,15 @@ def get_carryovers(mat_no, level=None, current=False, retJSON=True):
 
     carryovers = {"first_sem":[],"second_sem":[]}
     for failed_course in first_sem:
-        credit = course_details.get(failed_course)["course_credit"]
-        carryovers["first_sem"].append([failed_course, str(credit)])
+        course_dets = course_details.get(failed_course)
+        credit = course_dets["course_credit"]
+        course_lvl = course_dets["course_level"]
+        carryovers["first_sem"].append([failed_course, str(credit), course_lvl])
     for failed_course in second_sem:
-        credit = course_details.get(failed_course)["course_credit"]
-        carryovers["second_sem"].append([failed_course, str(credit)])
+        course_dets = course_details.get(failed_course)
+        credit = course_dets["course_credit"]
+        course_lvl = course_dets["course_level"]
+        carryovers["second_sem"].append([failed_course, str(credit), course_lvl])
     if retJSON:
         return dumps(carryovers)
     return carryovers
@@ -540,3 +544,8 @@ def multiprocessing_wrapper(func, iterable, context, use_workers=True, max_worke
         with ProcessPoolExecutor(max_workers=max_workers) as executor:
             [executor.submit(func, item, *context) for item in iterable]
 
+
+def multisort(iters):
+    iters = sorted(iters, key=lambda x: x[0])
+    iters = sorted(iters, key=lambda x: x[0][3])
+    return iters

@@ -96,7 +96,8 @@ def test_log():
 
 def test_load_session():
     session = users.load_session("2015_2016")
-    assert session.__file__ == db_path.replace("database", "models/_2015_2016.py")
+    model_path = os.path.join(os.path.dirname(db_path), "models", "_2015_2016.py")
+    assert session.__file__ == model_path
 
 
 def test_get_DB():

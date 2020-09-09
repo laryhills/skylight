@@ -3,12 +3,13 @@ from hashlib import md5
 from base64 import b64encode
 from json import loads, dumps
 from flask import abort, request
+from itsdangerous.exc import BadSignature
+from itsdangerous import JSONWebSignatureSerializer as Serializer
+
 from sms.models.user import User
 from sms.models.logs import LogsSchema
-from itsdangerous.exc import BadSignature
-from sms.models.master import Master, MasterSchema
+from sms.models.master import Master, MasterSchema, Props
 from sms.config import app, bcrypt, add_token, get_token, remove_token, db
-from itsdangerous import JSONWebSignatureSerializer as Serializer
 
 
 fn_props = {
@@ -59,6 +60,16 @@ def detokenize(token, parse=True, s=serializer):
         return None
 
 
+def backup_counter():
+    query = Props.query.filter_by(key="DBWriteCounter").first()
+    query.valueint = query.valueint + 1
+    db.session.commit()
+    if int(query.valueint) % 50 == 0:
+        from sms.src.backups import backup_databases
+        print("Begin backups")
+        backup_databases()
+
+
 def access_decorator(func):
     qual_name = func.__module__.split('.')[-1] + "." + func.__name__
 
@@ -76,9 +87,12 @@ def access_decorator(func):
             return None, 440
         user_perms = token_dict["perms"]
         print("your perms", user_perms)
+        params = get_kwargs(func, args, kwargs)
+        if params.get("superuser"):
+            if not user_perms.get("superuser"):
+                return None, 401
         has_access = True
         if "levels" in req_perms:
-            params = get_kwargs(func, args, kwargs)
             level = params.get("level") or params.get("data", {}).get("level")
             mat_no = params.get("mat_no") or params.get("data", {}).get("mat_no")
             if mat_no and not level:
@@ -93,12 +107,21 @@ def access_decorator(func):
             has_access |= mat_no in mat_nos
             has_access |= superuser
             req_perms.remove("levels")
+        if "result_edit" in req_perms:
+            superuser = user_perms.get("superuser", False)
+            result_edit = bool(Props.query.filter_by(key="ResultEdit").first().valueint)
+            if not (result_edit or superuser):
+                return "result edit mode not open", 401
+            req_perms.remove("result_edit")
         for perm in req_perms:
             has_access &= bool(user_perms.get(perm))
         if has_access:
-            if not get_token("TESTING_token"):
+            if "write" in req_perms and not get_token("TESTING_token"):
+                backup_counter()
+            (output, ret_code) = func(*args, **kwargs)
+            if (ret_code == 200) and not get_token("TESTING_token"):
                 log(token_dict["user"], qual_name, func, args, kwargs)
-            return func(*args, **kwargs)
+            return (output, ret_code)
         else:
             return None, 401
     return inner1
@@ -113,7 +136,6 @@ def accounts_decorator(func):
             token = request.headers["token"]
         except Exception:
             print("Running from command line or swagger UI, token not supplied!")
-            print("func", func, "args", args, "kwargs", kwargs)
             token = tokenize("ucheigbeka:testing")
             # abort(401)
         req_perms, token_dict = fn_props[qual_name]["perms"].copy(), get_token("TESTING_token") or get_token(token)
@@ -122,9 +144,12 @@ def accounts_decorator(func):
             return None, 440
         user_perms = token_dict["perms"]
         print ("your perms", user_perms)
+        params = get_kwargs(func, args, kwargs)
+        if params.get("superuser"):
+            if not user_perms.get("superuser"):
+                return None, 401
         has_access = True
         if "usernames" in req_perms:
-            params = get_kwargs(func, args, kwargs)
             username = params.get("username") or params.get("data",{}).get("username")
             has_access = False
             usernames = user_perms.get("usernames", [])
@@ -135,9 +160,12 @@ def accounts_decorator(func):
         for perm in req_perms:
             has_access &= bool(user_perms.get(perm))
         if has_access:
-            if not get_token("TESTING_token"):
+            if "write" in req_perms and not get_token("TESTING_token"):
+                backup_counter()
+            (output, ret_code) = func(*args, **kwargs)
+            if (ret_code == 200) and not get_token("TESTING_token"):
                 log(token_dict["user"], qual_name, func, args, kwargs)
-            return func(*args, **kwargs)
+            return (output, ret_code)
         else:
             return None, 401
     return inner1
@@ -145,7 +173,7 @@ def accounts_decorator(func):
 
 def log(user, qual_name, func, args, kwargs):
     params = get_kwargs(func, args, kwargs)
-    print ("log msg => " + fn_props[qual_name]["logs"](user, params))
+    print("log msg => " + fn_props[qual_name]["logs"](user, params))
     log_data = {"timestamp": int(time()), "operation": qual_name, "user": user, "params": dumps(params)}
     log_record = LogsSchema().load(log_data)
     db.session.add(log_record)
@@ -239,21 +267,18 @@ login(my_token)
 # Function mapping to perms and logs
 fn_props.update({
     "personal_info.get_exp": {"perms": {"levels", "read"},
-                          "logs": lambda user, params: "{} requested personal details of {}".format(user, params.get("mat_no"))
+                              "logs": lambda user, params: "{} requested personal details of {}".format(user, params.get("mat_no"))
                         },
     "personal_info.post_exp": {"perms": {"levels", "write"},
-                           "logs": lambda user, params: "{} added personal details for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
-                        },
-    "personal_info.put": {"perms": {"superuser", "write"},
-                          "logs": lambda user, params: "{} modified personal details of {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
+                              "logs": lambda user, params: "{} added personal details for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
                         },
     "personal_info.patch": {"perms": {"levels", "write"},
-                           "logs": lambda user, params: "{} managed personal details for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
+                            "logs": lambda user, params: "{} modified personal details for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
                         },
     "course_details.post": {"perms": {"superuser", "write"},
                             "logs": lambda user, params: "{} added course {}:-\n{}".format(user, params.get("course_code"), dict_render(params))
                         },
-    "course_details.put": {"perms": {"superuser", "write"},
+    "course_details.patch": {"perms": {"superuser", "write"},
                            "logs": lambda user, params: "{} updated courses:-\n{}".format(user, dict_render(params))
                         },
     "course_details.delete": {"perms": {"superuser", "write"},
@@ -265,6 +290,15 @@ fn_props.update({
     "course_form.get": {"perms": {"levels", "read"},
                         "logs": lambda user, params: "{} requested course form for {}".format(user, params.get("mat_no"))
                         },
+    "broad_sheet.get": {"perms": {"superuser", "read"},
+                        "logs": lambda user, params: "{} requested broad-sheets for the {} session".format(user, params.get('acad_session'))
+                        },
+    "senate_version.get": {"perms": {"superuser", "read"},
+                           "logs": lambda user, params: "{} requested senate version for the {} session".format(user,params.get('acad_session'))
+                           },
+    "gpa_cards.get": {"perms": {"levels", "read"},
+                      "logs": lambda user, params: "{} requested {} level gpa card".format(user, params.get('level'))
+                      },
     "course_reg.get": {"perms": {"levels", "read"},
                            "logs": lambda user, params: "{} queried course registration for {}".format(user, params.get("mat_no"))
                         },
@@ -274,18 +308,18 @@ fn_props.update({
     "course_reg.post": {"perms": {"levels", "write"},
                         "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
                         },
-    "course_reg.put": {"perms": {"superuser", "write"},
-                       "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
-                       },
+    "course_reg.delete": {"perms": {"levels", "write"},
+                          "logs": lambda user, params: "{} deleted {}/{} course registration entry for {}".format(user, params.get("acad_session"), params.get("acad_session")+1, params.get("mat_no"))
+                          },
     "results.get": {"perms": {"levels", "read"},
                     "logs": lambda user, params: "{} queried results for {}".format(user, params.get("mat_no"))
                     },
-    "results.post": {"perms": {"levels", "write"},
+    "results.post": {"perms": {"levels", "write", "result_edit"},
                      "logs": lambda user, params: "{} added {} result entries:-\n{}".format(user, len(params.get("data")), dict_render(params))
                      },
-    "results.put": {"perms": {"superuser", "write"},
-                    "logs": lambda user, params: "{} added {} result entries:-\n{}".format(user, len(params.get("data")), dict_render(params))
-                    },
+    "results.set_resultedit": {"perms": {"superuser", "write"},
+                               "logs": lambda user, params: "{} {} result edit mode".format(user, ['closed', 'opened'][bool(params.get('state'))])
+                               },
     "results.get_result_details": {"perms": {"levels", "read"},
                                    "logs": lambda user, params: "{} queried result details for {}".format(user, params.get("mat_no"))
                                    },
@@ -298,34 +332,21 @@ fn_props.update({
     "logs.get": {"perms": {"read"},
                  "logs": lambda user, params: "{} requested logs".format(user)
                  },
+    "logs.delete": {"perms": {"write", "superuser"},
+                 "logs": lambda user, params: "{} cleared {} logs".format(user, len(params.get("ids")) if params.get("ids") else "all")
+                 },
     "accounts.get": {"perms": {"usernames", "read"},
                      "logs": lambda user, params: "{} requested {} account details".format(user, params.get("username", "all"))
                  },
     "accounts.post": {"perms": {"superuser", "write"},
                       "logs": lambda user, params: "{} added a new account with username {}".format(user, params.get("data").get("username"))
                      },
-    "accounts.put": {"perms": {"superuser", "write"},
+    "accounts.patch": {"perms": {"usernames", "write"},
                      "logs": lambda user, params: "{} modified {}'s account".format(user, params.get("data").get("username"))
-                     },
-    "accounts.manage": {"perms": {"usernames", "write"},
-                     "logs": lambda user, params: "{} managed {}'s account".format(user, params.get("data").get("username"))
                      },
     "accounts.delete": {"perms": {"superuser", "write"},
                         "logs": lambda user, params: "{} deleted an account with username {}".format(user, params.get("username"))
                      },
-    "broad_sheet.get": {"perms": {"superuser", "read"},
-                        "logs": lambda user, params: "{} requested broad-sheets for the {} session".format(
-                            user, params.get('acad_session'))
-                        },
-    "senate_version.get": {"perms": {"superuser", "read"},
-                           "logs": lambda user, params: "{} requested senate version for the {} session".format(user, params.get('acad_session'))
-                     },
-    "gpa_cards.get": {"perms": {"levels", "read"},
-                      "logs": lambda user, params: "{} requested {} level gpa card".format(user, params.get('level'))
-                     },
-    "grading_rules.get": {"perms": {"levels", "read"},
-                          "logs": lambda user, params: "{} requested for the grading rules for the {} academic session".format(user, params.get('acad_session'))
-                         },
     "backups.get": {"perms": {"usernames", "read"},
                     "logs": lambda user, params: "{} requested list of backups".format(user)
                     },
@@ -342,4 +363,7 @@ fn_props.update({
     "backups.delete": {"perms": {"superuser", "read"},
                        "logs": lambda user, params: '{} deleted backup "{}"'.format(user, params.get("backup_name"))
                        },
+    "grading_rules.get": {"perms": {"levels", "read"},
+                          "logs": lambda user, params: "{} requested for the grading rules for the {} academic session".format(user, params.get('acad_session'))
+                          },
 })

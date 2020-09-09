@@ -469,6 +469,12 @@ class PersonalInfoSchema(ma.ModelSchema):
         sqla_session = session
 
 
+class SymLinkSchema(ma.ModelSchema):
+    class Meta:
+        model = SymLink
+        sqla_session = session
+
+
 class Result100Schema(ma.ModelSchema):
     class Meta:
         model = Result100

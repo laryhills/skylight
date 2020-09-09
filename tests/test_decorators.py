@@ -45,6 +45,8 @@ perms_list = [
 
 ]
 
+#TODO add result_post decorator test inc props result_edit test
+#TODO add personal_info patch decorator tests
 
 def test_personal_info_get():
     # Levels & read perms
@@ -62,8 +64,7 @@ def test_personal_info_get():
 def test_personal_info_post():
     # Levels & write perms
     dummy_access_fn.__module__ = "personal_info"
-    dummy_access_fn.__name__ = "post_exp" \
-                               ""
+    dummy_access_fn.__name__ = "post_exp"
     student_data = {"mat_no": "ENG1603123", "level": 400}
     for perms in perms_list:
         config.add_token("TESTING_token", username, perms)
@@ -92,7 +93,7 @@ def test_course_details_post():
 def test_course_details_put():
     # Superuser and write perms
     dummy_access_fn.__module__ = "course_details"
-    dummy_access_fn.__name__ = "put"
+    dummy_access_fn.__name__ = "patch"
     for perms in perms_list:
         config.add_token("TESTING_token", username, perms)
         if perms.get("write") and perms.get("superuser"):
@@ -287,21 +288,21 @@ def test_accounts_post():
 def test_accounts_put():
     # superuser and write perms
     dummy_accounts_fn.__module__ = "accounts"
-    dummy_accounts_fn.__name__ = "put"
+    dummy_accounts_fn.__name__ = "patch"
     for perms in perms_list:
         config.add_token("TESTING_token", username, perms)
         if perms.get("write") and perms.get("superuser"):
             has_access = 200
         else:
             has_access = 401
-        output, ret_code = accounts_decorator(dummy_accounts_fn)(data={"username":username})
+        output, ret_code = accounts_decorator(dummy_accounts_fn)(data={"username":username}, superuser=True)
         assert has_access == ret_code
 
 
 def test_accounts_manage_self():
     # usernames and write perms
     dummy_accounts_fn.__module__ = "accounts"
-    dummy_accounts_fn.__name__ = "manage"
+    dummy_accounts_fn.__name__ = "patch"
     for perms in perms_list:
         config.add_token("TESTING_token", username, perms)
         if perms.get("write") and ( perms.get("superuser") or username in perms.get("usernames", []) ):
@@ -315,7 +316,7 @@ def test_accounts_manage_self():
 def test_accounts_manage_other():
     # usernames and write perms
     dummy_accounts_fn.__module__ = "accounts"
-    dummy_accounts_fn.__name__ = "manage"
+    dummy_accounts_fn.__name__ = "patch"
     for perms in perms_list:
         config.add_token("TESTING_token", username, perms)
         if perms.get("write") and ( perms.get("superuser") or "lordfme" in perms.get("usernames", []) ):

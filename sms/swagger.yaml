@@ -75,12 +75,24 @@ paths:
           schema:
             type: string
 
+  /current_session:
+    get:
+      tags: [Props]
+      operationId: sms.config.get_current_session
+      summary: Current Academic Session
+      description: Get the current academic session
+      responses:
+        200:
+          description: Returns the current academic session
+          schema:
+            type: integer
+
   /personal_info:
     get:
       tags: [Personal Information]
       operationId: sms.src.personal_info.get_exp
-      summary: Personal_info query
-      description: Gets a student or a group of students bio data
+      summary: Get Personal Info
+      description: Gets a student's bio data
       parameters:
         - name: mat_no
           in: query
@@ -100,6 +112,8 @@ paths:
 
     post:
       tags: [Personal Information]
+      summary: Initial Personal Info Entry
+      description: Create student's personal information record
       operationId: sms.src.personal_info.post_exp
       parameters:
         - name: data
@@ -107,6 +121,29 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/PersonalInfo'
+      responses:
+        200:
+          description: Record successfully added
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+
+    patch:
+      tags: [Personal Information]
+      summary: PersonalInfo Edit
+      description: Edit student's personal information
+      operationId: sms.src.personal_info.patch
+      parameters:
+        - name: data
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/PersonalInfo'
+        - in: query
+          name: superuser
+          type: boolean
+          required: false
       responses:
         200:
           description: Record successfully added
@@ -166,7 +203,7 @@ paths:
       tags: [Course Details]
       summary: Course details update
       description: Modifies existing courses
-      operationId: sms.src.course_details.put
+      operationId: sms.src.course_details.patch
       parameters:
         - in: body
           name: data
@@ -405,8 +442,13 @@ paths:
       parameters:
         - in: body
           name: data
+          required: true
           schema:
             $ref: '#/definitions/CourseRegistration'
+        - in: query
+          name: superuser
+          type: boolean
+          required: false
       responses:
         200:
           description: Success
@@ -419,24 +461,28 @@ paths:
         440:
           description: Session expired, login again
 
-    put:
+    delete:
       tags: [Course Registration]
-      operationId: sms.src.course_reg.put
-      summary: Edit old course registration, requires elevated access
+      operationId: sms.src.course_reg.delete
+      summary: Delete course registration
       parameters:
-        - in: body
-          name: data
-          schema:
-            $ref: '#/definitions/CourseRegistration'
+        - in: query
+          name: mat_no
+          type: string
+          required: true
+        - in: query
+          name: acad_session
+          type: integer
+          required: true
+        - in: query
+          name: superuser
+          type: boolean
+          required: false
       responses:
         200:
           description: Success
         401:
           description: Authentication failed
-        403:
-          description: Forbidden
-          schema:
-            type: string
         440:
           description: Session expired, login again
 
@@ -481,8 +527,12 @@ paths:
           required: true
           schema:
             $ref: '#/definitions/Results_post'
+        - in: query
+          name: superuser
+          type: boolean
+          required: false
       responses:
-        201:
+        200:
           description: Success
           schema:
             type: array
@@ -498,33 +548,33 @@ paths:
           description: Not found
         440:
           description: Session expired, login again
-    put:
+
+  /results_edit:
+    get:
       tags: [Results]
-      operationId: sms.src.results.put
-      summary: Edit past result records, requires elevated access
-      description: Post results to the database, admin
-      parameters:
-        - in: body
-          name: data
-          schema:
-            $ref: '#/definitions/Results_post'
+      operationId: sms.src.results.get_resultedit
+      summary: Get Result Edit Status
+      description: Get the Result Edit Period Status
       responses:
-        201:
-          description: Success
+        200:
+          description: Operation Successful
           schema:
-            type: array
-            items:
-              type: string
-        400:
-          description: Bad request
-        401:
-          description: Unauthorised
-        403:
-          description: Forbidden
-        404:
-          description: Not found
-        440:
-          description: Session expired, login again
+            type: integer
+    post:
+      tags: [Results]
+      operationId: sms.src.results.set_resultedit
+      summary: Set Result Edit Mode
+      description: Set Result Edit Mode for Course Advisers
+      parameters:
+        - in: query
+          name: state
+          type: integer
+          required: true
+      responses:
+        200:
+          description: Operation Successful
+          schema:
+            type: integer
 
   /results_single:
     get:
@@ -654,42 +704,17 @@ paths:
           description: Unauthorised
     patch:
       tags: [Accounts]
-      operationId: sms.src.accounts.manage
-      parameters:
-        - in: body
-          name: data
-          required: true
-          schema:
-            type: object
-            properties:
-              username:
-                type: string
-              password:
-                type: string
-              title:
-                type: string
-              fullname:
-                type: string
-              email:
-                type: string
-      responses:
-        200:
-          description: Account successfully updated
-        400:
-          description: Account modification failed. Empty, invalid or duplicate field supplied
-        401:
-          description: Unauthorised
-        404:
-          description: Account not found
-    put:
-      tags: [Accounts]
-      operationId: sms.src.accounts.put
+      operationId: sms.src.accounts.patch
       parameters:
         - in: body
           name: data
           required: true
           schema:
             $ref: '#/definitions/Accounts_post'
+        - in: query
+          name: superuser
+          type: boolean
+          required: false
       responses:
         200:
           description: Account successfully updated
@@ -738,6 +763,25 @@ paths:
                 items: {}
         401:
           description: Authentication failed
+        440:
+          description: Session expired, login again
+    delete:
+      tags: [Logs]
+      operationId: sms.src.logs.delete
+      parameters:
+        - in: query
+          name: ids
+          type: array
+          items:
+            type: integer
+          required: false
+      responses:
+        200:
+          description: Successfully deleted logs
+        401:
+          description: Authentication failed
+        404:
+          description: Some log entries not found
         440:
           description: Session expired, login again
 
@@ -910,10 +954,6 @@ definitions:
         type: string
       grad_status:
         type: integer
-      is_symlink:
-        type: integer
-      database:
-        type: string
 
   CourseDetails:
     type: object
@@ -1076,5 +1116,6 @@ definitions:
           type: string
         gpas:
           type: array
+          items: {}
         cgpa:
           type: number

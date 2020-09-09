@@ -56,17 +56,19 @@ def get(mat_no, acad_session):
 
 
 @access_decorator
-def post(data):
+def post(data, superuser=False):
     current_session = utils.get_current_session()
-    if data['course_reg_session'] != current_session:
+    if not superuser and data['course_reg_session'] != current_session:
         return 'You do not have authorization to perform course registration outside the current session', 401
     return post_course_reg(data)
 
 
 @access_decorator
-def put(data):
-    print('Elevated course_reg write access granted')
-    return post_course_reg(data)
+def delete(mat_no, acad_session, superuser=False):
+    current_session = utils.get_current_session()
+    if not superuser and acad_session != current_session:
+        return 'You do not have authorization to delete course registration outside the current session', 401
+    return delete_course_reg_entry(mat_no, acad_session)
 
 
 # ==============================================================================================
@@ -144,10 +146,10 @@ def init_new_course_reg(mat_no, acad_session, table_to_populate, current_level, 
                         'course_reg_session': acad_session,
                         'course_reg_level': current_level,
                         'max_credits': level_max_credits,
-                        'courses': {'first_sem': course_reg_utils.multisort(first_sem_carryover_courses),
-                                    'second_sem': course_reg_utils.multisort(second_sem_carryover_courses)},
-                        'choices': {'first_sem': course_reg_utils.multisort(first_sem_choices),
-                                    'second_sem': course_reg_utils.multisort(second_sem_choices)},
+                        'courses': {'first_sem': utils.multisort(first_sem_carryover_courses),
+                                    'second_sem': utils.multisort(second_sem_carryover_courses)},
+                        'choices': {'first_sem': utils.multisort(first_sem_choices),
+                                    'second_sem': utils.multisort(second_sem_choices)},
                         'probation_status': probation_status,
                         'fees_status': 0,
                         'others': ''}
@@ -174,8 +176,8 @@ def get_existing_course_reg(mat_no, acad_session, course_reg=None, s_personal_in
                         'course_reg_session': course_reg['course_reg_session'],
                         'course_reg_level': course_reg['course_reg_level'],
                         'max_credits': '',
-                        'courses': {'first_sem': course_reg_utils.multisort(courses[0]),
-                                    'second_sem': course_reg_utils.multisort(courses[1])},
+                        'courses': {'first_sem': utils.multisort(courses[0]),
+                                    'second_sem': utils.multisort(courses[1])},
                         'choices': {'first_sem': [],
                                     'second_sem': []},
                         'probation_status': course_reg['probation'],
@@ -185,12 +187,17 @@ def get_existing_course_reg(mat_no, acad_session, course_reg=None, s_personal_in
 
 
 def post_course_reg(data):
+    level_options = course_reg_utils.get_optional_courses(data['course_reg_level'])
+    level_options = utils.dictify(level_options[0] + level_options[1])
+    person_options = []
     courses = []
     tcr = [0, 0]
     for idx, sem in enumerate(['first_sem', 'second_sem']):
         for course_obj in data['courses'][sem]:
             courses.append(course_obj[0])
             tcr[idx] += course_obj[2]
+            if course_obj[0] in level_options:
+                person_options.append(course_obj[0])
     courses = sorted(courses)
     mat_no = data['mat_no']
     table_to_populate = data['table_to_populate']
@@ -203,8 +210,8 @@ def post_course_reg(data):
         return 'Student not found in database', 403
 
     try:
-        course_reg_xxx_schema = eval('session.{}Schema()'.format(table_to_populate))
-    except ImportError:
+        course_reg_xxx_schema = getattr(session, table_to_populate + 'Schema')()
+    except AttributeError:
         return '{} table does not exist'.format(table_to_populate), 403
 
     table_columns = course_reg_xxx_schema.load_fields.keys()
@@ -225,8 +232,13 @@ def post_course_reg(data):
     registration['others'] = data['others']
 
     course_registration = course_reg_xxx_schema.load(registration)
-    # db_session = scoped_session(sessionmaker(bind=db.get_engine(app, db_name.replace("_", "-"))))
     db_session = course_reg_xxx_schema.Meta.sqla_session
+
+    if person_options:
+        person = session.PersonalInfo.query.filter_by(mat_no=mat_no).first()
+        person.option = ','.join(person_options)
+        db_session.add(person)
+
     db_session.add(course_registration)
     db_session.commit()
     db_session.close()
@@ -243,4 +255,22 @@ def post_course_reg(data):
         if log[0]: success_text += '; results for unregistered courses still remain in database'
 
     print('\n====>>  ', success_text)
-    return success_text, 201
+    return success_text, 200
+
+
+def delete_course_reg_entry(mat_no, acad_session):
+    course_reg = course_reg_utils.get_course_reg_at_acad_session(acad_session, mat_no=mat_no)
+    if not course_reg:
+        return 'Course Registration for session {}/{} not found'.format(acad_session, acad_session+1), 404
+
+    db_name = utils.get_DB(mat_no)
+    session = utils.load_session(db_name)
+    courses_reg_schema = getattr(session, course_reg['table'] + 'Schema')
+
+    courses_reg = courses_reg_schema.Meta.model.query.filter_by(mat_no=mat_no).first()
+    db_session = courses_reg_schema.Meta.sqla_session
+    db_session.delete(courses_reg)
+    db_session.commit()
+    db_session.close()
+
+    return 'Record Deleted Successfully', 200

@@ -49,7 +49,7 @@ def post(course):
 
 
 @access_decorator
-def put(data):
+def patch(data):
     courses = [Courses.query.filter_by(course_code=course["course_code"]).first() for course in data]
     if all(courses):
         for course, course_obj in zip(data, courses):

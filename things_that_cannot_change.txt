@@ -25,5 +25,5 @@ Also just in case of revisions, add why this is necessary
    * DB Model file limited to 10 max chars mat_no in Personal Info
 11) The precision for gpas and cgpas is 4dp
    * The DegreeClass table stores a tuple of the range for each class of degree as a float with a precision of 4dp
-12) course_details.get_all(level, use_curr_session=True) must return one and only one placeholder optional course
+12) course_details.get_all(level) must return one and only one placeholder optional course
    * The position of this course in the course list is used for placing the OPTIONAL COURSES column in the broad-sheet

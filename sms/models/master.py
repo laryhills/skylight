@@ -30,6 +30,14 @@ class Category500(db.Model):
     sizes = db.Column(db.String(100))
 
 
+class Props(db.Model):
+    __bind_key__ = 'master'
+    __tablename__ = 'Props'
+    key = db.Column(db.Text, primary_key=True)
+    valuestr = db.Column(db.Text)
+    valueint = db.Column(db.Integer)
+
+
 class MasterSchema(ma.ModelSchema):
     class Meta:
         model = Master
