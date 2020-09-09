@@ -34,7 +34,8 @@ options = {
         'footer-right': '[date] [time]',
         'footer-center': '[page]/[toPage]',
         'footer-spacing': 3.0,
-        'footer-font-size': 8
+        'footer-font-size': 8,
+        'log-level': 'warn'
     }
 
 
