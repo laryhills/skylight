@@ -14,6 +14,8 @@ required = all_fields - {'grad_status', 'session_grad'}
 def get_exp(mat_no):
     output = get(mat_no)
     if output:
+        output.pop("is_symlink")
+        output.pop("database")
         return dumps(output), 200
     return None, 404
 
