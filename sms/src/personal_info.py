@@ -2,7 +2,7 @@ from json import dumps, loads
 from sms.config import db
 from sms.src import utils
 from sms.src.users import access_decorator
-from sms.models.master import MasterSchema, Props
+from sms.models.master import Master, MasterSchema, Props
 
 all_fields = {'date_of_birth', 'email_address', 'grad_status', 'level', 'lga', 'mat_no', 'mode_of_entry', 'othernames',
               'phone_no', 'session_admitted', 'session_grad', 'sex', 'sponsor_email_address', 'sponsor_phone_no',
@@ -31,7 +31,7 @@ def post_exp(data):
 # ==============================================================================================
 #                                  Core functions
 # ==============================================================================================
-# TODO add delete mat no, fix post to work with DE200 & DE300
+
 def get(mat_no):
     db_name = utils.get_DB(mat_no)
     if not db_name:
@@ -121,4 +121,27 @@ def patch(data, superuser=False):
     student.update(data)
     db_session = session.PersonalInfoSchema().Meta.sqla_session
     db_session.commit()
+    return None, 200
+
+
+@access_decorator
+def delete(mat_no):
+    session = utils.get_DB(mat_no)
+    if not session:
+        return None, 404
+    session = utils.load_session(session)
+    entries = []
+    db_session = session.PersonalInfoSchema().Meta.sqla_session
+    entries.append(session.PersonalInfo.query.filter_by(mat_no=mat_no).first())
+    entries.append(session.GPA_Credits.query.filter_by(mat_no=mat_no).first())
+    for lvl in range(100, 900, 100):
+        entries.append(eval("session.CourseReg{}".format(lvl)).query.filter_by(mat_no=mat_no).first())
+        entries.append(eval("session.Result{}".format(lvl)).query.filter_by(mat_no=mat_no).first())
+    for entry in entries:
+        if entry:
+            db_session.delete(entry)
+    master = Master.query.filter_by(mat_no=mat_no).first()
+    db.session.delete(master)
+    db_session.commit()
+    db.session.commit()
     return None, 200
