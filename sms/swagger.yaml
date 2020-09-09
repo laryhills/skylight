@@ -87,6 +87,22 @@ paths:
           schema:
             type: integer
 
+  /grading_rules:
+    get:
+      tags: [Props]
+      operationId: sms.src.grading_rules.get
+      parameters:
+        - in: query
+          name: acad_session
+          type: integer
+          required: true
+      responses:
+        200:
+          description: Grading rules successfully retrieved
+          schema:
+            type: array
+            items: {}
+
   /personal_info:
     get:
       tags: [Personal Information]
@@ -903,20 +919,6 @@ paths:
         440:
           description: Session expired, login again
 
-  /grading_rules:
-    get:
-      operationId: sms.src.grading_rules.get
-      parameters:
-        - in: query
-          name: acad_session
-          type: integer
-          required: true
-      responses:
-        200:
-          description: Grading rules successfully retrieved
-          schema:
-            type: array
-            items: {}
 
 definitions:
   PersonalInfo:
