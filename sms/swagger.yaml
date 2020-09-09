@@ -847,10 +847,6 @@ definitions:
         type: string
       grad_status:
         type: integer
-      is_symlink:
-        type: integer
-      database:
-        type: string
 
   CourseDetails:
     type: object
