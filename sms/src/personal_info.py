@@ -54,7 +54,7 @@ def post(data):
     if not all([data.get(prop) for prop in required]) or (data.keys() - all_fields):
         # Empty value supplied or Invalid field supplied or Missing field present
         return "Invalid field supplied or missing a compulsory field"
-    if ("grad_status" not in data) or not data.get("session_grad", True):
+    if ("grad_status" not in data) or data.get("session_grad") == 0:
         # Check exceptions to non required
         return "Invalid field supplied or missing a compulsory field"
 
@@ -100,6 +100,8 @@ def patch(data, superuser=False):
         return None, 404
     if not all([data.get(prop) for prop in (required & data.keys())]) or (data.keys() - all_fields):
         # Empty value supplied or Invalid field supplied
+        return "Invalid field supplied", 400
+    if data.get("session_grad") == 0:
         return "Invalid field supplied", 400
 
     session = utils.load_session(session)
