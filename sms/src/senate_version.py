@@ -10,7 +10,7 @@ from sms.src.users import access_decorator
 from sms.src.script import get_students_details_by_category, get_final_year_students_by_category
 from sms.models.master import Category, Category500
 from sms.config import app, CACHE_BASE_DIR
-from sms.src.utils import get_depat, get_num_of_prize_winners
+from sms.src.utils import get_depat, get_num_of_prize_winners, get_entry_session_from_level, get_session_from_level
 
 base_dir = os.path.dirname(__file__)
 categories = Category.query.all()
@@ -98,9 +98,9 @@ def generate_header(file_name, params):
 def get_100_to_400(entry_session, level):
     start_time = time.time()
     stud_categories = get_students_details_by_category(level, entry_session, get_all=True)
-    data = ''
+    data, acad_session = '', get_session_from_level(entry_session, level)
     for cat in stud_categories:
-        data += load_cat_section(cat, stud_categories[cat], entry_session)
+        data += load_cat_section(cat, stud_categories[cat], acad_session)
 
     template_dir = os.path.join(base_dir, '../templates', '100_400_senate_version.htm')
     with open(template_dir) as fd:
@@ -169,6 +169,7 @@ def get_100_to_400(entry_session, level):
 
 def get_500(entry_session):
     start_time = time.time()
+    acad_session = get_session_from_level(entry_session, 500)
     all_students = get_final_year_students_by_category(entry_session, get_all=True)
     groups_dict = get_groups_dict()
     students_sum, total_students = dict(), 0
@@ -205,7 +206,7 @@ def get_500(entry_session):
     data = ''
     for group in all_students:
         category = groups_dict[group][0]
-        data += load_cat_section_500(category, all_students[group], entry_session)
+        data += load_cat_section_500(category, all_students[group], acad_session)
 
     template_dir = os.path.join(base_dir, '../templates', '500_senate_version.htm')
     with open(template_dir) as fd:
@@ -290,7 +291,7 @@ def get_500(entry_session):
 
 @access_decorator
 def get(acad_session, level):
-    entry_session = acad_session - int(level / 100) + 1
+    entry_session = get_entry_session_from_level(acad_session, level)
 
     if level == 500:
         return get_500(entry_session)

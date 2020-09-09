@@ -290,11 +290,7 @@ def get_students_by_level(entry_session, level, retDB=False):
 
     symlink_students = session.SymLink.query.order_by('DATABASE').all()    # DE and probating students
     other_students = []
-    curr_db_name = ''
     for stud in symlink_students:
-        if stud.database != curr_db_name:
-            curr_db_name = stud.database
-            session = load_session(curr_db_name.replace('-', '_')[:-3])
         curr_level = get_level(stud.mat_no)
         curr_level = curr_level if curr_level < 500 else 500
         if curr_level == level + level_offset:
@@ -456,7 +452,7 @@ def filter_students_by_degree_class(degree_class, db_name, students):
         cgpa = cgpa_obj.query.filter_by(mat_no=stud).first().cgpa
         if limits[0] <= cgpa <= limits[1]:
             details = get_student_details_for_cls(stud, session)
-            details['cgpa'] = cgpa
+            details['cgpa'] = float(cgpa)
             studs.append(details)
             students.remove(stud)
 
