@@ -23,14 +23,16 @@ del %USERPROFILE%\PycharmProjects\skylight\sms\database\2019-2020.db
 
 cd "%USERPROFILE%\PycharmProjects\skylight\setup\src"
 
-python3 generate_models.py
-python3 personal_info.py
-python3 course_details.py
-python3 "generate_courses_&_credits.py"
-python3 "generate_course_reg_&_result.py"
-python3 "generate_grading_rule.py"
-python3 "generate_categories.py"
-python3 "generate_degree_class.py"
+pip install numpy pandas
+
+python generate_models.py
+python personal_info.py
+python course_details.py
+python "generate_courses_and_credits.py"
+python "generate_course_reg_and_result.py"
+python "generate_grading_rule.py"
+python "generate_categories.py"
+python "generate_degree_class.py"
 
 cd "%USERPROFILE%\PycharmProjects\skylight"
 
