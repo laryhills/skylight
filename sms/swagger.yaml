@@ -850,6 +850,11 @@ paths:
       operationId: sms.src.backups.backup
       summary: Initiate backup
       description: Backup the current databases
+      parameters:
+        - in: query
+          name: tag
+          type: string
+          required: false
       responses:
         200:
           description: Backup successful
