@@ -1,5 +1,8 @@
 import os
 import sqlite3
+import time
+from concurrent.futures.process import ProcessPoolExecutor
+
 import pandas as pd
 from sys import exit
 
@@ -100,7 +103,7 @@ result_frame = result_frame[result_frame.COURSE_CODE != 'MEE123']
 result_frame.COURSE_CODE.replace('CHM112', 'CHM122', inplace=True)
 
 
-def total_registered_credits(level, course_reg_df):
+def total_registered_credits(level, course_reg_df, courses_dict):
     total_credit = 0
     if level <= 5:
         reg_courses_df = course_reg_df[course_reg_df != 0].dropna(axis=1)
@@ -139,7 +142,7 @@ def get_total_credits(conn, level, mod, course_reg_df):
     return total_credits
 
 
-def get_passed_credits(entry_session, level, result_df):
+def get_passed_credits(entry_session, level, result_df, courses_dict):
     total_credits_passed = 0
     if level <= 5:
         course_credit_dict = courses_dict[level - 1]
@@ -263,7 +266,7 @@ def create_gpa_schema():
         pass
 
 
-def store_gpa(conn, mat_no, level, result_frame, on_probation, mod):
+def store_gpa(conn, mat_no, level, result_frame, on_probation, mod, courses_dict):
     level = 5 if level > 5 else level
     grade_weight = {'A': 5, 'B': 4, 'C': 3, 'D': 2, 'E': 1, 'F': 0}
     if level == 1:
@@ -372,8 +375,8 @@ def delete_record(conn, mat_no):
     master_db.close()
 
 
-def populate_db(conn, mat_no, entry_session, mod):
-    global result_dtype_glob, course_reg_dtype_glob, num_probation
+def populate_db(conn, mat_no, entry_session, mod, result_dtype_glob, course_reg_dtype_glob, courses_dict, courses):
+    # global result_dtype_glob, course_reg_dtype_glob, num_probation
     num_probation = 0
     # Loads all the student's results
     curr_frame = result_frame[result_frame.MATNO == mat_no]
@@ -432,8 +435,8 @@ def populate_db(conn, mat_no, entry_session, mod):
         course_reg_df['PROBATION'] = on_probation
         num_probation += on_probation
         # total_credits = total_level_credits(entry_session, mod, count)
-        total_credits_registered = total_registered_credits(count, course_reg_df)
-        total_credits_passed = get_passed_credits(entry_session, count, student_result)
+        total_credits_registered = total_registered_credits(count, course_reg_df, courses_dict)
+        total_credits_passed = get_passed_credits(entry_session, count, student_result, courses_dict)
         category = get_category(entry_session, count, mod, on_probation, total_credits_registered, total_credits_passed)
         # category = get_category(entry_session, count, mod, on_probation, total_credits, total_credits_passed)
         student_result['CATEGORY'] = category
@@ -468,7 +471,7 @@ def populate_db(conn, mat_no, entry_session, mod):
                     series.replace(series[0], str(score) + ',' + grade, inplace=True)
 
         # compute gpa
-        store_gpa(conn, mat_no, count, student_result, probation_stat, mod)
+        store_gpa(conn, mat_no, count, student_result, probation_stat, mod, courses_dict)
 
         student_result['SESSION'] = group.SESSION.iloc[0]
         course_reg_df['SESSION'] = group.SESSION.iloc[0]
@@ -564,18 +567,45 @@ def populate_db(conn, mat_no, entry_session, mod):
     conn.commit()
 
 
+def multiprocessing_wrapper(func, iterable, context, use_workers=True, max_workers=None):
+    """
+    use multiprocessing to call a function on members of an iterable
+
+    (number of workers limited to 5)
+
+    :param func: the function to call
+    :param iterable: items you want to call func on
+    :param context: params that are passed to all instances
+    :param use_workers: whether to spawn off child processes
+    :param max_workers: maximum number of child processes to use
+    :return:
+    """
+    if not use_workers:
+        [func(item, *context) for item in iterable]
+    else:
+        max_workers = max_workers if max_workers else min(len(iterable), 4)
+        with ProcessPoolExecutor(max_workers=max_workers) as executor:
+            [executor.submit(func, item, *context) for item in iterable]
+
+
+def main(item, db_base_dir, result_dtype_glob, course_reg_dtype_glob, courses_dict, courses):
+    index, series = item
+    print('Populating result for {}...'.format(series.MATNO))
+    curr_db = series.DATABASE
+    entry_session = int(curr_db[:4])
+    conn = sqlite3.connect(os.path.join(db_base_dir, curr_db))
+    mod = conn.execute('SELECT MODE_OF_ENTRY FROM PersonalInfo WHERE MATNO = ?', (series.MATNO,)).fetchone()[0]
+    populate_db(conn, series.MATNO, entry_session, mod, result_dtype_glob, course_reg_dtype_glob, courses_dict, courses)
+    conn.close()
+
+
 if __name__ == '__main__':
     create_table_schema()
     create_gpa_schema()
     result_dtype_glob, course_reg_dtype_glob = generate_table_dtype()
 
-    for index, series in student_frame.iterrows():
-        print('Populating result for {}...'.format(series.MATNO))
-        curr_db = series.DATABASE
-        entry_session = int(curr_db[:4])
-        conn = sqlite3.connect(os.path.join(db_base_dir, curr_db))
-        mod = conn.execute('SELECT MODE_OF_ENTRY FROM PersonalInfo WHERE MATNO = ?', (series.MATNO,)).fetchone()[0]
-        populate_db(conn, series.MATNO, entry_session, mod)
-        conn.close()
+    t0 = time.perf_counter()
+    context = [db_base_dir, result_dtype_glob, course_reg_dtype_glob, courses_dict, courses]
+    multiprocessing_wrapper(main, list(student_frame.iterrows()), context=context, max_workers=8)
 
-print('done')
+    print('done in', round(time.perf_counter() - t0, 2), 'seconds')
