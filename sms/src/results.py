@@ -35,11 +35,6 @@ def set_resultedit(state):
 
 
 @access_decorator
-def get(mat_no, acad_session):
-    return get_results_for_acad_session(mat_no, acad_session)
-
-
-@access_decorator
 def get_result_details(mat_no, acad_session):
     return get_results(mat_no, acad_session)
 
@@ -52,6 +47,11 @@ def get_single_results_stats(mat_no, level, acad_session):
 @access_decorator
 def get_multiple_results_stats(acad_session, level):
     return _get_multiple_results_stats(acad_session, level)
+
+
+@access_decorator
+def get(mat_no, acad_session):
+    return get_results_for_acad_session(mat_no, acad_session)
 
 
 @access_decorator
