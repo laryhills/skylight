@@ -782,12 +782,20 @@ paths:
       operationId: sms.src.logs.get
       parameters:
         - in: query
-          name: limit
+          name: step
           type: integer
           required: false
         - in: query
-          name: offset
+          name: count
           type: integer
+          required: false
+        - in: query
+          name: title
+          type: string
+          required: false
+        - in: query
+          name: time
+          type: string
           required: false
       responses:
         200:
