@@ -795,6 +795,10 @@ paths:
           required: false
         - in: query
           name: time
+          type: integer
+          required: false
+        - in: query
+          name: operation
           type: string
           required: false
       responses:
