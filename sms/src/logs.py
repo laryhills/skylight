@@ -8,7 +8,7 @@ from sms.src.users import access_decorator
 
 # todo: implement access controls w/o logging
 # @access_decorator
-def get(step=0, title=None, time=None, count=15):
+def get(step=0, title=None, time=None, count=15, operation=None):
     query = Logs.query.order_by(desc(Logs.id))
     if title:
         user = User.query.filter_by(title=title).first()
@@ -16,6 +16,8 @@ def get(step=0, title=None, time=None, count=15):
             query = query.filter_by(user=user.username)
     if time:
         query = query.filter(Logs.timestamp >= time)
+    if operation:
+        query = query.filter_by(operation=operation)
 
     log_list = query.offset(step * count).limit(count).all()
     return [(log.timestamp, fn_props[log.operation]["logs"](log.user, loads(log.params))) for log in log_list]
