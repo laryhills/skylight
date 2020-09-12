@@ -32,61 +32,41 @@ def get_entry_session_from_level(session, level):
     return session_list[idx]
 
 
-def get_credits(mat_no=None, mode_of_entry=None, session=None):
-    "Returns a list of total credits for each level"
-    if mat_no:
-        session = get_DB(mat_no)
-    session = load_session(session)
-    Credits, CreditsSchema = session.Credits, session.CreditsSchema
-
-    if not mode_of_entry:
-        mode_of_entry = personal_info.get(mat_no)['mode_of_entry']
-
-    credits = CreditsSchema().dump(Credits.query.filter_by(mode_of_entry=mode_of_entry).first())
-    level_credits = [credits['level{}'.format(lvl)] for lvl in range(mode_of_entry*100,600,100)]
-    return level_credits
-
-
 def get_maximum_credits_for_course_reg():
     normal = Props.query.filter_by(key="MaxRegCredits").first().valueint
     clause_of_51 = Props.query.filter_by(key="CondMaxRegCredits500").first().valueint
-    return {'normal': normal, 'clause_of_51': clause_of_51}
+    return {"normal": normal, "clause_of_51": clause_of_51}
 
 
-def get_courses(mat_no, mode_of_entry=None):
-    """
-    Returns a list of all the courses that a student with given `mat_no` is eligible to write/register.
+def get_credits(mat_no=None, mode_of_entry=1, session=None, lpad=False):
+    "Returns a list of total credits for each level"
+    if mat_no:
+        session = get_DB(mat_no)
+        mode_of_entry = personal_info.get(mat_no)["mode_of_entry"]
+    session = load_session(session)
+    Credits, CreditsSchema = session.Credits, session.CreditsSchema
 
-    Each item of the list is a list of all the level courses. Semester courses are separated in lists within
-    a level course list.
+    credits = CreditsSchema().dump(Credits.query.filter_by(mode_of_entry=mode_of_entry).first())
+    level_credits = [credits["level{}".format(lvl)] for lvl in range(mode_of_entry*100,600,100)]
+    if lpad:
+        return [0] * (mode_of_entry - 1) + level_credits
+    return level_credits
 
-    :param mat_no: mat number of student
-    :param mode_of_entry: (Optional) mode of entry of student
-    :return: list of courses
-    """
-    db_name = get_DB(mat_no)
-    session = load_session(db_name)
+
+def get_courses(mat_no=None, mode_of_entry=1, session=None, lpad=True):
+    "Returns student/session courses list for all levels"
+    if mat_no:
+        session = get_DB(mat_no)
+        mode_of_entry = personal_info.get(mat_no)["mode_of_entry"]
+    session = load_session(session)
     Courses, CoursesSchema = session.Courses, session.CoursesSchema
 
-    if not mode_of_entry:
-        person = personal_info.get(mat_no=mat_no)
-        mode_of_entry = person['mode_of_entry']
-    
     courses = CoursesSchema().dump(Courses.query.filter_by(mode_of_entry=mode_of_entry).first())
-    
-    level_courses = []
-    for lvl in range(100,600,100):
-        course_string = courses['level{}'.format(lvl)]
-        if course_string:
-            if len(course_string.split()) == 1:
-                #Handle abscence of UBITS / sec sem
-                first_sem = course_string.split()[0]
-                level_courses.append([first_sem.split(','),[]])
-            else:
-                first_sem, second_sem = course_string.split()
-                level_courses.append([first_sem.split(','),second_sem.split(',')])
-        else:
-            level_courses.append(None)
+    level_courses = [courses["level{}".format(lvl)].split(" ") for lvl in range(mode_of_entry*100,600,100)]
+    fn = lambda csv: csv.split(",") if csv else []
+    level_courses = [[fn(x[0]), fn(x[1])] for x in level_courses]
+    if lpad:
+        return [None] * (mode_of_entry - 1) + level_courses
     return level_courses
 
 
@@ -104,6 +84,7 @@ def get_carryovers(mat_no, level=None, current=False, retJSON=True):
     level = get_level(mat_no) if not level else level
     first_sem, second_sem = set(), set()
     results = loads(result_statement.get(mat_no))["results"]
+    # TODO chk if lpad necessary in get_courses
     for course in get_courses(mat_no)[:int(level/100-1) + bool(current)]:
         first_sem |= set(course[0] if course else set())
         second_sem |= set(course[1] if course else set())
@@ -148,6 +129,7 @@ def get_carryovers(mat_no, level=None, current=False, retJSON=True):
     if results and results[-1]["category"] == "C" and level in (200, 300, 400):
         # Handle probation carryovers
         print ("Probating {} student".format(level))
+        # TODO chk if lpad necessary in get_courses
         first_sem |= set(get_courses(mat_no)[int(level/100)-1][0])
         second_sem |= set(get_courses(mat_no)[int(level/100)-1][1])
 
@@ -279,6 +261,7 @@ def compute_gpa(mat_no, ret_json=True):
     mode_of_entry = person['mode_of_entry']
     gpas = [[0, 0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0]][mode_of_entry - 1]
     level_percent = [[10, 15, 20, 25, 30], [10, 20, 30, 40], [25, 35, 40]][mode_of_entry - 1]
+    # TODO check if lpad necessary, use props for level percent
     level_credits = get_credits(mat_no, mode_of_entry)
     grade_weight = get_grading_point(get_DB(mat_no))
 
@@ -394,6 +377,7 @@ def compute_category(mat_no, level_written, session_taken, tcr, tcp, owed_course
     previous_categories = [x['category'] for x in res_poll if x and x['session'] < session_taken]
 
     # ensure to get the right value of level_credits irrespective of the size of the list (PUTME vs DE students)
+    # TODO check lpad with get_credits
     index = (level_written // 100 - 1)
     level_credits = creds[index + (len(creds) - 5)]
 
