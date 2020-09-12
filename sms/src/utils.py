@@ -1,9 +1,9 @@
-from concurrent.futures.process import ProcessPoolExecutor
-from json import loads, dumps
-from sms.src import personal_info, course_details, result_statement, users
 from sms import config
+from json import loads, dumps
 from sms.models.courses import Options, OptionsSchema
+from concurrent.futures.process import ProcessPoolExecutor
 from sms.models.master import Category, Category500, Props
+from sms.src import personal_info, course_details, result_statement, users
 
 '''
 Handle frequently called or single use simple utility functions
@@ -16,46 +16,32 @@ load_session = users.load_session
 get_current_session = config.get_current_session
 
 
-def get_depat(form='long'):
-    """
-    Returns the name of the department as a string either in it's short or long form
-
-    :param form: 'short' or 'long'
-    :return: name of the department
-    """
-    if form == 'short':
-        return 'MEE'
-    return 'MECHANICAL ENGINEERING'
+def get_depat(full=True):
+    return ["MEE", "MECHANICAL ENGINEERING"][full]
 
 
 def get_session_from_level(entry_session, level):
-    # TODO: Make this calculation session independent
-    return entry_session + level // 100 - 1
+    session_list = loads(Props.query.filter_by(key="SessionList").first().valuestr)
+    idx = session_list.index(entry_session) + level//100 - 1
+    return session_list[idx]
 
 
 def get_entry_session_from_level(session, level):
-    # TODO: Make this calculation session independent
-    return session - level // 100 + 1
+    session_list = loads(Props.query.filter_by(key="SessionList").first().valuestr)
+    idx = session_list.index(session) - level//100 + 1
+    return session_list[idx]
 
 
-def get_credits(mat_no, mode_of_entry=None, session=None):
-    """
-    For a given `mat_no` and `mode_of_entry`, it returns a list of all the total credits for each level
-
-    :param mat_no: mat number of student
-    :param mode_of_entry: (Optional) mode of entry of student
-    :param session:
-    :return: list of total credits for each level
-    """
-    if not session:
-        db_name = get_DB(mat_no)
-        session = load_session(db_name)
+def get_credits(mat_no=None, mode_of_entry=None, session=None):
+    "Returns a list of total credits for each level"
+    if mat_no:
+        session = get_DB(mat_no)
+    session = load_session(session)
     Credits, CreditsSchema = session.Credits, session.CreditsSchema
 
     if not mode_of_entry:
-        person = personal_info.get(mat_no=mat_no)
-        mode_of_entry = person['mode_of_entry']
-    
+        mode_of_entry = personal_info.get(mat_no)['mode_of_entry']
+
     credits = CreditsSchema().dump(Credits.query.filter_by(mode_of_entry=mode_of_entry).first())
     level_credits = [credits['level{}'.format(lvl)] for lvl in range(mode_of_entry*100,600,100)]
     return level_credits
@@ -64,8 +50,7 @@ def get_credits(mat_no, mode_of_entry=None, session=None):
 def get_maximum_credits_for_course_reg():
     normal = Props.query.filter_by(key="MaxRegCredits").first().valueint
     clause_of_51 = Props.query.filter_by(key="CondMaxRegCredits500").first().valueint
-    return {'normal': normal,
-            'clause_of_51': clause_of_51}
+    return {'normal': normal, 'clause_of_51': clause_of_51}
 
 
 def get_courses(mat_no, mode_of_entry=None):
