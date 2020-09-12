@@ -466,6 +466,7 @@ def update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_leve
     if grade != previous_grade:
         creds = utils.get_credits(mat_no)
         # ensure to get the right value irrespective of the size of the list (PUTME vs DE students)
+        # TODO use lpad param with get_credits to keep uniform
         level_credits = creds[index + (len(creds) - 5)]
         grading_point_rule = utils.get_grading_point(utils.get_DB(mat_no))
         grading_point = int(grading_point_rule[grade]) if grade != 'ABS' else 0
