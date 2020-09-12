@@ -20,7 +20,7 @@ def get(step=0, title=None, time=None, count=15, operation=None):
         query = query.filter_by(operation=operation)
 
     log_list = query.offset(step * count).limit(count).all()
-    return [(log.timestamp, fn_props[log.operation]["logs"](log.user, loads(log.params))) for log in log_list]
+    return [(log.timestamp, fn_props[log.operation]["logs"](log.user, loads(log.params))) for log in log_list], 200
 
 
 @access_decorator
