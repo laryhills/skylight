@@ -11,6 +11,12 @@ consumes:
 produces:
   - application/json
 
+securityDefinitions:
+  api_key:
+    type: "apiKey"
+    name: "token"
+    in: "header"
+
 paths:
   /login:
     post:
