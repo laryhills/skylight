@@ -58,7 +58,9 @@ def get_token(token):
 
 
 def remove_token(token):
-    return tokens.pop(token, None)
+    tokens.pop(token, None)
+    if not tokens:
+        app.config['SECRET_KEY'] = secrets.token_hex(16)
 
 
 def get_current_session():

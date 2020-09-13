@@ -47,15 +47,14 @@ def hash_key(session_key = session_key()):
     return b64encode(md5(session_bytes).digest()).decode("utf-8").strip("=")
 
 
-serializer = Serializer(hash_key())
-
-
-def tokenize(text, s=serializer):
+def tokenize(text):
     # Use on client side, this is just for testing
+    s = Serializer(hash_key(session_key()))
     return s.dumps(text).decode('utf-8')
 
 
-def detokenize(token, parse=True, s=serializer):
+def detokenize(token, parse=True):
+    s = Serializer(hash_key(session_key()))
     try:
         if parse:
             return dict(zip(*[("username","password"),s.loads(token).split(':')]))
