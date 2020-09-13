@@ -42,8 +42,8 @@ def session_key():
 
 
 def hash_key():
-    session_key = session_key()
-    session_key_sum = str(sum([int(x) for x in session_key if x in "0123456789"]))
+    s_key = session_key()
+    session_key_sum = str(sum([int(x) for x in s_key if x in "0123456789"]))
     session_bytes = bytes(session_key_sum, "utf-8")
     return b64encode(md5(session_bytes).digest()).decode("utf-8").strip("=")
 
