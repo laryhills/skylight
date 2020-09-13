@@ -59,7 +59,7 @@ def get(mat_no=None, session=None, to_print=False):
         html = render_template('course_form_template.htm', mat_no=mat_no, uniben_logo_path=uniben_logo_path,
                                session='{}/{}'.format(session, session + 1),
                                surname=person['surname'], othernames=person['othernames'].upper(),
-                               depat=person['department'], mode_of_entry=person['mode_of_entry'],
+                               dept=person['department'], mode_of_entry=person['mode_of_entry'],
                                level=level, phone_no=person['phone_no'], sex=person['sex'],
                                email=person['email_address'], state=person['state_of_origin'],
                                lga=person['lga'],

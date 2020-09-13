@@ -1,5 +1,4 @@
 import os
-import subprocess
 import time
 import pdfkit
 import imgkit
@@ -25,7 +24,7 @@ def get(mat_no, raw_score=False, to_print=False):
     result_stmt = result_statement.get(mat_no, 0)
 
     name = result_stmt['name'].replace(',', '')
-    depat = capwords(result_stmt['depat'])
+    dept = capwords(result_stmt['depat'])
     dob = result_stmt['dob']
     mod = ['PUTME', 'DE(200)', 'DE(300)'][result_stmt['mode_of_entry'] - 1]
     entry_session = result_stmt['entry_session']
@@ -48,15 +47,11 @@ def get(mat_no, raw_score=False, to_print=False):
 
     with current_app.app_context():
         html = render_template('result_update_template.htm', uniben_logo_path=uniben_logo_path, any=any,
-                               no_of_pages=no_of_pages, mat_no=mat_no, name=name, depat=depat, dob=dob,
+                               no_of_pages=no_of_pages, mat_no=mat_no, name=name, dept=dept, dob=dob,
                                mode_of_entry=mod, entry_session=entry_session, grad_session=grad_session,
                                results=results, credits=credits, gpas=gpas, level_weightings=level_weightings,
                                weighted_gpas=weighted_gpas, enumerate=enumerate, raw_score=raw_score,
                                level_credits=level_credits, gpa_check=gpa_check)
-
-        filename = os.path.join(os.path.expanduser('~'), f'{mat_no}.html')
-        open(filename, 'w').write(html)
-        subprocess.run(['chrome', filename])
 
     def generate_img(args):
         i, page = args
