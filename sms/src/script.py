@@ -216,7 +216,7 @@ def get_details_for_ref_students(mat_no, session):
         session_failed_courses = get_session_failed_courses(mat_no, level, session)
         credits_passed_list = get_gpa_credits(mat_no, session)[1]
         total_credits_passed = sum(filter(lambda x: x, credits_passed_list))
-        total_credits = sum(get_credits(mat_no, session=session))
+        total_credits = sum(get_credits(mat_no, session=session.__name__[12:16]))
     except AttributeError:
         # Students who didn't register or sit for the exam
         session_failed_courses = []

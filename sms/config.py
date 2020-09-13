@@ -7,18 +7,25 @@ from flask_marshmallow import Marshmallow
 from flask_bcrypt import Bcrypt
 
 base_dir = os.path.dirname(__file__)
+
+# ===========================================================
+#                       CONSTANTS
+# ===========================================================
+# directories
 CACHE_DIR = os.path.join(os.path.expanduser('~'), 'sms', 'cache_mechanical')
 BACKUP_DIR = os.path.join(os.path.expanduser('~'), 'sms', 'backups_mechanical')
 DB_DIR = os.path.join(base_dir, 'database')
 TEMP_DIR = os.path.join(tempfile.gettempdir(), 'sms', 'mechanical')
-
 CACHE_BASE_DIR = TEMP_DIR
+
+# others
+BACKUPS_TO_RETAIN = 20
 
 [os.makedirs(path) for path in (CACHE_DIR, BACKUP_DIR, DB_DIR, TEMP_DIR) if not os.path.exists(path)]
 
-
 start_session = 2003
 end_session = 2019  # TODO query current_session from master DB, (don't use utils)
+                    #          is this even important?
 
 sqlalchemy_binds = {'master': 'sqlite:///' + os.path.join(DB_DIR, 'master.db'),
                     'courses': 'sqlite:///' + os.path.join(DB_DIR, 'courses.db'),
@@ -51,7 +58,9 @@ def get_token(token):
 
 
 def remove_token(token):
-    return tokens.pop(token, None)
+    tokens.pop(token, None)
+    if not tokens:
+        app.config['SECRET_KEY'] = secrets.token_hex(16)
 
 
 def get_current_session():
