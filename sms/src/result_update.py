@@ -1,4 +1,5 @@
 import os
+import subprocess
 import time
 import pdfkit
 import imgkit
@@ -52,6 +53,10 @@ def get(mat_no, raw_score=False, to_print=False):
                                results=results, credits=credits, gpas=gpas, level_weightings=level_weightings,
                                weighted_gpas=weighted_gpas, enumerate=enumerate, raw_score=raw_score,
                                level_credits=level_credits, gpa_check=gpa_check)
+
+        filename = os.path.join(os.path.expanduser('~'), f'{mat_no}.html')
+        open(filename, 'w').write(html)
+        subprocess.run(['chrome', filename])
 
     def generate_img(args):
         i, page = args
@@ -133,7 +138,7 @@ def remove_empty(results):
     :return:
     """
     for index, result in enumerate(results):
-        if not (result['first_sem'] and result['second_sem']):
+        if not (result['first_sem'] or result['second_sem']):
             results[index] = []
     while [] in results:
         results.remove([])
