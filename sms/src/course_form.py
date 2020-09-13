@@ -15,7 +15,6 @@ uniben_logo_path = 'file:///' + os.path.join(os.path.split(base_dir)[0], 'templa
 
 @access_decorator
 def get(mat_no=None, session=None, to_print=False):
-    # TODO: Clear the cache directory
     current_session = get_current_session()
     session = session if session else current_session
 
@@ -97,4 +96,4 @@ def get(mat_no=None, session=None, to_print=False):
             }
             imgkit.from_string(html, os.path.join(CACHE_BASE_DIR, file_name + '.' + img_fmt), options=options)
             resp = send_from_directory(CACHE_BASE_DIR, file_name + '.' + img_fmt, as_attachment=True)
-        return resp
+        return resp, 200
