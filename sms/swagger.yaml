@@ -53,6 +53,16 @@ paths:
       operationId: sms.src.users.logout
       summary: User authentication
       description: Logs out a user using supplied token
+      parameters:
+        - in: body
+          name: token
+          schema:
+            type: object
+            required:
+              - token
+            properties:
+              token:
+                type: string
       responses:
         200:
           description: User manually logged out
