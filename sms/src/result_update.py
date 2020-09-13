@@ -21,7 +21,7 @@ uniben_logo_path = 'file:///' + os.path.join(os.path.split(base_dir)[0], 'templa
 
 @access_decorator
 def get(mat_no, raw_score=False, to_print=False):
-    result_stmt = result_statement.get(mat_no, 0)
+    result_stmt = result_statement.get(mat_no)
 
     name = result_stmt['name'].replace(',', '')
     dept = capwords(result_stmt['depat'])

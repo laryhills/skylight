@@ -224,7 +224,7 @@ def get_details_for_ref_students(mat_no, session):
         total_credits = 0
 
     # KeyError for the utils.get_carryovers function
-    carryovers_dict = get_carryovers(mat_no, current=True, retJSON=False)
+    carryovers_dict = get_carryovers(mat_no, next_level=True, retJSON=False)
     carryovers_credits = carryovers_dict['first_sem'] + carryovers_dict['second_sem']
     overall_carryover_courses = list(map(lambda x: x[0], carryovers_credits))
     outstanding_courses = []

@@ -7,7 +7,7 @@ from sms.src import personal_info, course_details, result_statement, users
 
 '''
 Handle frequently called or single use simple utility functions
-These aren't exposed endpoints and needn't return json data (exc get_carryovers)
+These aren't exposed endpoints and needn't return json data
 '''
 
 get_DB = users.get_DB
@@ -17,7 +17,8 @@ get_current_session = config.get_current_session
 
 
 def get_depat(full=True):
-    return ["MEE", "MECHANICAL ENGINEERING"][full]
+    dept = loads(Props.query.filter_by(key="Department").first().valuestr)
+    return dept[full]
 
 
 def get_session_from_level(entry_session, level):
@@ -66,51 +67,32 @@ def get_courses(mat_no=None, mode_of_entry=1, session=None, lpad=True):
     fn = lambda csv: csv.split(",") if csv else []
     level_courses = [[fn(x[0]), fn(x[1])] for x in level_courses]
     if lpad:
-        return [None] * (mode_of_entry - 1) + level_courses
+        return [ [[], []] for x in range(mode_of_entry - 1) ] + level_courses
     return level_courses
 
 
-def get_carryovers(mat_no, level=None, current=False, retJSON=True):
+def get_carryovers(mat_no, level=None, next_level=False):
     """
-    Returns a dictionary or JSON array of the carryovers for a student. Returns a JSON object if retJSON
-    is true else a dictionary
-
-    :param mat_no: mat number of student
+    Returns a dictionary of the carryover courses for a student
     :param level: (Optional) level of the student
     :param current: (Optional) if True returns carryovers up to the current academic session of the student
-    :param retJSON: (Optional) if True returns a JSON array
-    :return: Dictionary or JSON array of carryover courses
     """
-    level = get_level(mat_no) if not level else level
+    level = level or get_level(mat_no)
     first_sem, second_sem = set(), set()
-    results = loads(result_statement.get(mat_no))["results"]
-    # TODO chk if lpad necessary in get_courses
-    for course in get_courses(mat_no)[:int(level/100-1) + bool(current)]:
-        first_sem |= set(course[0] if course else set())
-        second_sem |= set(course[1] if course else set())
+    results = result_statement.get(mat_no)["results"]
+    for course in get_courses(mat_no)[:level//100+next_level-1]:
+        first_sem |= set(course[0])
+        second_sem |= set(course[1])
 
-    person = personal_info.get(mat_no)
-    person_option = person['option'].split(',') if person['option'] else None
-    if person_option:
-        # Put in option if registered
-        options = []
-        for option in Options.query.all():
-            option=OptionsSchema().dump(option)
-            options.append({'members': option['members'],
-                            'group': option['options_group'],
-                            'default': option['default_member']})
-
-        for opt in person_option:
+    person_options = personal_info.get(mat_no)["option"]
+    if person_options:
+        options = [OptionsSchema().dump(option) for option in Options.query.all()]
+        for choice in person_options.split(","):
             for option in options:
-                if opt in option["members"].split(','):
-                    default = option["default"]
-                    sem = course_details.get(default)["course_semester"]
-                    if default != opt:
-                        try:
-                            [first_sem, second_sem][sem-1].remove(default)
-                            [first_sem, second_sem][sem-1].add(opt)
-                        except KeyError:
-                            pass
+                if choice in option["members"]:
+                    idx = option["semester"] - 1
+                    [first_sem, second_sem][idx] -= set(option["members"].split(","))
+                    [first_sem, second_sem][idx] += {choice}
 
     for result in results:
         for record in result["first_sem"]:
@@ -144,8 +126,6 @@ def get_carryovers(mat_no, level=None, current=False, retJSON=True):
         credit = course_dets["course_credit"]
         course_lvl = course_dets["course_level"]
         carryovers["second_sem"].append([failed_course, str(credit), course_lvl])
-    if retJSON:
-        return dumps(carryovers)
     return carryovers
 
 
@@ -265,7 +245,7 @@ def compute_gpa(mat_no, ret_json=True):
     level_credits = get_credits(mat_no, mode_of_entry)
     grade_weight = get_grading_point(get_DB(mat_no))
 
-    for result in loads(result_statement.get(mat_no))["results"]:
+    for result in result_statement.get(mat_no)["results"]:
         for record in (result["first_sem"] + result["second_sem"]):
             (course, grade) = (record[1], record[5])
             course_props = course_details.get(course)

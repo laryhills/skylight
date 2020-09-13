@@ -19,6 +19,7 @@ conn.row_factory=sqlite3.Row
 cur=conn.cursor()
 
 # TODO add test get_level
+# TODO hash_key, tokenize and detokenize test, fix using modified SECRET_KEY
 
 def test_setup_env():
     config.add_token("TESTING_token", "users_test", {})
