@@ -253,8 +253,9 @@ def login(token):
 
 
 @access_decorator
-def logout(token):
-    remove_token(token['token'])
+def logout():
+    token = request.headers["token"]
+    remove_token(token)
     return None, 200
 
 
