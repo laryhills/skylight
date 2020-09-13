@@ -28,8 +28,8 @@ def backup(tag=''):
 
 
 @access_decorator
-def restore(backup_name, include_accounts=False):
-    return restore_backup(backup_name, include_accounts)
+def restore(backup_name, include_accounts=False, backup_current=True):
+    return restore_backup(backup_name, include_accounts, backup_current)
 
 
 @access_decorator
@@ -95,10 +95,11 @@ def backup_databases(tag='', before_restore=False, external=False):
     return backup_name
 
 
-def restore_backup(backup_name, include_accounts=False):
+def restore_backup(backup_name, include_accounts=False, backup_current=True):
     backup_path = os.path.join(BACKUP_DIR, backup_name)
     try:
-        backup_databases(before_restore=True)
+        if backup_current:
+            backup_databases(before_restore=True)
         with ZipFile(backup_path) as zf:
             databases = zf.namelist()
             for database in databases:

@@ -898,6 +898,10 @@ paths:
           name: include_accounts
           type: boolean
           required: false
+        - in: query
+          name: backup_current
+          type: boolean
+          required: false
       responses:
         200:
           description: Restore successful
