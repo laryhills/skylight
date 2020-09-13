@@ -21,8 +21,8 @@ class Options(db.Model):
     __tablename__ = 'Options'
     group = db.Column('OPTIONS_GROUP', db.Integer, primary_key=True)
     members = db.Column('MEMBERS', db.Text)
-    semester = db.Column('SEMESTER', db.Text)
-    level = db.Column('LEVEL', db.Text)
+    semester = db.Column('SEMESTER', db.Integer)
+    level = db.Column('LEVEL', db.Integer)
 
 
 class CoursesSchema(ma.ModelSchema):

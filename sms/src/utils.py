@@ -14,6 +14,7 @@ get_DB = users.get_DB
 get_level = users.get_level
 load_session = users.load_session
 get_current_session = config.get_current_session
+csv_fn = lambda csv: csv.split(",") if csv else []
 
 
 def get_depat(full=True):
@@ -64,8 +65,7 @@ def get_courses(mat_no=None, mode_of_entry=1, session=None, lpad=True):
 
     courses = CoursesSchema().dump(Courses.query.filter_by(mode_of_entry=mode_of_entry).first())
     level_courses = [courses["level{}".format(lvl)].split(" ") for lvl in range(mode_of_entry*100,600,100)]
-    fn = lambda csv: csv.split(",") if csv else []
-    level_courses = [[fn(x[0]), fn(x[1])] for x in level_courses]
+    level_courses = [[csv_fn(x[0]), csv_fn(x[1])] for x in level_courses]
     if lpad:
         return [ [[], []] for x in range(mode_of_entry - 1) ] + level_courses
     return level_courses
@@ -84,15 +84,15 @@ def get_carryovers(mat_no, level=None, next_level=False):
         first_sem |= set(course[0])
         second_sem |= set(course[1])
 
-    person_options = personal_info.get(mat_no)["option"]
+    person_options = csv_fn(personal_info.get(mat_no)["option"])
     if person_options:
         options = [OptionsSchema().dump(option) for option in Options.query.all()]
-        for choice in person_options.split(","):
+        for choice in person_options:
             for option in options:
                 if choice in option["members"]:
                     idx = option["semester"] - 1
                     [first_sem, second_sem][idx] -= set(option["members"].split(","))
-                    [first_sem, second_sem][idx] += {choice}
+                    [first_sem, second_sem][idx] |= {choice}
 
     for result in results:
         for record in result["first_sem"]:
