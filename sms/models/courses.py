@@ -22,6 +22,7 @@ class Options(db.Model):
     group = db.Column('OPTIONS_GROUP', db.Integer, primary_key=True)
     members = db.Column('MEMBERS', db.Text)
     semester = db.Column('SEMESTER', db.Text)
+    level = db.Column('LEVEL', db.Text)
 
 
 class CoursesSchema(ma.ModelSchema):
