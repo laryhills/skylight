@@ -2,7 +2,7 @@ from sms.src import personal_info, course_details, utils
 from json import dumps
 
 
-def get(mat_no, retJSON=True):
+def get(mat_no, retJSON=False):
     person = personal_info.get(mat_no=mat_no)
     
     student_details = {"name": "{}, {}".format(person['surname'], person['othernames']), "depat": utils.get_depat(),
