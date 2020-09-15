@@ -100,7 +100,7 @@ def patch(data, superuser=False):
         return None, 404
     if not all([data.get(prop) for prop in (required & data.keys())]) or (data.keys() - all_fields):
         # Empty value supplied or Invalid field supplied
-        return "Invalid field supplied", 400
+        return "Invalid field supplied or missing a compulsory field", 400
     if data.get("session_grad") == 0:
         return "Invalid field supplied", 400
 
