@@ -195,8 +195,10 @@ def get_results(mat_no, acad_session):
             carryover_reg_courses.append(course_dets)
             continue
         score, grade = res.get(course_code, ',').split(',')
+        if not (score and grade):
+            score, grade = carryovers_dict.get(course_code, ['', ''])
         score, grade = ('', '') if score == '-1' else (score, grade)
-        score = score if not score.isdecimal() else int(score)
+        # score = score if not score.isdecimal() else int(score)
         course_dets.pop()
         course_dets.extend([score, grade])
 
