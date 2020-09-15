@@ -342,7 +342,7 @@ def store_unusual_students(mat_no, entry_session):
 
 
 def set_student_stat(conn, mat_no, entry_session, stat):
-    is_symlink, database = stat[-2:]
+    level, is_symlink, database = stat[-3:]
     # stmt = 'UPDATE PersonalInfo SET SESSION_GRADUATED = ?, CURRENT_LEVEL = ?, GRAD_STATUS = ?, IS_SYMLINK = ?, ' \
     #        'DATABASE = ? WHERE MATNO = ?; '
     stmt = 'UPDATE PersonalInfo SET SESSION_GRADUATED = ?, CURRENT_LEVEL = ?, IS_SYMLINK = ?, DATABASE = ? WHERE ' \
@@ -351,12 +351,32 @@ def set_student_stat(conn, mat_no, entry_session, stat):
     conn.commit()
 
     if is_symlink:
+        set_symlink_data(mat_no, entry_session, level, database)
+
+
+def set_symlink_data(mat_no, entry_session, level, database):
+    level = abs(level // 100)
+    if level == 9:
+        return
+    db = '{}-{}.db'.format(entry_session, entry_session + 1)
+    close_conn = True
+    if int(database[:4]) == entry_session:
+        new_conn = conn
+        close_conn = False
+    else:
         db_name = os.path.join(db_base_dir, database)
-        db = '{}-{}.db'.format(entry_session, entry_session + 1)
         new_conn = sqlite3.connect(db_name)
-        stmt = 'INSERT INTO SymLink (MATNO, DATABASE) VALUES (?, ?);'
+    try:
+        stmt = 'INSERT INTO SymLink (MATNO, DATABASE_{}) VALUES (?, ?);'.format(level)
         new_conn.execute(stmt, (mat_no, db))
-        new_conn.commit()
+    except sqlite3.IntegrityError:
+        stmt = 'UPDATE SymLink SET DATABASE_{} = ? WHERE MATNO = ?'.format(level)
+        conn.execute(stmt, (db, mat_no))
+    except sqlite3.OperationalError:
+        print(mat_no, entry_session, level, database)
+        raise
+    new_conn.commit()
+    if close_conn:
         new_conn.close()
 
 
@@ -381,11 +401,11 @@ def populate_db(conn, mat_no, entry_session, mod):
     groups = [curr_frame_group.get_group(x) for x in curr_frame_group.groups]
     groups = sorted(groups, key=lambda x: x.SESSION.iloc[0])
     levels = [groups[num].SESSION.iloc[0] for num in range(len(groups))]
-    if not levels or len(groups) > (9 - mod):
-        store_unusual_students(mat_no, entry_session)
-        return
     if len(groups) == 0:
         delete_record(conn, mat_no)
+        store_unusual_students(mat_no, entry_session)
+        return
+    if not levels or len(groups) > (9 - mod):
         store_unusual_students(mat_no, entry_session)
         return
     progressive_sum = int(len(levels) / 2.0 * (2 * levels[0] + len(levels) - 1))
@@ -431,11 +451,11 @@ def populate_db(conn, mat_no, entry_session, mod):
 
         course_reg_df['PROBATION'] = on_probation
         num_probation += on_probation
-        # total_credits = total_level_credits(entry_session, mod, count)
+        total_credits = total_level_credits(entry_session, mod, count)
         total_credits_registered = total_registered_credits(count, course_reg_df)
         total_credits_passed = get_passed_credits(entry_session, count, student_result)
-        category = get_category(entry_session, count, mod, on_probation, total_credits_registered, total_credits_passed)
-        # category = get_category(entry_session, count, mod, on_probation, total_credits, total_credits_passed)
+        # category = get_category(entry_session, count, mod, on_probation, total_credits_registered, total_credits_passed)
+        category = get_category(entry_session, count, mod, on_probation, total_credits, total_credits_passed)
         student_result['CATEGORY'] = category
         if category == 'C' : on_probation = 1
         else: on_probation = 0
@@ -487,10 +507,18 @@ def populate_db(conn, mat_no, entry_session, mod):
         student_result['TCP'] = total_credits_passed
         result_dtype['TCP'] = 'INTEGER'
 
+        if count == mod > 1:
+            current_level = count * 100
+            new_session = entry_session - mod + 1
+            database = '{}-{}.db'.format(new_session, new_session + 1)
+            set_symlink_data(mat_no, entry_session, current_level, database)
+
         # correct PersonalInfo data
+        exam_level = (count - num_probation) * 100
+        exam_session = int(group.SESSION.iloc[0])
         if count == (len(groups) + mod - 1):
-            exam_level = (count - num_probation) * 100
-            exam_session, session_grad = int(group.SESSION.iloc[0]), None
+            # End conditions
+            session_grad = None
             if exam_level >= 500 and category == 'A':
                 # successful students
                 # session_grad, current_level, grad_stat = exam_session, 500, 1
@@ -500,7 +528,7 @@ def populate_db(conn, mat_no, entry_session, mod):
                     if gap_in_sessions:
                         new_session = exam_session - 4
                     else:
-                        new_session = entry_session - (mod - 1) + int((exam_level - 500) / 100)
+                        new_session = entry_session - (mod - 1) + int((exam_level - 500) / 100) + num_probation
                     database = '{}-{}.db'.format(new_session, new_session + 1)
                 else:
                     is_symlink, database = 0, ''
@@ -511,7 +539,7 @@ def populate_db(conn, mat_no, entry_session, mod):
                 if gap_in_sessions:
                     new_session = exam_session - 3
                 else:
-                    new_session = entry_session - (mod - 1) + int((exam_level - 400) / 100)
+                    new_session = entry_session - (mod - 1) + int((exam_level - 400) / 100) + num_probation
                 database = '{}-{}.db'.format(new_session, new_session + 1)
             else:
                 # 100 to 400 students
@@ -526,13 +554,8 @@ def populate_db(conn, mat_no, entry_session, mod):
                 elif on_probation or num_probation:
                     is_symlink = 1
                     if gap_in_sessions:
-                        # apparent_entry_session = exam_session - int(exam_level / 100) + 1
                         new_session = exam_session - int(exam_level / 100) + 1
-                        # new_session = exam_session - int(exam_level / 100) + 2
-                        # if num_probation:
-                        #     new_session -= num_probation
                     else:
-                        # new_session = entry_session - (mod - 1) + num_probation + 1
                         new_session = entry_session - (mod - 1) + num_probation + on_probation
                     database = '{}-{}.db'.format(new_session, new_session + 1)
                 elif gap_in_sessions:
@@ -551,6 +574,25 @@ def populate_db(conn, mat_no, entry_session, mod):
             # stat = (session_grad, current_level, grad_stat, is_symlink, database)
             stat = (session_grad, current_level, is_symlink, database)
             set_student_stat(conn, mat_no, entry_session, stat)
+        else:
+            if on_probation:
+                # probating students
+                current_level = exam_level
+                if gap_in_sessions:
+                    new_session = exam_session - (exam_level // 100) + 2
+                else:
+                    new_session = entry_session - (mod - 1) + num_probation + 1
+                database = '{}-{}.db'.format(new_session, new_session + 1)
+                set_symlink_data(mat_no, entry_session, current_level, database)
+            elif exam_level >= 500 and category != 'A':
+                # spillover students
+                current_level = exam_level + 100
+                if gap_in_sessions:
+                    new_session = exam_session - 4
+                else:
+                    new_session = entry_session - (mod - 1) + int((exam_level - 500) / 100) + num_probation
+                database = '{}-{}.db'.format(new_session, new_session + 1)
+                set_symlink_data(mat_no, entry_session, current_level, database)
 
         # store result and course_reg in the database
         try:
