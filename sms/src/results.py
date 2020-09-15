@@ -228,11 +228,16 @@ def _get_multiple_results_stats(acad_session, level):
     entry_session = acad_session - (level / 100) + 1
     students = get_students_by_level(entry_session, level)
     result_details = []
+    result_details_incomplete = []
 
     for mat_no in students:
         details, _ = _get_single_results_stats(mat_no, level, acad_session)
-        result_details.append(details)
+        if details[2] == details[3] and details[2] != 0:
+            result_details.append(details)
+        else:
+            result_details_incomplete.append(details)
 
+    result_details.extend(result_details_incomplete)
     return result_details, 200
 
 
