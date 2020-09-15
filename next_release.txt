@@ -1,4 +1,5 @@
 1)  Create session expose, change session updates personal info level (big red button)
 2)  Search student by surname
 3)  Senate Version: an asterisk next to level GPAs when the courses for that level are not all passed
-4)
+4)  resolve versions of all deps in pipfile (use pip freeze values)
+5)

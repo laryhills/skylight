@@ -35,11 +35,6 @@ def set_resultedit(state):
 
 
 @access_decorator
-def get(mat_no, acad_session):
-    return get_results_for_acad_session(mat_no, acad_session)
-
-
-@access_decorator
 def get_result_details(mat_no, acad_session):
     return get_results(mat_no, acad_session)
 
@@ -52,6 +47,11 @@ def get_single_results_stats(mat_no, level, acad_session):
 @access_decorator
 def get_multiple_results_stats(acad_session, level):
     return _get_multiple_results_stats(acad_session, level)
+
+
+@access_decorator
+def get(mat_no, acad_session):
+    return get_results_for_acad_session(mat_no, acad_session)
 
 
 @access_decorator
@@ -195,8 +195,10 @@ def get_results(mat_no, acad_session):
             carryover_reg_courses.append(course_dets)
             continue
         score, grade = res.get(course_code, ',').split(',')
+        if not (score and grade):
+            score, grade = carryovers_dict.get(course_code, ['', ''])
         score, grade = ('', '') if score == '-1' else (score, grade)
-        score = score if not score.isdecimal() else int(score)
+        # score = score if not score.isdecimal() else int(score)
         course_dets.pop()
         course_dets.extend([score, grade])
 
@@ -226,11 +228,16 @@ def _get_multiple_results_stats(acad_session, level):
     entry_session = acad_session - (level / 100) + 1
     students = get_students_by_level(entry_session, level)
     result_details = []
+    result_details_incomplete = []
 
     for mat_no in students:
         details, _ = _get_single_results_stats(mat_no, level, acad_session)
-        result_details.append(details)
+        if details[2] == details[3] and details[2] != 0:
+            result_details.append(details)
+        else:
+            result_details_incomplete.append(details)
 
+    result_details.extend(result_details_incomplete)
     return result_details, 200
 
 
@@ -466,6 +473,7 @@ def update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_leve
     if grade != previous_grade:
         creds = utils.get_credits(mat_no)
         # ensure to get the right value irrespective of the size of the list (PUTME vs DE students)
+        # TODO use lpad param with get_credits to keep uniform
         level_credits = creds[index + (len(creds) - 5)]
         grading_point_rule = utils.get_grading_point(utils.get_DB(mat_no))
         grading_point = int(grading_point_rule[grade]) if grade != 'ABS' else 0
@@ -584,7 +592,7 @@ def check_owed_courses_exists(mat_no, level_written, grade, course_dets):
     if level_written >= 500:
         # we search for carryovers with param level=900 to bypass get_carryovers ignoring unregistered
         # 500 level courses when the when the student's level is 500
-        owed_courses = utils.get_carryovers(mat_no, level=900, retJSON=False)
+        owed_courses = utils.get_carryovers(mat_no, level=900)
         owed_courses = utils.dictify(owed_courses['first_sem']), utils.dictify(owed_courses['second_sem'])
         course_code, course_semester = course_dets['course_code'], course_dets['course_semester']
         if course_code in owed_courses[course_semester - 1]:

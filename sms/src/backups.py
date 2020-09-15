@@ -19,17 +19,17 @@ def download(backup_names=None, limit=15):
 
 
 @access_decorator
-def backup():
+def backup(tag=''):
     try:
-        backup_name = backup_databases(external=True)
+        backup_name = backup_databases(tag=tag, external=True)
     except:
         return 'Something went wrong', 400
     return backup_name, 200
 
 
 @access_decorator
-def restore(backup_name, include_accounts=False):
-    return restore_backup(backup_name, include_accounts)
+def restore(backup_name, include_accounts=False, backup_current=True):
+    return restore_backup(backup_name, include_accounts, backup_current)
 
 
 @access_decorator
@@ -69,10 +69,18 @@ def download_backups(backup_names=None, limit=15):
         return None, 400
 
 
-def backup_databases(before_restore=False, external=False):
+def backup_databases(tag='', before_restore=False, external=False):
+    """
+
+    :param tag: string supplied for easy identification
+    :param before_restore:
+    :param external: true if called externally
+    :return:
+    """
     datetime_tag = datetime.now().isoformat().split('.')[0].replace('T', '__').replace(':', '_')
-    flag = '__before_restore' if before_restore else ''
-    backup_name = 'databases__' + datetime_tag + flag + '.skylight.zip'
+    custom_tag = 'before_restore' if before_restore else tag
+    custom_tag = '__' + custom_tag if custom_tag else ''
+    backup_name = 'databases__' + datetime_tag + custom_tag + '.skylight.zip'
 
     databases = sorted([file.name for file in os.scandir(DB_DIR) if file.name.endswith('.db')])
     zip_file = os.path.join(BACKUP_DIR, backup_name)
@@ -87,10 +95,11 @@ def backup_databases(before_restore=False, external=False):
     return backup_name
 
 
-def restore_backup(backup_name, include_accounts=False):
+def restore_backup(backup_name, include_accounts=False, backup_current=True):
     backup_path = os.path.join(BACKUP_DIR, backup_name)
     try:
-        backup_databases(before_restore=True)
+        if backup_current:
+            backup_databases(before_restore=True)
         with ZipFile(backup_path) as zf:
             databases = zf.namelist()
             for database in databases:

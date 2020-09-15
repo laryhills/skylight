@@ -19,9 +19,10 @@ class Courses(db.Model):
 class Options(db.Model):
     __bind_key__ = 'courses'
     __tablename__ = 'Options'
-    options_group = db.Column('OPTIONS_GROUP', db.Integer, primary_key=True)
+    group = db.Column('OPTIONS_GROUP', db.Integer, primary_key=True)
     members = db.Column('MEMBERS', db.Text)
-    default_member = db.Column('DEFAULT_MEMBER', db.Text)
+    semester = db.Column('SEMESTER', db.Integer)
+    level = db.Column('LEVEL', db.Integer)
 
 
 class CoursesSchema(ma.ModelSchema):

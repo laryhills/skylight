@@ -27,3 +27,5 @@ Also just in case of revisions, add why this is necessary
    * The DegreeClass table stores a tuple of the range for each class of degree as a float with a precision of 4dp
 12) course_details.get_all(level) must return one and only one placeholder optional course
    * The position of this course in the course list is used for placing the OPTIONAL COURSES column in the broad-sheet
+13) All optional courses in a single group must be tied to a particular level's semester alone and have equal credit load
+   * Default course has to share same course properties to stand in for all others

@@ -35,8 +35,8 @@ for ex in \
     generate_models.py \
     personal_info.py \
     course_details.py \
-    "generate_courses_&_credits.py" \
-    "generate_course_reg_&_result.py" \
+    "generate_courses_and_credits.py" \
+    "generate_course_reg_and_result.py" \
     generate_grading_rule.py \
     generate_categories.py \
     generate_degree_class.py

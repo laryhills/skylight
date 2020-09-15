@@ -20,7 +20,7 @@ from sms.src.results import get_results_for_acad_session, get_results_for_level
 from sms.src.script import get_students_by_level
 from sms.src.users import access_decorator
 from sms.src.utils import multiprocessing_wrapper, compute_degree_class, get_cgpa, dictify, multisort, \
-    get_current_session, get_registered_courses, get_level
+    get_current_session, get_registered_courses, get_level, get_depat
 
 init()  # initialize colorama
 
@@ -96,6 +96,8 @@ def collect_renders_in_zip(file_dir, zip_file_name, file_format):
 def render_html(item, acad_session, index_to_display, file_dir, first_sem_only=False):
     level, mat_nos = item
     color_map = {'F': 'red', 'F *': 'red', 'ABS': 'blue', 'ABS *': 'blue'}
+    dept = get_depat()
+    dept_title_case = ' '.join(map(str.capitalize, dept.split(' ')))
     empty_value = ' '
 
     # get semester courses (with one placeholder option)
@@ -143,6 +145,7 @@ def render_html(item, acad_session, index_to_display, file_dir, first_sem_only=F
                 first_sem_courses=first_sem_courses, second_sem_courses=second_sem_courses,
                 first_sem_options=first_sem_options, second_sem_options=second_sem_options,
                 students=paginated_students, session=acad_session, level=level, first_sem_only=first_sem_only,
+                dept_title_case=dept_title_case,
             )
             open(os.path.join(CACHE_BASE_DIR, file_dir, '{}_{}_render.html'.format(level, ite + 1)), 'w').write(html)
 

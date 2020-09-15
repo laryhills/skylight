@@ -12,13 +12,13 @@
     max_credits: <int>
 
     courses: {
-               first_sem: [ ('course_code_1', 'course_title_1', 'course_credits_1'),
-                            ('course_code_2', 'course_title_2', 'course_credits_2'), ...]
+               first_sem: [ ('course_code_1', 'course_title_1', 'course_credits_1', 'course_level_1'),
+                            ('course_code_2', 'course_title_2', 'course_credits_2', 'course_level_2'), ...]
                second_sem: [ ... ]
              }
     choices: {
-               first_sem: [ ('course_code_1', 'course_title_1', 'course_credits_1'),
-                            ('course_code_2', 'course_title_2', 'course_credits_2'), ...]
+               first_sem: [ ('course_code_1', 'course_title_1', 'course_credits_1', 'course_level_1'),
+                            ('course_code_2', 'course_title_2', 'course_credits_2', 'course_level_2'), ...]
                second_sem: [ ... ]
              }
     probation_status: <int>
@@ -116,7 +116,11 @@ def init_new_course_reg(mat_no, acad_session, table_to_populate, current_level, 
         return 'Cannot determine current level of student', 400
 
     level_courses = utils.get_courses(mat_no, mode_of_entry)
-    fields = ['course_code', 'course_title', 'course_credit', 'course_semester', 'course_level']
+    options = course_reg_utils.get_optional_courses(current_level)
+    options = [[crs[0] for crs in options[sem]] for sem in (0, 1)]
+    level_courses[index] = [list(set(level_courses[index][sem] + (options[sem]))) for sem in (0, 1)]
+
+    fields = ['course_code', 'course_title', 'course_credit', 'course_level']
     first_sem_choices = course_reg_utils.enrich_course_list(level_courses[index][0], fields=fields)
     second_sem_choices = course_reg_utils.enrich_course_list(level_courses[index][1], fields=fields)
     first_sem_carryover_courses = course_reg_utils.enrich_course_list(first_sem_carryover_courses, fields=fields)

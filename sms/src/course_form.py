@@ -15,7 +15,6 @@ uniben_logo_path = 'file:///' + os.path.join(os.path.split(base_dir)[0], 'templa
 
 @access_decorator
 def get(mat_no=None, session=None, to_print=False):
-    # TODO: Clear the cache directory
     current_session = get_current_session()
     session = session if session else current_session
 
@@ -60,7 +59,7 @@ def get(mat_no=None, session=None, to_print=False):
         html = render_template('course_form_template.htm', mat_no=mat_no, uniben_logo_path=uniben_logo_path,
                                session='{}/{}'.format(session, session + 1),
                                surname=person['surname'], othernames=person['othernames'].upper(),
-                               depat=person['department'], mode_of_entry=person['mode_of_entry'],
+                               dept=person['department'], mode_of_entry=person['mode_of_entry'],
                                level=level, phone_no=person['phone_no'], sex=person['sex'],
                                email=person['email_address'], state=person['state_of_origin'],
                                lga=person['lga'],
@@ -97,4 +96,4 @@ def get(mat_no=None, session=None, to_print=False):
             }
             imgkit.from_string(html, os.path.join(CACHE_BASE_DIR, file_name + '.' + img_fmt), options=options)
             resp = send_from_directory(CACHE_BASE_DIR, file_name + '.' + img_fmt, as_attachment=True)
-        return resp
+        return resp, 200

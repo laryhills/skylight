@@ -26,6 +26,10 @@ fn_props = {
         "logs": lambda user, params: "{}: database backup{} complete".format(
                                       user, ["", " before restore"][int(bool(params.get("before_restore")))])
     },
+    "jobs.remove_old_backups": {
+        "perms": {},
+        "logs": lambda user, params: "{}: old backups removed".format(user)
+    },
     "jobs.clear_cache_base_dir": {
         "perms": {},
         "logs": lambda user, params: "{}: program cache cleared".format(user)
@@ -37,21 +41,21 @@ def session_key():
     return app.config['SECRET_KEY']
 
 
-def hash_key(session_key = session_key()):
-    session_key_sum = str(sum([int(x) for x in session_key if x in "0123456789"]))
+def hash_key():
+    s_key = session_key()
+    session_key_sum = str(sum([int(x) for x in s_key if x in "0123456789"]))
     session_bytes = bytes(session_key_sum, "utf-8")
     return b64encode(md5(session_bytes).digest()).decode("utf-8").strip("=")
 
 
-serializer = Serializer(hash_key())
-
-
-def tokenize(text, s=serializer):
+def tokenize(text):
     # Use on client side, this is just for testing
+    s = Serializer(hash_key())
     return s.dumps(text).decode('utf-8')
 
 
-def detokenize(token, parse=True, s=serializer):
+def detokenize(token, parse=True):
+    s = Serializer(hash_key())
     try:
         if parse:
             return dict(zip(*[("username","password"),s.loads(token).split(':')]))
@@ -274,6 +278,9 @@ fn_props.update({
                         },
     "personal_info.patch": {"perms": {"levels", "write"},
                             "logs": lambda user, params: "{} modified personal details for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
+                        },
+    "personal_info.delete": {"perms": {"superuser", "write"},
+                            "logs": lambda user, params: "{} deleted student record for {}".format(user, params.get("mat_no"))
                         },
     "course_details.post": {"perms": {"superuser", "write"},
                             "logs": lambda user, params: "{} added course {}:-\n{}".format(user, params.get("course_code"), dict_render(params))

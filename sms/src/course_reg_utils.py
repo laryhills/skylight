@@ -6,7 +6,7 @@ def process_personal_info(mat_no):
     some_personal_info = personal_info.get(mat_no)
     some_personal_info["mode_of_entry_numeric"] = some_personal_info["mode_of_entry"]
     some_personal_info["mode_of_entry"] = ["PUTME", "DE(200)", "DE(300)"][some_personal_info["mode_of_entry"] - 1]
-    some_personal_info['department'] = get_depat('long')
+    some_personal_info['department'] = get_depat()
     for key in some_personal_info:
         if not some_personal_info[key]:
             some_personal_info[key] = ''
@@ -68,7 +68,7 @@ def fetch_carryovers(mat_no, current_level):
     :param current_level:
     :return: first_sem_carryover_courses, second_sem_carryover_courses
     """
-    carryover_courses = get_carryovers(mat_no, retJSON=False)
+    carryover_courses = get_carryovers(mat_no)
     if carryover_courses['first_sem']:
         first_sem_carryover_courses = list(list(zip(*carryover_courses['first_sem']))[0])
     else:

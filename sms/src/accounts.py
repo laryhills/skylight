@@ -50,7 +50,6 @@ def patch(data, superuser=False):
         # Empty value supplied or Invalid field supplied
         return "Invalid field supplied", 400
     username, password = data.get("username"), data.get("password")
-    # TODO not recv password in plain text, do decode here
     if not User.query.filter_by(username=username).first():
         return "Invalid username", 404
     if password:

@@ -11,6 +11,12 @@ consumes:
 produces:
   - application/json
 
+securityDefinitions:
+  api_key:
+    type: "apiKey"
+    name: "token"
+    in: "header"
+
 paths:
   /login:
     post:
@@ -87,6 +93,22 @@ paths:
           schema:
             type: integer
 
+  /grading_rules:
+    get:
+      tags: [Props]
+      operationId: sms.src.grading_rules.get
+      parameters:
+        - in: query
+          name: acad_session
+          type: integer
+          required: true
+      responses:
+        200:
+          description: Grading rules successfully retrieved
+          schema:
+            type: array
+            items: {}
+
   /personal_info:
     get:
       tags: [Personal Information]
@@ -147,6 +169,26 @@ paths:
       responses:
         200:
           description: Record successfully added
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+
+    delete:
+      tags: [Personal Information]
+      operationId: sms.src.personal_info.delete
+      summary: Delete Student
+      description: Delete all student's record
+      parameters:
+        - name: mat_no
+          in: query
+          type: string
+          required: true
+      responses:
+        200:
+          description: Student successfully deleted
+        404:
+          description: Mat no does not exist
         401:
           description: Authentication failed
         440:
@@ -746,12 +788,24 @@ paths:
       operationId: sms.src.logs.get
       parameters:
         - in: query
-          name: limit
+          name: step
           type: integer
           required: false
         - in: query
-          name: offset
+          name: count
           type: integer
+          required: false
+        - in: query
+          name: title
+          type: string
+          required: false
+        - in: query
+          name: time
+          type: integer
+          required: false
+        - in: query
+          name: operation
+          type: string
           required: false
       responses:
         200:
@@ -814,6 +868,11 @@ paths:
       operationId: sms.src.backups.backup
       summary: Initiate backup
       description: Backup the current databases
+      parameters:
+        - in: query
+          name: tag
+          type: string
+          required: false
       responses:
         200:
           description: Backup successful
@@ -837,6 +896,10 @@ paths:
           required: true
         - in: query
           name: include_accounts
+          type: boolean
+          required: false
+        - in: query
+          name: backup_current
           type: boolean
           required: false
       responses:
@@ -903,20 +966,6 @@ paths:
         440:
           description: Session expired, login again
 
-  /grading_rules:
-    get:
-      operationId: sms.src.grading_rules.get
-      parameters:
-        - in: query
-          name: acad_session
-          type: integer
-          required: true
-      responses:
-        200:
-          description: Grading rules successfully retrieved
-          schema:
-            type: array
-            items: {}
 
 definitions:
   PersonalInfo:
