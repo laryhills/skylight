@@ -227,8 +227,10 @@ def get_category(entry_session, level, mod, on_probation, total_credits, total_c
             if on_probation: return 'E' # Handle condition for transfer
             else: return 'D'
     else:
+        # level_credits = total_level_credits(entry_session, mod, level)
         if level == (8 - (mod - 1)): return 'G'
         percent_passed = total_credits_passed / total_credits * 100
+        # percent_passed = total_credits_passed / level_credits * 100
         if level - num_probation >= 5:
             # Spillover students
             return 'B'
