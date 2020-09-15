@@ -38,7 +38,7 @@ def get(mat_no, raw_score=False, to_print=False):
     level_weightings = get_level_weightings(result_stmt['mode_of_entry'])
     weighted_gpas = list(map(lambda x, y: round(x * y, 4), gpas, level_weightings))
 
-    owed_courses = get_carryovers(mat_no, retJSON=False)
+    owed_courses = get_carryovers(mat_no)
     owed_courses = owed_courses['first_sem'] + owed_courses['second_sem']
     gpa_check = [''] * 5
     for course in owed_courses:

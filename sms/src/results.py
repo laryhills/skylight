@@ -592,7 +592,7 @@ def check_owed_courses_exists(mat_no, level_written, grade, course_dets):
     if level_written >= 500:
         # we search for carryovers with param level=900 to bypass get_carryovers ignoring unregistered
         # 500 level courses when the when the student's level is 500
-        owed_courses = utils.get_carryovers(mat_no, level=900, retJSON=False)
+        owed_courses = utils.get_carryovers(mat_no, level=900)
         owed_courses = utils.dictify(owed_courses['first_sem']), utils.dictify(owed_courses['second_sem'])
         course_code, course_semester = course_dets['course_code'], course_dets['course_semester']
         if course_code in owed_courses[course_semester - 1]:

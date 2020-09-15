@@ -145,7 +145,7 @@ def get_student_details_for_cat(mat_no, level, session):
             gpa = 0
 
         credits_failed = total_credits - credits_passed
-        # carryovers_dict = get_carryovers(mat_no, level=level, retJSON=False)
+        # carryovers_dict = get_carryovers(mat_no, level=level)
         # carryovers_credits = carryovers_dict['first_sem'] + carryovers_dict['second_sem']
         # carryovers = list(map(lambda x: x[0], carryovers_credits))
         outstanding_courses = get_session_failed_courses(mat_no, level, session)
@@ -224,7 +224,7 @@ def get_details_for_ref_students(mat_no, session):
         total_credits = 0
 
     # KeyError for the utils.get_carryovers function
-    carryovers_dict = get_carryovers(mat_no, next_level=True, retJSON=False)
+    carryovers_dict = get_carryovers(mat_no, next_level=True)
     carryovers_credits = carryovers_dict['first_sem'] + carryovers_dict['second_sem']
     overall_carryover_courses = list(map(lambda x: x[0], carryovers_credits))
     outstanding_courses = []
