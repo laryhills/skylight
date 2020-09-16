@@ -23,16 +23,16 @@ fn_props = {
     },
     "backups.backup_databases": {
         "perms": {},
-        "logs": lambda user, params: "{}: database backup{} complete".format(
+        "logs": lambda user, params: "{} database backup{} complete".format(
                                       user, ["", " before restore"][int(bool(params.get("before_restore")))])
     },
     "jobs.remove_old_backups": {
         "perms": {},
-        "logs": lambda user, params: "{}: old backups removed".format(user)
+        "logs": lambda user, params: "{} old backups removed".format(user)
     },
     "jobs.clear_cache_base_dir": {
         "perms": {},
-        "logs": lambda user, params: "{}: program cache cleared".format(user)
+        "logs": lambda user, params: "{} program cache cleared".format(user)
     }
 }
 
@@ -310,7 +310,7 @@ fn_props.update({
                            "logs": lambda user, params: "{} queried course registration for {}".format(user, params.get("mat_no"))
                         },
     "course_reg.init_new": {"perms": {"levels", "read"},
-                           "logs": lambda user, params: "{} queried course registration for {}".format(user, params.get("mat_no"))
+                           "logs": lambda user, params: "{} queried data for course registration for {}".format(user, params.get("mat_no"))
                         },
     "course_reg.post": {"perms": {"levels", "write"},
                         "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))
