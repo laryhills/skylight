@@ -39,7 +39,14 @@ class SymLink(Base):
     __bind_key__ = '##NAME##'
     __tablename__ = 'SymLink'
     mat_no = db.Column('MATNO', db.String(10), primary_key=True, unique=True)
-    database = db.Column('DATABASE', db.String(12), nullable=False)
+    database_1 = db.Column('DATABASE_1', db.String(12), nullable=True)
+    database_2 = db.Column('DATABASE_2', db.String(12), nullable=True)
+    database_3 = db.Column('DATABASE_3', db.String(12), nullable=True)
+    database_4 = db.Column('DATABASE_4', db.String(12), nullable=True)
+    database_5 = db.Column('DATABASE_5', db.String(12), nullable=True)
+    database_6 = db.Column('DATABASE_6', db.String(12), nullable=True)
+    database_7 = db.Column('DATABASE_7', db.String(12), nullable=True)
+    database_8 = db.Column('DATABASE_8', db.String(12), nullable=True)
 
 
 class Result100(Base):
