@@ -216,8 +216,8 @@ def total_level_credits(entry_session, mod, level):
     return total_credits[0]
 
 
-def get_category(entry_session, level, mod, on_probation, total_credits, total_credits_passed):
-    if total_credits == total_credits_passed: return 'A'
+def get_category(entry_session, level, mod, on_probation, num_probation, total_credits, total_credits_passed):
+    if total_credits_passed >= total_credits: return 'A'
     if level == 1 and entry_session >= 2014:
         if total_credits_passed >= 36: return 'B'
         elif 23 <= total_credits_passed < 36: return 'C'
@@ -458,7 +458,7 @@ def populate_db(conn, mat_no, entry_session, mod, result_dtype_glob, course_reg_
         total_credits_registered = total_registered_credits(count, course_reg_df, courses_dict)
         total_credits_passed = get_passed_credits(entry_session, count, student_result, courses_dict)
         # category = get_category(entry_session, count, mod, on_probation, total_credits_registered, total_credits_passed)
-        category = get_category(entry_session, count, mod, on_probation, total_credits, total_credits_passed)
+        category = get_category(entry_session, count, mod, on_probation, num_probation, total_credits, total_credits_passed)
         student_result['CATEGORY'] = category
         if category == 'C' : on_probation = 1
         else: on_probation = 0
