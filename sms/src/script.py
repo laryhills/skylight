@@ -281,25 +281,27 @@ def get_students_by_level(entry_session, level, retDB=False):
     entry_session_db_name = '{}_{}'.format(entry_session, entry_session + 1)
     session = load_session(entry_session_db_name)
     students = session.PersonalInfo.query.filter_by(is_symlink=0).filter_by(mode_of_entry=1).all()
-    stud_curr_level = 500 if get_current_session() - 5 <= entry_session else (get_current_session() - entry_session) * 100
-    level_offset = stud_curr_level - level
+    # stud_curr_level = 500 if get_current_session() - 5 <= entry_session else (get_current_session() - entry_session) * 100
+    # level_offset = stud_curr_level - level
     if retDB:
         students = {entry_session_db_name: list(map(lambda stud: stud.mat_no, students))}
     else:
         students = list(map(lambda stud: stud.mat_no, students))
 
-    symlink_students = session.SymLink.query.order_by('DATABASE').all()    # DE and probating students
-    other_students = []
-    for stud in symlink_students:
-        curr_level = get_level(stud.mat_no)
-        curr_level = curr_level if curr_level < 500 else 500
-        if curr_level == level + level_offset:
-            other_students.append(stud)
+    level_num = level // 100
+    other_students = session.SymLink.query.filter(getattr(session.SymLink, f'database_{level_num}') != None)\
+        .order_by(f'DATABASE_{level_num}').all()    # DE and probating students
+    # other_students = []
+    # for stud in symlink_students:
+    #     curr_level = get_level(stud.mat_no)
+    #     curr_level = curr_level if curr_level < 500 else 500
+    #     if curr_level == level + level_offset:
+    #         other_students.append(stud)
     if retDB:
         # groups the students by their database name
         stud_db_map = {}
         for stud in other_students:
-            db_name = stud.database[:-3].replace('-', '_')
+            db_name = getattr(stud, f'database_{level_num}')[:-3].replace('-', '_')
             try:
                 stud_db_map[db_name].append(stud.mat_no)
             except KeyError:
