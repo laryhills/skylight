@@ -97,7 +97,7 @@ def check_registration_eligibility(mat_no, acad_session):
     elif table_to_populate == '':   # or int(table_to_populate[-3:]) + 100 > 800
         error_text = 'Student cannot carry out course reg as he has exceeded the 8-year limit'
     elif previous_category not in 'ABC':
-        error_text = 'Student cannot carry out course reg as his category is {}'.format(previous_category)
+        error_text = 'Student cannot carry out course reg as his previous category is {}'.format(previous_category)
     if error_text != '':
         return error_text, 403
 
