@@ -801,7 +801,7 @@ paths:
           required: false
         - in: query
           name: time
-          type: integer
+          type: number
           required: false
         - in: query
           name: operation
