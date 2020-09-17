@@ -5,6 +5,7 @@ class Master(db.Model):
     __bind_key__ = 'master'
     __tablename__ = 'Main'
     mat_no = db.Column('MATNO', db.String(10), primary_key=True)
+    surname = db.Column('SURNAME', db.Text, nullable=False)
     database = db.Column('DATABASE', db.String(12), nullable=False)
 
 
