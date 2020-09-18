@@ -1,8 +1,5 @@
 import os
 import sqlite3
-import time
-from concurrent.futures.process import ProcessPoolExecutor
-
 import pandas as pd
 from sys import exit
 
@@ -103,7 +100,7 @@ result_frame = result_frame[result_frame.COURSE_CODE != 'MEE123']
 result_frame.COURSE_CODE.replace('CHM112', 'CHM122', inplace=True)
 
 
-def total_registered_credits(level, course_reg_df, courses_dict):
+def total_registered_credits(level, course_reg_df):
     total_credit = 0
     if level <= 5:
         reg_courses_df = course_reg_df[course_reg_df != 0].dropna(axis=1)
@@ -142,7 +139,7 @@ def get_total_credits(conn, level, mod, course_reg_df):
     return total_credits
 
 
-def get_passed_credits(entry_session, level, result_df, courses_dict):
+def get_passed_credits(entry_session, level, result_df):
     total_credits_passed = 0
     if level <= 5:
         course_credit_dict = courses_dict[level - 1]
@@ -216,7 +213,7 @@ def total_level_credits(entry_session, mod, level):
     return total_credits[0]
 
 
-def get_category(entry_session, level, mod, on_probation, num_probation, total_credits, total_credits_passed):
+def get_category(entry_session, level, mod, on_probation, total_credits, total_credits_passed):
     if total_credits_passed >= total_credits: return 'A'
     if level == 1 and entry_session >= 2014:
         if total_credits_passed >= 36: return 'B'
@@ -266,7 +263,7 @@ def create_gpa_schema():
         pass
 
 
-def store_gpa(conn, mat_no, level, result_frame, on_probation, mod, courses_dict):
+def store_gpa(conn, mat_no, level, result_frame, on_probation, mod):
     level = 5 if level > 5 else level
     grade_weight = {'A': 5, 'B': 4, 'C': 3, 'D': 2, 'E': 1, 'F': 0}
     if level == 1:
@@ -374,7 +371,7 @@ def set_symlink_data(mat_no, entry_session, level, database):
         new_conn.execute(stmt, (mat_no, db))
     except sqlite3.IntegrityError:
         stmt = 'UPDATE SymLink SET DATABASE_{} = ? WHERE MATNO = ?'.format(level)
-        conn.execute(stmt, (db, mat_no))
+        new_conn.execute(stmt, (db, mat_no))
     except sqlite3.OperationalError:
         print(mat_no, entry_session, level, database)
         raise
@@ -395,8 +392,8 @@ def delete_record(conn, mat_no):
     master_db.close()
 
 
-def populate_db(conn, mat_no, entry_session, mod, result_dtype_glob, course_reg_dtype_glob, courses_dict, courses):
-    # global result_dtype_glob, course_reg_dtype_glob, num_probation
+def populate_db(conn, mat_no, entry_session, mod):
+    global result_dtype_glob, course_reg_dtype_glob, num_probation
     num_probation = 0
     # Loads all the student's results
     curr_frame = result_frame[result_frame.MATNO == mat_no]
@@ -417,6 +414,7 @@ def populate_db(conn, mat_no, entry_session, mod, result_dtype_glob, course_reg_
     else:
         gap_in_sessions = False
     count, on_probation = mod - 1, 0
+    last_probation_session = None
     for group in groups:
         count += 1
         group.drop_duplicates(subset='COURSE_CODE', inplace=True)
@@ -455,12 +453,12 @@ def populate_db(conn, mat_no, entry_session, mod, result_dtype_glob, course_reg_
         course_reg_df['PROBATION'] = on_probation
         num_probation += on_probation
         total_credits = total_level_credits(entry_session, mod, count)
-        total_credits_registered = total_registered_credits(count, course_reg_df, courses_dict)
-        total_credits_passed = get_passed_credits(entry_session, count, student_result, courses_dict)
+        total_credits_registered = total_registered_credits(count, course_reg_df)
+        total_credits_passed = get_passed_credits(entry_session, count, student_result)
         # category = get_category(entry_session, count, mod, on_probation, total_credits_registered, total_credits_passed)
-        category = get_category(entry_session, count, mod, on_probation, num_probation, total_credits, total_credits_passed)
+        category = get_category(entry_session, count, mod, on_probation, total_credits, total_credits_passed)
         student_result['CATEGORY'] = category
-        if category == 'C' : on_probation = 1
+        if category >= 'C' : on_probation = 1
         else: on_probation = 0
 
         for col_name, series in student_result.iteritems():
@@ -491,7 +489,7 @@ def populate_db(conn, mat_no, entry_session, mod, result_dtype_glob, course_reg_
                     series.replace(series[0], str(score) + ',' + grade, inplace=True)
 
         # compute gpa
-        store_gpa(conn, mat_no, count, student_result, probation_stat, mod, courses_dict)
+        store_gpa(conn, mat_no, count, student_result, probation_stat, mod)
 
         student_result['SESSION'] = group.SESSION.iloc[0]
         course_reg_df['SESSION'] = group.SESSION.iloc[0]
@@ -585,6 +583,13 @@ def populate_db(conn, mat_no, entry_session, mod, result_dtype_glob, course_reg_
                     new_session = exam_session - (exam_level // 100) + 2
                 else:
                     new_session = entry_session - (mod - 1) + num_probation + 1
+                last_probation_session = new_session
+                database = '{}-{}.db'.format(new_session, new_session + 1)
+                set_symlink_data(mat_no, entry_session, current_level, database)
+            elif num_probation:
+                # students who have previously probated
+                current_level = exam_level + 100
+                new_session = last_probation_session
                 database = '{}-{}.db'.format(new_session, new_session + 1)
                 set_symlink_data(mat_no, entry_session, current_level, database)
             elif exam_level >= 500 and category != 'A':
@@ -594,6 +599,12 @@ def populate_db(conn, mat_no, entry_session, mod, result_dtype_glob, course_reg_
                     new_session = exam_session - 4
                 else:
                     new_session = entry_session - (mod - 1) + int((exam_level - 500) / 100) + num_probation
+                database = '{}-{}.db'.format(new_session, new_session + 1)
+                set_symlink_data(mat_no, entry_session, current_level, database)
+            elif mod > 1:
+                # de students who have never probated
+                current_level = exam_level + 100
+                new_session = entry_session - (mod - 1)
                 database = '{}-{}.db'.format(new_session, new_session + 1)
                 set_symlink_data(mat_no, entry_session, current_level, database)
 
@@ -609,45 +620,18 @@ def populate_db(conn, mat_no, entry_session, mod, result_dtype_glob, course_reg_
     conn.commit()
 
 
-def multiprocessing_wrapper(func, iterable, context, use_workers=True, max_workers=None):
-    """
-    use multiprocessing to call a function on members of an iterable
-
-    (number of workers limited to 5)
-
-    :param func: the function to call
-    :param iterable: items you want to call func on
-    :param context: params that are passed to all instances
-    :param use_workers: whether to spawn off child processes
-    :param max_workers: maximum number of child processes to use
-    :return:
-    """
-    if not use_workers:
-        [func(item, *context) for item in iterable]
-    else:
-        max_workers = max_workers if max_workers else min(len(iterable), 4)
-        with ProcessPoolExecutor(max_workers=max_workers) as executor:
-            [executor.submit(func, item, *context) for item in iterable]
-
-
-def main(item, db_base_dir, result_dtype_glob, course_reg_dtype_glob, courses_dict, courses):
-    index, series = item
-    print('Populating result for {}...'.format(series.MATNO))
-    curr_db = series.DATABASE
-    entry_session = int(curr_db[:4])
-    conn = sqlite3.connect(os.path.join(db_base_dir, curr_db))
-    mod = conn.execute('SELECT MODE_OF_ENTRY FROM PersonalInfo WHERE MATNO = ?', (series.MATNO,)).fetchone()[0]
-    populate_db(conn, series.MATNO, entry_session, mod, result_dtype_glob, course_reg_dtype_glob, courses_dict, courses)
-    conn.close()
-
-
 if __name__ == '__main__':
     create_table_schema()
     create_gpa_schema()
     result_dtype_glob, course_reg_dtype_glob = generate_table_dtype()
 
-    t0 = time.perf_counter()
-    context = [db_base_dir, result_dtype_glob, course_reg_dtype_glob, courses_dict, courses]
-    multiprocessing_wrapper(main, list(student_frame.iterrows()), context=context, max_workers=8)
+    for index, series in student_frame.iterrows():
+        print('Populating result for {}...'.format(series.MATNO))
+        curr_db = series.DATABASE
+        entry_session = int(curr_db[:4])
+        conn = sqlite3.connect(os.path.join(db_base_dir, curr_db))
+        mod = conn.execute('SELECT MODE_OF_ENTRY FROM PersonalInfo WHERE MATNO = ?', (series.MATNO,)).fetchone()[0]
+        populate_db(conn, series.MATNO, entry_session, mod)
+        conn.close()
 
-    print('done in', round(time.perf_counter() - t0, 2), 'seconds')
+print('done')
