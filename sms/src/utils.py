@@ -17,7 +17,7 @@ get_current_session = config.get_current_session
 csv_fn = lambda csv: csv.split(",") if csv else []
 
 
-def get_depat(full=True):
+def get_dept(full=True):
     dept = loads(Props.query.filter_by(key="Department").first().valuestr)
     return dept[full]
 

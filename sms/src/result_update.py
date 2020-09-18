@@ -24,7 +24,7 @@ def get(mat_no, raw_score=False, to_print=False):
     result_stmt = result_statement.get(mat_no)
 
     name = result_stmt['name'].replace(',', '')
-    dept = capwords(result_stmt['depat'])
+    dept = capwords(result_stmt['dept'])
     dob = result_stmt['dob']
     mod = ['PUTME', 'DE(200)', 'DE(300)'][result_stmt['mode_of_entry'] - 1]
     entry_session = result_stmt['entry_session']

@@ -127,7 +127,10 @@ def init_new_course_reg(mat_no, acad_session, table_to_populate, current_level, 
     second_sem_carryover_courses = course_reg_utils.enrich_course_list(second_sem_carryover_courses, fields=fields)
 
     # Getting maximum possible credits to register
-    level_max_credits = utils.get_maximum_credits_for_course_reg()['normal']
+    level_max_credits = max(
+        utils.get_maximum_credits_for_course_reg()['normal'],
+        utils.get_credits(mat_no, lpad=True)[index]
+    )
 
     # Handle any case where carryover course credits exceeds the limit
     credit_sum = course_reg_utils.sum_credits_many(first_sem_carryover_courses, second_sem_carryover_courses,
@@ -141,8 +144,9 @@ def init_new_course_reg(mat_no, acad_session, table_to_populate, current_level, 
     # Implementing the "clause of 51"
     if current_level >= 500:
         credit_sum += course_reg_utils.sum_credits_many(first_sem_choices, second_sem_choices, index_for_credits=2)
-        if credit_sum == utils.get_maximum_credits_for_course_reg()['clause_of_51']:
-            level_max_credits = utils.get_maximum_credits_for_course_reg()['clause_of_51']
+        conditional_max = utils.get_maximum_credits_for_course_reg()['clause_of_51']
+        if credit_sum == conditional_max:
+            level_max_credits = conditional_max
 
     course_reg_frame = {'mat_no': mat_no,
                         'personal_info': s_personal_info,

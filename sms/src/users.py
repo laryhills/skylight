@@ -23,16 +23,16 @@ fn_props = {
     },
     "backups.backup_databases": {
         "perms": {},
-        "logs": lambda user, params: "{}: database backup{} complete".format(
+        "logs": lambda user, params: "{} database backup{} complete".format(
                                       user, ["", " before restore"][int(bool(params.get("before_restore")))])
     },
     "jobs.remove_old_backups": {
         "perms": {},
-        "logs": lambda user, params: "{}: old backups removed".format(user)
+        "logs": lambda user, params: "{} old backups removed".format(user)
     },
     "jobs.clear_cache_base_dir": {
         "perms": {},
-        "logs": lambda user, params: "{}: program cache cleared".format(user)
+        "logs": lambda user, params: "{} program cache cleared".format(user)
     }
 }
 
@@ -94,7 +94,7 @@ def access_decorator(func):
         params = get_kwargs(func, args, kwargs)
         if params.get("superuser"):
             if not user_perms.get("superuser"):
-                return None, 401
+                return 'Access Denied', 401
         has_access = True
         if "levels" in req_perms:
             level = params.get("level") or params.get("data", {}).get("level")
@@ -127,7 +127,7 @@ def access_decorator(func):
                 log(token_dict["user"], qual_name, func, args, kwargs)
             return (output, ret_code)
         else:
-            return None, 401
+            return 'Access Denied', 401
     return inner1
 
 
@@ -151,7 +151,7 @@ def accounts_decorator(func):
         params = get_kwargs(func, args, kwargs)
         if params.get("superuser"):
             if not user_perms.get("superuser"):
-                return None, 401
+                return 'Access Denied', 401
         has_access = True
         if "usernames" in req_perms:
             username = params.get("username") or params.get("data",{}).get("username")
@@ -171,7 +171,7 @@ def accounts_decorator(func):
                 log(token_dict["user"], qual_name, func, args, kwargs)
             return (output, ret_code)
         else:
-            return None, 401
+            return 'Access Denied', 401
     return inner1
 
 
@@ -310,7 +310,7 @@ fn_props.update({
                            "logs": lambda user, params: "{} queried course registration for {}".format(user, params.get("mat_no"))
                         },
     "course_reg.init_new": {"perms": {"levels", "read"},
-                           "logs": lambda user, params: "{} queried course registration for {}".format(user, params.get("mat_no"))
+                           "logs": lambda user, params: "{} queried data for course registration for {}".format(user, params.get("mat_no"))
                         },
     "course_reg.post": {"perms": {"levels", "write"},
                         "logs": lambda user, params: "{} added course registration for {}:-\n{}".format(user, params.get("data").get("mat_no"), dict_render(params))

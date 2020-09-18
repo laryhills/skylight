@@ -10,7 +10,7 @@ from sms.src.users import access_decorator
 from sms.src.script import get_students_details_by_category, get_final_year_students_by_category
 from sms.models.master import Category, Category500
 from sms.config import app, CACHE_BASE_DIR
-from sms.src.utils import get_depat, get_num_of_prize_winners, get_entry_session_from_level, get_session_from_level
+from sms.src.utils import get_dept, get_num_of_prize_winners, get_entry_session_from_level, get_session_from_level
 
 base_dir = os.path.dirname(__file__)
 categories = Category.query.all()
@@ -145,7 +145,7 @@ def get_100_to_400(entry_session, level):
     params = {
         'session': '{}/{}'.format(session, session + 1),
         'session_2': '{}/{}'.format(session, str(session + 1)[-2:]),
-        'dept': get_depat(),
+        'dept': get_dept(),
         'level': level,
         'summary_data': summary_data,
         'cat_total_sum': cat_total_sum,
@@ -153,7 +153,7 @@ def get_100_to_400(entry_session, level):
     }
 
     header_params = {
-        'dept': get_depat(),
+        'dept': get_dept(),
         'level': level,
         'session': '{}/{}'.format(session, str(session + 1)[-2:]),
     }
@@ -259,7 +259,7 @@ def get_500(entry_session):
     params = {
         'session': session,
         'session_2': '{}/{}'.format(session, str(session + 1)[-2:]),
-        'dept': get_depat(),
+        'dept': get_dept(),
         'successful_students': successful_students,
         'referred_students': referred_students,
         'prize_winners': prize_winners,
@@ -272,7 +272,7 @@ def get_500(entry_session):
     }
 
     header_params = {
-        'dept': get_depat(),
+        'dept': get_dept(),
         'level': 500,
         'session': '{}/{}'.format(session, str(session + 1)[-2:]),
     }
