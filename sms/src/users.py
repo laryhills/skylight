@@ -94,7 +94,7 @@ def access_decorator(func):
         params = get_kwargs(func, args, kwargs)
         if params.get("superuser"):
             if not user_perms.get("superuser"):
-                return None, 401
+                return 'Access Denied', 401
         has_access = True
         if "levels" in req_perms:
             level = params.get("level") or params.get("data", {}).get("level")
@@ -127,7 +127,7 @@ def access_decorator(func):
                 log(token_dict["user"], qual_name, func, args, kwargs)
             return (output, ret_code)
         else:
-            return None, 401
+            return 'Access Denied', 401
     return inner1
 
 
@@ -151,7 +151,7 @@ def accounts_decorator(func):
         params = get_kwargs(func, args, kwargs)
         if params.get("superuser"):
             if not user_perms.get("superuser"):
-                return None, 401
+                return 'Access Denied', 401
         has_access = True
         if "usernames" in req_perms:
             username = params.get("username") or params.get("data",{}).get("username")
@@ -171,7 +171,7 @@ def accounts_decorator(func):
                 log(token_dict["user"], qual_name, func, args, kwargs)
             return (output, ret_code)
         else:
-            return None, 401
+            return 'Access Denied', 401
     return inner1
 
 
