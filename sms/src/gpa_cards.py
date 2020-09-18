@@ -1,7 +1,7 @@
-from sms.src.script import get_students_by_level
+from sms.src.script import get_students_for_course_adviser
 from sms.config import get_current_session
 from sms.src.users import load_session, access_decorator
-from sms.src.utils import get_gpa_credits
+from sms.src.utils import get_gpa_credits, get_entry_session_from_level
 
 
 def get_students_details(students, entry_session):
@@ -47,7 +47,7 @@ def get_students_details(students, entry_session):
 
 @access_decorator
 def get(level):
-    entry_session = get_current_session() - int(level / 100) + 1
-    students = get_students_by_level(entry_session, level, retDB=True)
+    entry_session = get_entry_session_from_level(get_current_session(), level)
+    students = get_students_for_course_adviser(level, retDB=True)
     student_details = get_students_details(students, entry_session)
     return student_details, 200
