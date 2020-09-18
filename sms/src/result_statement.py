@@ -5,7 +5,7 @@ from json import dumps
 def get(mat_no, retJSON=False):
     person = personal_info.get(mat_no=mat_no)
     
-    student_details = {"name": "{}, {}".format(person['surname'], person['othernames']), "depat": utils.get_depat(),
+    student_details = {"name": "{}, {}".format(person['surname'], person['othernames']), "dept": utils.get_dept(),
                        "dob": person['date_of_birth'], "mode_of_entry": person['mode_of_entry'], "results": [], "credits": [],
                        "category": [], "entry_session": person['session_admitted'], "grad_session": person['session_grad']}
     

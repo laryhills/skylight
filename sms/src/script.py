@@ -4,7 +4,7 @@
 
 from sms.config import get_current_session
 from sms.src.users import get_level
-from sms.src.utils import load_session, get_depat, get_credits, get_gpa_credits, get_category, get_carryovers
+from sms.src.utils import load_session, get_dept, get_credits, get_gpa_credits, get_category, get_carryovers
 from sms.models.courses import Courses
 from sms.models.master import Category, Category500
 
@@ -192,7 +192,7 @@ def get_student_details_for_cls(mat_no, session):
     details = {
         'mat_no': mat_no,
         'name': name,
-        'subject_area': get_depat().capitalize(),
+        'subject_area': get_dept().capitalize(),
         'gpa': gpa
     }
 

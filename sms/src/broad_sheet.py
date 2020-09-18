@@ -20,7 +20,7 @@ from sms.src.results import get_results_for_acad_session, get_results_for_level
 from sms.src.script import get_students_by_level
 from sms.src.users import access_decorator
 from sms.src.utils import multiprocessing_wrapper, compute_degree_class, get_cgpa, dictify, multisort, \
-    get_current_session, get_registered_courses, get_level, get_depat, get_entry_session_from_level
+    get_current_session, get_registered_courses, get_level, get_dept, get_entry_session_from_level
 
 init()  # initialize colorama
 
@@ -61,13 +61,8 @@ def get(acad_session, level=None, first_sem_only=False, raw_score=False, to_prin
     # generate pdfs or pngs
     t0 = perf_counter()
     html_names = [file_name for file_name in os.listdir(zip_path) if file_name.endswith('render.html')]
+    render_engine, file_format = (generate_pdf, 'pdf') if to_print else (generate_image, 'pnf')
     use_workers = True if len(html_names) > 1 else False
-    if to_print:
-        render_engine = generate_pdf
-        file_format = 'pdf'
-    else:
-        render_engine = generate_image
-        file_format = 'png'
     multiprocessing_wrapper(render_engine, html_names, [zip_path, file_format], use_workers)
     print(f'{file_format}s generated in', perf_counter() - t0, 'seconds')
 
@@ -96,7 +91,7 @@ def collect_renders_in_zip(file_dir, zip_file_name, file_format):
 def render_html(item, acad_session, index_to_display, file_dir, first_sem_only=False):
     level, mat_nos = item
     color_map = {'F': 'red', 'F *': 'red', 'ABS': 'blue', 'ABS *': 'blue'}
-    dept = get_depat()
+    dept = get_dept()
     dept_title_case = ' '.join(map(str.capitalize, dept.split(' ')))
     empty_value = ' '
 
