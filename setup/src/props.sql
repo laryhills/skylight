@@ -19,6 +19,6 @@ INSERT INTO `Props` VALUES ('NumPrizeWinners', NULL, 1);
 INSERT INTO `Props` VALUES ('ViceChancellor', NULL, NULL);
 INSERT INTO `Props` VALUES ('Dean', NULL, NULL);
 INSERT INTO `Props` VALUES ('FacultyExamOfficer', NULL, NULL);
-INSERT INTO `Props` VALUES ('ChairmanSub-CommitteeBCS', NULL, NULL);
+INSERT INTO `Props` VALUES ('ChairmanSubCommitteeBCS', NULL, NULL);
 INSERT INTO `Props` VALUES ('HOD', NULL, NULL);
 COMMIT;
