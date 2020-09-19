@@ -1,6 +1,5 @@
 from sms import config
 from json import loads, dumps
-from sms.models.courses import Options, OptionsSchema
 from concurrent.futures.process import ProcessPoolExecutor
 from sms.models.master import Category, Category500, Props
 from sms.src import personal_info, course_details, result_statement, users
@@ -86,12 +85,11 @@ def get_carryovers(mat_no, level=None, next_level=False):
 
     person_options = csv_fn(personal_info.get(mat_no)["option"])
     if person_options:
-        options = [OptionsSchema().dump(option) for option in Options.query.all()]
         for choice in person_options:
-            for option in options:
+            for option in course_details.get_options():
                 if choice in option["members"]:
                     idx = option["semester"] - 1
-                    [first_sem, second_sem][idx] -= set(option["members"].split(","))
+                    [first_sem, second_sem][idx] -= set(option["members"])
                     [first_sem, second_sem][idx] |= {choice}
 
     for result in results:

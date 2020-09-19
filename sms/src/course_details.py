@@ -1,13 +1,22 @@
 from sms.config import db
 from sms.src.users import access_decorator
-from sms.models.courses import Courses, CoursesSchema, Options
-
-# TODO Create endpoint for teaching departments
+from sms.models.courses import Courses, CoursesSchema
 
 
 def get(course_code):
     course = Courses.query.filter_by(course_code=course_code).first()
     return CoursesSchema().dump(course)
+
+
+def get_options(group=None):
+    groups, options = [], [{group}, set([x.options for x in Courses.query.all()])][group == None]
+    for opt in options - {0}:
+        option = {"members": [c.course_code for c in Courses.query.filter_by(options=opt).all()]}
+        if option["members"]:
+            course = get(option["members"][0])
+            option.update((("group", opt), ("level", course["course_level"]), ("semester", course["course_semester"])))
+            groups.append(option)
+    return groups[0] if group != None and len(groups) else groups
 
 
 def get_all(level=None, options=True, inactive=False):
@@ -20,7 +29,7 @@ def get_all(level=None, options=True, inactive=False):
         course_list = courses.all()
     else:
         course_list = courses.filter_by(options=0).all()
-        for option in Options.query.all():
+        for option in [x["group"] for x in get_options()]:
             option_member = courses.filter_by(options=option.options_group).first()
             if option_member:
                 course_list += [option_member]
