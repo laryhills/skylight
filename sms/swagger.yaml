@@ -4,6 +4,7 @@ info:
   description: A REST api that manages the student's database
   version: 1.0.0
 
+
 basePath: /api
 
 consumes:
@@ -11,13 +12,20 @@ consumes:
 produces:
   - application/json
 
+
 securityDefinitions:
   api_key:
     type: "apiKey"
     name: "token"
     in: "header"
 
+
 paths:
+
+  # =====================================================================================
+  #                                  LOGIN / LOGOUT
+  # =====================================================================================
+
   /login:
     post:
       tags: [Login]
@@ -81,6 +89,11 @@ paths:
           schema:
             type: string
 
+
+  # =====================================================================================
+  #                                     PROPS
+  # =====================================================================================
+
   /current_session:
     get:
       tags: [Props]
@@ -109,183 +122,149 @@ paths:
             type: array
             items: {}
 
-  /personal_info:
+
+  # =====================================================================================
+  #                                    ACCOUNTS
+  # =====================================================================================
+
+  /accounts:
     get:
-      tags: [Personal Information]
-      operationId: sms.src.personal_info.get_exp
-      summary: Get Personal Info
-      description: Gets a student's bio data
+      tags: [Accounts]
+      operationId: sms.src.accounts.get
       parameters:
-        - name: mat_no
-          in: query
+        - in: query
+          name: username
           type: string
-          required: true
       responses:
         200:
-          description: Returns the bio data for the student or group of students
+          description: Success
           schema:
-            $ref: '#/definitions/PersonalInfo'
+            type: array
+            items: {}
+        401:
+          description: Unauthorised
         404:
-          description: Mat no does not exist
-        401:
-          description: Authentication failed
-        440:
-          description: Session expired, login again
-
+          description: Account not found
     post:
-      tags: [Personal Information]
-      summary: Initial Personal Info Entry
-      description: Create student's personal information record
-      operationId: sms.src.personal_info.post_exp
+      tags: [Accounts]
+      operationId: sms.src.accounts.post
       parameters:
-        - name: data
-          in: body
+        - in: body
+          name: data
           required: true
           schema:
-            $ref: '#/definitions/PersonalInfo'
+            $ref: '#/definitions/Accounts_post'
       responses:
         200:
-          description: Record successfully added
+          description: Account successfully created
+        400:
+          description: Account creation failed. Invalid, missing, empty or duplicate field present
         401:
-          description: Authentication failed
-        440:
-          description: Session expired, login again
-
+          description: Unauthorised
     patch:
-      tags: [Personal Information]
-      summary: PersonalInfo Edit
-      description: Edit student's personal information
-      operationId: sms.src.personal_info.patch
+      tags: [Accounts]
+      operationId: sms.src.accounts.patch
       parameters:
-        - name: data
-          in: body
+        - in: body
+          name: data
           required: true
           schema:
-            $ref: '#/definitions/PersonalInfo'
+            $ref: '#/definitions/Accounts_post'
         - in: query
           name: superuser
           type: boolean
           required: false
       responses:
         200:
-          description: Record successfully added
+          description: Account successfully updated
+        400:
+          description: Account modification failed. Empty, invalid or duplicate field supplied
         401:
-          description: Authentication failed
-        440:
-          description: Session expired, login again
-
+          description: Unauthorised
+        404:
+          description: Account not found
     delete:
-      tags: [Personal Information]
-      operationId: sms.src.personal_info.delete
-      summary: Delete Student
-      description: Delete all student's record
+      tags: [Accounts]
+      operationId: sms.src.accounts.delete
       parameters:
-        - name: mat_no
-          in: query
+        - in: query
+          name: username
           type: string
           required: true
       responses:
         200:
-          description: Student successfully deleted
-        404:
-          description: Mat no does not exist
+          description: Account successfully deleted
         401:
-          description: Authentication failed
-        440:
-          description: Session expired, login again
+          description: Unauthorised
+        404:
+          description: Account not found
 
-  /course_details:
+
+  # =====================================================================================
+  #                                      LOGS
+  # =====================================================================================
+
+  /logs:
     get:
-      tags: [Course Details]
-      summary: Course details query
-      description: Gets the details a course by it's code or of all courses by their level
-      operationId: sms.src.course_details.get_course_details
+      tags: [Logs]
+      operationId: sms.src.logs.get
       parameters:
         - in: query
-          name: course_code
-          type: string
-          required: false
-        - in: query
-          name: level
+          name: step
           type: integer
           required: false
         - in: query
-          name: options
-          type: boolean
+          name: count
+          type: integer
           required: false
         - in: query
-          name: inactive
-          type: boolean
+          name: title
+          type: string
+          required: false
+        - in: query
+          name: time
+          type: number
+          required: false
+        - in: query
+          name: operation
+          type: string
+          required: false
       responses:
         200:
-          description: success
-          schema:
-            type: array
-            items: {}
-        404:
-          description: Course not found
-    post:
-      tags: [Course Details]
-      description: Adds a new course
-      operationId: sms.src.course_details.post
-      parameters:
-        - in: body
-          name: course
-          required: true
-          schema:
-            $ref: '#/definitions/CourseDetails'
-      responses:
-        200:
-          description: Success
-        401:
-          description: Authentication failed
-        440:
-          description: Session expired, login again
-    put:
-      tags: [Course Details]
-      summary: Course details update
-      description: Modifies existing courses
-      operationId: sms.src.course_details.patch
-      parameters:
-        - in: body
-          name: data
-          schema:
-            type: array
-            items: {}
-      responses:
-        200:
-          description: Success
+          description: Successfully retrieved logs
           schema:
             type: array
             items:
-              type: string
+                type: array
+                items: {}
         401:
           description: Authentication failed
-        404:
-          description: Course not found
         440:
           description: Session expired, login again
     delete:
-      tags: [Course Details]
-      summary: Course details deletion
-      description: Deletes a course
-      operationId: sms.src.course_details.delete
+      tags: [Logs]
+      operationId: sms.src.logs.delete
       parameters:
         - in: query
-          name: course_code
-          type: string
-          required: true
-        - in: query
-          name: course_level
-          type: integer
-          required: true
+          name: ids
+          type: array
+          items:
+            type: integer
+          required: false
       responses:
         200:
-          description: Success
+          description: Successfully deleted logs
         401:
           description: Authentication failed
+        404:
+          description: Some log entries not found
         440:
           description: Session expired, login again
+
+
+  # =====================================================================================
+  #                                      SHEETS
+  # =====================================================================================
 
   /course_form:
     get:
@@ -425,6 +404,11 @@ paths:
         440:
           description: Session expired, login again
 
+
+  # =====================================================================================
+  #                               COURSE REGISTRATION
+  # =====================================================================================
+
   /course_reg_new:
     get:
       tags: [Course Registration]
@@ -527,6 +511,11 @@ paths:
           description: Authentication failed
         440:
           description: Session expired, login again
+
+
+  # =====================================================================================
+  #                                     RESULTS
+  # =====================================================================================
 
   /results:
     get:
@@ -710,134 +699,193 @@ paths:
         440:
           description: Session expired, login again
 
-  /accounts:
+
+  # =====================================================================================
+  #                                     OTHERS
+  # =====================================================================================
+
+  /personal_info:
     get:
-      tags: [Accounts]
-      operationId: sms.src.accounts.get
+      tags: [Personal Information]
+      operationId: sms.src.personal_info.get_exp
+      summary: Get Personal Info
+      description: Gets a student's bio data
       parameters:
-        - in: query
-          name: username
+        - name: mat_no
+          in: query
           type: string
+          required: true
       responses:
         200:
-          description: Success
+          description: Returns the bio data for the student or group of students
           schema:
-            type: array
-            items: {}
-        401:
-          description: Unauthorised
+            $ref: '#/definitions/PersonalInfo'
         404:
-          description: Account not found
+          description: Mat no does not exist
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+
     post:
-      tags: [Accounts]
-      operationId: sms.src.accounts.post
+      tags: [Personal Information]
+      summary: Initial Personal Info Entry
+      description: Create student's personal information record
+      operationId: sms.src.personal_info.post_exp
       parameters:
-        - in: body
-          name: data
+        - name: data
+          in: body
           required: true
           schema:
-            $ref: '#/definitions/Accounts_post'
+            $ref: '#/definitions/PersonalInfo'
       responses:
         200:
-          description: Account successfully created
-        400:
-          description: Account creation failed. Invalid, missing, empty or duplicate field present
+          description: Record successfully added
         401:
-          description: Unauthorised
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+
     patch:
-      tags: [Accounts]
-      operationId: sms.src.accounts.patch
+      tags: [Personal Information]
+      summary: PersonalInfo Edit
+      description: Edit student's personal information
+      operationId: sms.src.personal_info.patch
       parameters:
-        - in: body
-          name: data
+        - name: data
+          in: body
           required: true
           schema:
-            $ref: '#/definitions/Accounts_post'
+            $ref: '#/definitions/PersonalInfo'
         - in: query
           name: superuser
           type: boolean
           required: false
       responses:
         200:
-          description: Account successfully updated
-        400:
-          description: Account modification failed. Empty, invalid or duplicate field supplied
+          description: Record successfully added
         401:
-          description: Unauthorised
-        404:
-          description: Account not found
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+
     delete:
-      tags: [Accounts]
-      operationId: sms.src.accounts.delete
+      tags: [Personal Information]
+      operationId: sms.src.personal_info.delete
+      summary: Delete Student
+      description: Delete all student's record
       parameters:
-        - in: query
-          name: username
+        - name: mat_no
+          in: query
           type: string
           required: true
       responses:
         200:
-          description: Account successfully deleted
-        401:
-          description: Unauthorised
+          description: Student successfully deleted
         404:
-          description: Account not found
+          description: Mat no does not exist
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
 
-  /logs:
+  /course_details:
     get:
-      tags: [Logs]
-      operationId: sms.src.logs.get
+      tags: [Course Details]
+      summary: Course details query
+      description: Gets the details a course by it's code or of all courses by their level
+      operationId: sms.src.course_details.get_course_details
       parameters:
         - in: query
-          name: step
-          type: integer
-          required: false
-        - in: query
-          name: count
-          type: integer
-          required: false
-        - in: query
-          name: title
+          name: course_code
           type: string
           required: false
         - in: query
-          name: time
-          type: number
+          name: level
+          type: integer
           required: false
         - in: query
-          name: operation
-          type: string
+          name: options
+          type: boolean
           required: false
+        - in: query
+          name: inactive
+          type: boolean
       responses:
         200:
-          description: Successfully retrieved logs
+          description: success
+          schema:
+            type: array
+            items: {}
+        404:
+          description: Course not found
+    post:
+      tags: [Course Details]
+      description: Adds a new course
+      operationId: sms.src.course_details.post
+      parameters:
+        - in: body
+          name: course
+          required: true
+          schema:
+            $ref: '#/definitions/CourseDetails'
+      responses:
+        200:
+          description: Success
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+    put:
+      tags: [Course Details]
+      summary: Course details update
+      description: Modifies existing courses
+      operationId: sms.src.course_details.patch
+      parameters:
+        - in: body
+          name: data
+          schema:
+            type: array
+            items: {}
+      responses:
+        200:
+          description: Success
           schema:
             type: array
             items:
-                type: array
-                items: {}
-        401:
-          description: Authentication failed
-        440:
-          description: Session expired, login again
-    delete:
-      tags: [Logs]
-      operationId: sms.src.logs.delete
-      parameters:
-        - in: query
-          name: ids
-          type: array
-          items:
-            type: integer
-          required: false
-      responses:
-        200:
-          description: Successfully deleted logs
+              type: string
         401:
           description: Authentication failed
         404:
-          description: Some log entries not found
+          description: Course not found
         440:
           description: Session expired, login again
+    delete:
+      tags: [Course Details]
+      summary: Course details deletion
+      description: Deletes a course
+      operationId: sms.src.course_details.delete
+      parameters:
+        - in: query
+          name: course_code
+          type: string
+          required: true
+        - in: query
+          name: course_level
+          type: integer
+          required: true
+      responses:
+        200:
+          description: Success
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+
+
+  # =====================================================================================
+  #                                     BACKUPS
+  # =====================================================================================
 
   /backups:
     get:
@@ -966,6 +1014,12 @@ paths:
         440:
           description: Session expired, login again
 
+
+
+# ==========================================================================================================
+# ==========================================================================================================
+# ==========================================================================================================
+# ==========================================================================================================
 
 definitions:
   PersonalInfo:
