@@ -807,6 +807,10 @@ paths:
           name: operation
           type: string
           required: false
+        - in: query
+          name: reverse
+          type: boolean
+          required: false
       responses:
         200:
           description: Successfully retrieved logs
