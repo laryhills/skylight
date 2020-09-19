@@ -8,8 +8,10 @@ from sms.src.users import access_decorator
 
 # todo: implement access controls w/o logging
 # @access_decorator
-def get(step=0, title=None, time=None, count=15, operation=None):
-    query = Logs.query.order_by(desc(Logs.id))
+def get(step=0, title=None, time=None, count=15, operation=None, reverse=False):
+    query = Logs.query
+    if not reverse:
+        query = query.order_by(desc(Logs.id))
     if title:
         user = User.query.filter_by(title=title).first()
         if user:
