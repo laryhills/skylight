@@ -16,22 +16,7 @@ class Courses(db.Model):
     active = db.Column('ACTIVE', db.Integer)
 
 
-class Options(db.Model):
-    __bind_key__ = 'courses'
-    __tablename__ = 'Options'
-    group = db.Column('OPTIONS_GROUP', db.Integer, primary_key=True)
-    members = db.Column('MEMBERS', db.Text)
-    semester = db.Column('SEMESTER', db.Integer)
-    level = db.Column('LEVEL', db.Integer)
-
-
 class CoursesSchema(ma.ModelSchema):
     class Meta:
         model = Courses
-        sqla_session = db.session
-
-
-class OptionsSchema(ma.ModelSchema):
-    class Meta:
-        model = Options
         sqla_session = db.session

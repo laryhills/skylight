@@ -1,5 +1,6 @@
 from time import time
 from hashlib import md5
+from pprint import pformat
 from base64 import b64encode
 from json import loads, dumps
 from flask import abort, request
@@ -226,7 +227,9 @@ def dict_render(dictionary, indent = 0):
             rendered_dict += "{}{} => \n".format(' ' * indent, str(key).capitalize())
             rendered_dict += dict_render(dictionary[key], indent = indent + 4)
         else:
-            rendered_dict += "{}{} => {}\n".format(' ' * indent, str(key).capitalize(), dictionary[key])
+            key = str(key).capitalize()
+            val = pformat(dictionary[key]).replace("\n ", "\n" + " " * (indent+6))
+            rendered_dict += "{}{} => {}\n".format(" " * indent, key, val)
     if indent:
         return rendered_dict
     return rendered_dict[:-1].replace("_"," ")
