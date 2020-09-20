@@ -25,10 +25,10 @@ Also just in case of revisions, add why this is necessary
    * DB Model file limited to 10 max chars mat_no in Personal Info
 11) The precision for gpas and cgpas is 4dp
    * The DegreeClass table stores a tuple of the range for each class of degree as a float with a precision of 4dp
-12) course_details.get_all(level) must return one and only one placeholder optional course
-   # (@Ataman review this as with parameters either all or one can be returned, can remove this entry)
+12) course_details.get_all(level, options=False) must return one and only one placeholder optional course
    * The position of this course in the course list is used for placing the OPTIONAL COURSES column in the broad-sheet
+   * The course credit for this is also used in calculating credit_sum in course_reg.py
 13) All optional courses in a single group must be tied to a particular level's semester alone and have equal credit load
    * Default course has to share same course properties to stand in for all others
-14) If Category C obtained in 100 or 500, only rewrite failed courses as carryovers. If in 200-400, rewrite all level courses as carryovers
+14) If Category C obtained in 100 or 500, only rewrite failed courses as carryovers; if in 200-400, rewrite all level courses as carryovers
    * Used in get_carryovers utility function
