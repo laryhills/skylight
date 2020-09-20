@@ -29,8 +29,8 @@ def get_all(level=None, options=True, inactive=False):
         course_list = courses.all()
     else:
         course_list = courses.filter_by(options=0).all()
-        for option in [x["group"] for x in get_options()]:
-            option_member = courses.filter_by(options=option.options_group).first()
+        for option_group in [x["group"] for x in get_options()]:
+            option_member = courses.filter_by(options=option_group).first()
             if option_member:
                 course_list += [option_member]
     return CoursesSchema(many=True).dump(course_list)
