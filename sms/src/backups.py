@@ -78,8 +78,8 @@ def backup_databases(tag='', before_restore=False, external=False):
     :return:
     """
     datetime_tag = datetime.now().isoformat().split('.')[0].replace('T', '__').replace(':', '_')
-    custom_tag = 'before_restore' if before_restore else tag
-    custom_tag = '__' + custom_tag if custom_tag else ''
+    custom_tag = 'before restore' if before_restore else tag
+    custom_tag = '__' + '_'.join(custom_tag.split()) if custom_tag else ''
     backup_name = 'databases__' + datetime_tag + custom_tag + '.skylight.zip'
 
     databases = sorted([file.name for file in os.scandir(DB_DIR) if file.name.endswith('.db')])
