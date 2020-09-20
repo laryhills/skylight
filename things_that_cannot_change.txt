@@ -5,7 +5,7 @@ Also just in case of revisions, add why this is necessary
 1) Levels must be from 100 or 200 or 300 to 800 (Depending on mode of entry)
    * Results are computed using Result100 - Result800 for all cases
    * The old passed credits for spillovers are gotten with the assumption that their level > 500
-2) Courses must be from 100 to 500
+2) Courses must be from 100 to 500 (to be reviewed)
    * Used in generating the Course Reg columns and Result columns, Iter over Courses100 to 500 in courses.db
 3) Mode of entry either starts from 100, 200 or 300 and ends in 500
    * Used in generating the courses and credits in 100 to 500 for Courses and Credits Table
@@ -21,11 +21,14 @@ Also just in case of revisions, add why this is necessary
    * Grading rule uses 100 as first grade upper bound
 9) Session pair must be session / (session+1)
    * Session admitted in Personal Info post uses this to choose DB, session loading depends on this uniformity
-10) Mat nos must be of length 10
+10) Mat nos must be at most length 10
    * DB Model file limited to 10 max chars mat_no in Personal Info
 11) The precision for gpas and cgpas is 4dp
    * The DegreeClass table stores a tuple of the range for each class of degree as a float with a precision of 4dp
 12) course_details.get_all(level) must return one and only one placeholder optional course
+   # (@Ataman review this as with parameters either all or one can be returned, can remove this entry)
    * The position of this course in the course list is used for placing the OPTIONAL COURSES column in the broad-sheet
 13) All optional courses in a single group must be tied to a particular level's semester alone and have equal credit load
    * Default course has to share same course properties to stand in for all others
+14) If Category C obtained in 100 or 500, only rewrite failed courses as carryovers. If in 200-400, rewrite all level courses as carryovers
+   * Used in get_carryovers utility function
