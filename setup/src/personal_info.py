@@ -25,7 +25,7 @@ def format_options(data):
 
 
 def create_props():
-    with open('props.sql') as fd:
+    with open(os.path.join(os.path.dirname(__file__), 'props.sql')) as fd:
         master.executescript(fd.read())
 
 
