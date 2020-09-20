@@ -1,4 +1,6 @@
 from sms import config
+from operator import add
+from functools import reduce
 from json import loads, dumps
 from concurrent.futures.process import ProcessPoolExecutor
 from sms.models.master import Category, Category500, Props
@@ -72,13 +74,12 @@ def get_courses(mat_no=None, mode_of_entry=1, session=None, lpad=True):
 
 def get_carryovers(mat_no, level=None, next_level=False):
     """
-    Returns a dictionary of the carryover courses for a student
-    :param level: (Optional) level of the student
-    :param current: (Optional) if True returns carryovers up to the current academic session of the student
+    Returns a dictionary of the carryover courses for a student for each semester
+    :param level: Courses up to but not including this level which are not passed
+    :param next_level: Courses up to and including level which are not passed
     """
     level = level or get_level(mat_no)
     first_sem, second_sem = set(), set()
-    results = result_statement.get(mat_no)["results"]
     for course in get_courses(mat_no)[:level//100+next_level-1]:
         first_sem |= set(course[0])
         second_sem |= set(course[1])
@@ -92,38 +93,25 @@ def get_carryovers(mat_no, level=None, next_level=False):
                     [first_sem, second_sem][idx] -= set(option["members"])
                     [first_sem, second_sem][idx] |= {choice}
 
-    for result in results:
-        for record in result["first_sem"]:
-            (course, credit, grade) = (record[1], record[3], record[5])
-            if grade not in ("F", "ABS"):
-                if course in first_sem:
-                    first_sem.remove(course)
+    results = result_statement.get(mat_no)["results"]
+    res_first_sem, res_second_sem = [], []
+    if results:
+        res_first_sem = reduce(add, [result["first_sem"] for result in results])
+        res_second_sem = reduce(add, [result["second_sem"] for result in results])
+    first_sem -= set([record[1] for record in res_first_sem if record[5] not in ("F", "ABS")])
+    second_sem -= set([record[1] for record in res_second_sem if record[5] not in ("F", "ABS")])
 
-        for record in result["second_sem"]:
-            (course, credit, grade) = (record[1], record[3], record[5])
-            if grade not in ("F", "ABS"):
-                if course in second_sem:
-                    second_sem.remove(course)
-
-    results = [x for x in result_poll(mat_no) if x]
-    if results and results[-1]["category"] == "C" and level in (200, 300, 400):
+    category = ([None] + result_statement.get(mat_no)["category"])[-1]
+    if category == "C" and level in (200, 300, 400):
         # Handle probation carryovers
-        print ("Probating {} student".format(level))
-        # TODO chk if lpad necessary in get_courses
-        first_sem |= set(get_courses(mat_no)[int(level/100)-1][0])
-        second_sem |= set(get_courses(mat_no)[int(level/100)-1][1])
+        first_sem |= set(get_courses(mat_no)[level//100-1][0])
+        second_sem |= set(get_courses(mat_no)[level//100-1][1])
 
     carryovers = {"first_sem":[],"second_sem":[]}
-    for failed_course in first_sem:
-        course_dets = course_details.get(failed_course)
-        credit = course_dets["course_credit"]
-        course_lvl = course_dets["course_level"]
-        carryovers["first_sem"].append([failed_course, str(credit), course_lvl])
-    for failed_course in second_sem:
-        course_dets = course_details.get(failed_course)
-        credit = course_dets["course_credit"]
-        course_lvl = course_dets["course_level"]
-        carryovers["second_sem"].append([failed_course, str(credit), course_lvl])
+    courses = [("first_sem", course) for course in first_sem] + [("second_sem", course) for course in second_sem]
+    for sem, failed_course in courses:
+        course = course_details.get(failed_course)
+        carryovers[sem].append([failed_course, course["course_credit"], course["course_level"]])
     return carryovers
 
 
