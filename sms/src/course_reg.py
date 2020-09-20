@@ -117,6 +117,10 @@ def init_new_course_reg(mat_no, acad_session, table_to_populate, current_level, 
 
     level_courses = utils.get_courses(mat_no, mode_of_entry)
     options = course_reg_utils.get_optional_courses(current_level)
+
+    # get the optional courses credit sum less one optional course which should be returned in level courses
+    abridged_options_credit_sum = course_reg_utils.sum_credits_many(options[0][1:] + options[1][1:])
+
     options = [[crs[0] for crs in options[sem]] for sem in (0, 1)]
     level_courses[index] = [list(set(level_courses[index][sem] + (options[sem]))) for sem in (0, 1)]
 
@@ -144,6 +148,7 @@ def init_new_course_reg(mat_no, acad_session, table_to_populate, current_level, 
     # Implementing the "clause of 51"
     if current_level >= 500:
         credit_sum += course_reg_utils.sum_credits_many(first_sem_choices, second_sem_choices, index_for_credits=2)
+        credit_sum -= abridged_options_credit_sum
         conditional_max = utils.get_maximum_credits_for_course_reg()['clause_of_51']
         if credit_sum == conditional_max:
             level_max_credits = conditional_max
