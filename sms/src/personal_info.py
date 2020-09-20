@@ -77,6 +77,7 @@ def post(data):
 
     if data["mode_of_entry"] != 1:
         # Point from Symlink table
+        # TODO use util fn to predict class DB for DE students
         session_list = loads(Props.query.filter_by(key="SessionList").first().valuestr)
         class_session = session_list[session_list.index(session_admitted) - data["mode_of_entry"] + 1]
         student_model.database = "{}-{}.db".format(class_session, class_session + 1)

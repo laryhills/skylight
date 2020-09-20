@@ -228,7 +228,7 @@ def dict_render(dct, indent = 0):
             rendered_dict += "{}{} => \n".format(" " * indent, key)
             rendered_dict += dict_render(val, indent + 4)
         else:
-            r_val = pformat(val).replace("\n ", "\n" + " " * (indent+6))
+            r_val = pformat(val,width=300).replace("\n ", "\n" + " " * (indent+6))
             rendered_dict += "{}{} => {}\n".format(" " * indent, key, r_val)
     if indent:
         return rendered_dict
