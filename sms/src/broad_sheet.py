@@ -61,7 +61,7 @@ def get(acad_session, level=None, first_sem_only=False, raw_score=False, to_prin
     # generate pdfs or pngs
     t0 = perf_counter()
     html_names = [file_name for file_name in os.listdir(zip_path) if file_name.endswith('render.html')]
-    render_engine, file_format = (generate_pdf, 'pdf') if to_print else (generate_image, 'pnf')
+    render_engine, file_format = (generate_pdf, 'pdf') if to_print else (generate_image, 'png')
     use_workers = True if len(html_names) > 1 else False
     multiprocessing_wrapper(render_engine, html_names, [zip_path, file_format], use_workers)
     print(f'{file_format}s generated in', perf_counter() - t0, 'seconds')
