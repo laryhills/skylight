@@ -220,16 +220,16 @@ def get_level(mat_no, parse=True):
 
 
 # USER-specific functions
-def dict_render(dictionary, indent = 0):
+def dict_render(dct, indent = 0):
     rendered_dict = ""
-    for key in dictionary:
-        if isinstance(dictionary[key], dict):
-            rendered_dict += "{}{} => \n".format(' ' * indent, str(key).capitalize())
-            rendered_dict += dict_render(dictionary[key], indent = indent + 4)
+    for key, val in dct.items():
+        key = str(key).capitalize()
+        if isinstance(val, dict):
+            rendered_dict += "{}{} => \n".format(" " * indent, key)
+            rendered_dict += dict_render(val, indent + 4)
         else:
-            key = str(key).capitalize()
-            val = pformat(dictionary[key]).replace("\n ", "\n" + " " * (indent+6))
-            rendered_dict += "{}{} => {}\n".format(" " * indent, key, val)
+            r_val = pformat(val).replace("\n ", "\n" + " " * (indent+6))
+            rendered_dict += "{}{} => {}\n".format(" " * indent, key, r_val)
     if indent:
         return rendered_dict
     return rendered_dict[:-1].replace("_"," ")
