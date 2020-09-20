@@ -60,7 +60,7 @@ def post(data, superuser=False):
     list_of_results = data.get('list_of_results', [])
 
     if not list_of_results: return 'No result record supplied', 400
-    if not level: return 'Result entry level was not supplied', 400
+    if level is None: return 'Result entry level was not supplied', 400
 
     if not superuser:
         result_acad_sessions = list(set(list(zip(*list_of_results))[1]))
@@ -236,8 +236,8 @@ def _get_multiple_results_stats(acad_session, level):
             result_details.append(details)
         else:
             result_details_incomplete.append(details)
-
-    result_details.extend(result_details_incomplete)
+    result_details = sorted(result_details, key=lambda x: x[0])
+    result_details.extend(sorted(result_details_incomplete, key=lambda x: x[0]))
     return result_details, 200
 
 
