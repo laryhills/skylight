@@ -40,7 +40,15 @@ def get_maximum_credits_for_course_reg():
 
 
 def get_credits(mat_no=None, mode_of_entry=1, session=None, lpad=False):
-    "Returns a list of total credits for each level"
+    """
+    Returns a list of total credits for each level
+
+    :param mat_no:
+    :param mode_of_entry:
+    :param session:
+    :param lpad: If true, prepends the return list with zeros to make list length consistent with levels
+    :return:
+    """
     if mat_no:
         session = get_DB(mat_no)
         mode_of_entry = personal_info.get(mat_no)["mode_of_entry"]
@@ -55,7 +63,15 @@ def get_credits(mat_no=None, mode_of_entry=1, session=None, lpad=False):
 
 
 def get_courses(mat_no=None, mode_of_entry=1, session=None, lpad=True):
-    "Returns student/session courses list for all levels"
+    """
+    Returns student/session courses list for all levels
+
+    :param mat_no:
+    :param mode_of_entry:
+    :param session:
+    :param lpad: If true, prepends the return list with zeros to make list length consistent with levels
+    :return:
+    """
     if mat_no:
         session = get_DB(mat_no)
         mode_of_entry = personal_info.get(mat_no)["mode_of_entry"]
@@ -200,6 +216,7 @@ def get_grading_point(session):
 def get_registered_courses(mat_no, db_level=None):
     """
     Get courses registered from all course reg tables if db_level=None else from "CourseReg<db_level>" table
+
     :param mat_no:
     :param db_level:
     :return:
@@ -459,6 +476,7 @@ def get_num_of_prize_winners():
 def dictify(flat_list, key_index=0):
     """
     convert a flat list of lists (or tuples) to a dictionary, with the value at key_index as key
+
     :param flat_list:
     :param key_index:
     :return:
@@ -493,6 +511,13 @@ def multiprocessing_wrapper(func, iterable, context, use_workers=True, max_worke
 
 
 def multisort(iters):
+    """
+    Sort course list first by course_code, next by the course level using the first integer in course_code: MEE(3)11
+
+    :param iters:
+    :return:
+    """
+    # todo: refactor this to use actual course_level from courses db
     iters = sorted(iters, key=lambda x: x[0])
     iters = sorted(iters, key=lambda x: x[0][3])
     return iters
