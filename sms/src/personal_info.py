@@ -62,7 +62,7 @@ def post(data):
 
     master_schema = MasterSchema()
     database = "{}-{}.db".format(session_admitted, session_admitted + 1)
-    master_model = master_schema.load({'mat_no': data['mat_no'], 'database': database})
+    master_model = master_schema.load({'mat_no': data['mat_no'], 'surname': data['surname'], 'database': database})
 
     session = utils.load_session(session_admitted)
     personalinfo_schema = session.PersonalInfoSchema()
