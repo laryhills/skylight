@@ -86,7 +86,7 @@ def fetch_carryovers(mat_no, current_level):
     return first_sem_carryover_courses, second_sem_carryover_courses
 
 
-def enrich_course_list(course_list, fields=('course_code', 'course_title', 'course_credit')):
+def enrich_course_list(course_list, fields=('code', 'title', 'credit')):
     """
     Add details to courses supplied in course_list
 
@@ -99,7 +99,7 @@ def enrich_course_list(course_list, fields=('course_code', 'course_title', 'cour
     for crse in course_list:
         if isinstance(crse, list):
             crse_dets = course_details.get(crse[0])
-            [crse.append(crse_dets[field]) for field in fields if field != 'course_code']
+            [crse.append(crse_dets[field]) for field in fields if field != 'code']
         elif isinstance(crse, str):
             crse_dets = course_details.get(crse)
             crse = [crse_dets[field] for field in fields]
@@ -119,7 +119,7 @@ def sum_credits(course_objects, index_for_credits=None):
         if index_for_credits:
             tot += int(course_object[index_for_credits])
         else:
-            tot += int(course_details.get(course_object[0])['course_credit'])
+            tot += int(course_details.get(course_object[0])['credit'])
     return tot
 
 
@@ -139,8 +139,8 @@ def sum_credits_many(*args, index_for_credits=None):
 
 def get_optional_courses(level=None):
     level_courses = course_details.get_all(level=level, options=True)
-    first_sem_options = multisort([(x['course_code'], x['course_credit'], x['options']) for x in level_courses if
-                                   x['course_semester'] == 1 and x['options'] == 1])
-    second_sem_options = multisort([(x['course_code'], x['course_credit'], x['options']) for x in level_courses if
-                                    x['course_semester'] == 2 and x['options'] == 2])
+    first_sem_options = multisort([(x['code'], x['credit'], x['options']) for x in level_courses if
+                                   x['semester'] == 1 and x['options'] == 1])
+    second_sem_options = multisort([(x['code'], x['credit'], x['options']) for x in level_courses if
+                                    x['semester'] == 2 and x['options'] == 2])
     return first_sem_options, second_sem_options

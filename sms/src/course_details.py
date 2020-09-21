@@ -4,17 +4,17 @@ from sms.models.courses import Courses, CoursesSchema
 
 
 def get(course_code):
-    course = Courses.query.filter_by(course_code=course_code).first()
+    course = Courses.query.filter_by(code=course_code).first()
     return CoursesSchema().dump(course)
 
 
 def get_options(group=None):
     groups, options = [], [{group}, set([x.options for x in Courses.query.all()])][group == None]
     for opt in options - {0}:
-        option = {"members": [c.course_code for c in Courses.query.filter_by(options=opt).all()]}
+        option = {"members": [c.code for c in Courses.query.filter_by(options=opt).all()]}
         if option["members"]:
             course = get(option["members"][0])
-            option.update((("group", opt), ("level", course["course_level"]), ("semester", course["course_semester"])))
+            option.update((("group", opt), ("level", course["level"]), ("semester", course["semester"])))
             groups.append(option)
     return groups[0] if group != None and len(groups) else groups
 
@@ -49,7 +49,7 @@ def get_course_details(course_code=None, level=None, options=True, inactive=Fals
 
 @access_decorator
 def post(course):
-    if Courses.query.filter_by(course_code=course["course_code"]).first():
+    if Courses.query.filter_by(code=course["code"]).first():
         return "Course already exists", 400
     course_obj = Courses(**course)
     db.session.add(course_obj)
@@ -59,7 +59,7 @@ def post(course):
 
 @access_decorator
 def patch(data):
-    courses = [Courses.query.filter_by(course_code=course["course_code"]).first() for course in data]
+    courses = [Courses.query.filter_by(code=course["code"]).first() for course in data]
     if all(courses):
         for course, course_obj in zip(data, courses):
             for k, v in course.items():
@@ -72,7 +72,7 @@ def patch(data):
 
 @access_decorator
 def delete(course_code):
-    course_obj = Courses.query.filter_by(course_code=course_code).first()
+    course_obj = Courses.query.filter_by(code=course_code).first()
     if not course_obj:
         return None, 404
     db.session.delete(course_obj)

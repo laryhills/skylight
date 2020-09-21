@@ -124,7 +124,7 @@ def init_new_course_reg(mat_no, acad_session, table_to_populate, current_level, 
     options = [[crs[0] for crs in options[sem]] for sem in (0, 1)]
     level_courses[index] = [list(set(level_courses[index][sem] + (options[sem]))) for sem in (0, 1)]
 
-    fields = ['course_code', 'course_title', 'course_credit', 'course_level']
+    fields = ['code', 'title', 'credit', 'level']
     first_sem_choices = course_reg_utils.enrich_course_list(level_courses[index][0], fields=fields)
     second_sem_choices = course_reg_utils.enrich_course_list(level_courses[index][1], fields=fields)
     first_sem_carryover_courses = course_reg_utils.enrich_course_list(first_sem_carryover_courses, fields=fields)
@@ -178,7 +178,7 @@ def get_existing_course_reg(mat_no, acad_session, course_reg=None, s_personal_in
     if course_reg == {}:
         return 'No course registration for entered session', 404
 
-    fields = ('course_code', 'course_title', 'course_credit', 'course_semester', 'course_level')
+    fields = ('code', 'title', 'credit', 'semester', 'level')
     courses_registered = course_reg_utils.enrich_course_list(course_reg['courses'], fields=fields)
     courses = [[], []]  # first_sem, second_sem
     [courses[course.pop(3) - 1].append(course) for course in courses_registered]

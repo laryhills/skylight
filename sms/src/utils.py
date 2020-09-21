@@ -127,7 +127,7 @@ def get_carryovers(mat_no, level=None, next_level=False):
     courses = [("first_sem", course) for course in first_sem] + [("second_sem", course) for course in second_sem]
     for sem, failed_course in courses:
         course = course_details.get(failed_course)
-        carryovers[sem].append([failed_course, course["course_credit"], course["course_level"]])
+        carryovers[sem].append([failed_course, course["credit"], course["level"]])
     return carryovers
 
 
@@ -252,13 +252,13 @@ def compute_gpa(mat_no, ret_json=True):
         for record in (result["first_sem"] + result["second_sem"]):
             (course, grade) = (record[1], record[5])
             course_props = course_details.get(course)
-            lvl = int(course_props["course_level"] / 100) - 1
+            lvl = int(course_props["level"] / 100) - 1
             if mode_of_entry != 1:
                 if course in ['GST111', 'GST112', 'GST121', 'GST122', 'GST123']:
                     lvl = 0
                 else:
                     lvl -= 1
-            credit = course_props["course_credit"]
+            credit = course_props["credit"]
             product = int(grade_weight[grade]) * credit
             gpas[lvl] += (product / level_credits[lvl])
 

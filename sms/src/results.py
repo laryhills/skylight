@@ -259,7 +259,7 @@ def _get_single_results_stats(mat_no, level, acad_session):
 
     for course_code in reg_course_codes:
         if res.get(course_code) not in [None, '-1,ABS'] or carryovers_dict.get(course_code) not in [None, '-1,ABS']:
-            tce += course_details.get(course_code)['course_credit']
+            tce += course_details.get(course_code)['credit']
 
     return [mat_no, name, tcr, tce, remark], 200
 
@@ -356,8 +356,8 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
             print(Fore.RED, '[WARNING]: ', error_log[-1], Style.RESET_ALL,)
             return error_log, 404
 
-    course_credit = course_dets['course_credit']
-    course_level = course_dets['course_level']
+    course_credit = course_dets['credit']
+    course_level = course_dets['level']
     is_unusual = False
     full_course_reg = utils.get_registered_courses(mat_no)
     course_registration = course_reg_utils.get_course_reg_at_acad_session(session_taken, full_course_reg)
@@ -594,7 +594,7 @@ def check_owed_courses_exists(mat_no, level_written, grade, course_dets):
         # 500 level courses when the when the student's level is 500
         owed_courses = utils.get_carryovers(mat_no, level=900)
         owed_courses = utils.dictify(owed_courses['first_sem']), utils.dictify(owed_courses['second_sem'])
-        course_code, course_semester = course_dets['course_code'], course_dets['course_semester']
+        course_code, course_semester = course_dets['code'], course_dets['semester']
         if course_code in owed_courses[course_semester - 1]:
             owed_courses[course_semester - 1].pop(course_code)
 
@@ -625,7 +625,7 @@ def calculate_category_deprecated(result_record, courses_registered):
     result_courses.extend(carryovers)
     total_credits, credits_passed = 0, 0
     for course in courses_registered:
-        credit = course_details.get(course)['course_credit']
+        credit = course_details.get(course)['credit']
         crs_grade = [x[1] for x in result_courses if x[0] == course]
         if crs_grade and crs_grade[0] not in ['F', 'ABS']:
             credits_passed += credit
@@ -658,7 +658,7 @@ def refine_res_poll_item(res_poll_item):
     regular_courses.extend(carryovers)
 
     # enrich the course lists
-    fields = ('course_credit', 'course_semester', 'course_level')
+    fields = ('credit', 'semester', 'level')
     regular_courses = course_reg_utils.enrich_course_list(regular_courses, fields=fields)
     unusual_results = course_reg_utils.enrich_course_list(unusual_results, fields=fields)
 

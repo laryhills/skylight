@@ -97,10 +97,10 @@ def render_html(item, acad_session, index_to_display, file_dir, first_sem_only=F
 
     # get semester courses (with one placeholder option)
     level_courses = course_details.get_all(level=level, options=False)
-    first_sem_courses = multisort([(x['course_code'], x['course_credit'], x['options']) for x in level_courses if
-                                   x['course_semester'] == 1])
-    second_sem_courses = multisort([(x['course_code'], x['course_credit'], x['options']) for x in level_courses if
-                                    x['course_semester'] == 2])
+    first_sem_courses = multisort([(x['code'], x['credit'], x['options']) for x in level_courses if
+                                   x['semester'] == 1])
+    second_sem_courses = multisort([(x['code'], x['credit'], x['options']) for x in level_courses if
+                                    x['semester'] == 2])
 
     # get optional courses
     first_sem_options, second_sem_options = get_optional_courses(level)

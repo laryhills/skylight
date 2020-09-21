@@ -46,9 +46,9 @@ def get(mat_no, retJSON=False):
                         (score, grade) = [x.strip() for x in result["CHM112"].split(',')]
                     else:
                         course_props = course_details.get(course)
-                        sem = course_props['course_semester']
-                        credit = course_props['course_credit']
-                        title = course_props['course_title']
+                        sem = course_props['semester']
+                        credit = course_props['credit']
+                        title = course_props['title']
                         (score, grade) = [x.strip() for x in result[course].split(',')]
 
                     if grade == 'F' or grade == 'ABS':
