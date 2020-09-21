@@ -66,8 +66,8 @@ def post(data, superuser=False):
         result_acad_sessions = list(set(list(zip(*list_of_results))[1]))
         current_session = utils.get_current_session()
         if len(result_acad_sessions) > 1:
-            return 'You are only authorised to add results for the current session. ' \
-                   'Remove entries from other sessions and try again', 401
+            return 'You are only authorised to add results for the current session {}/{}. \nRemove entries from other' \
+                   ' sessions and try again'.format(int(result_acad_sessions[0]), int(result_acad_sessions[0]) + 1), 401
         elif int(result_acad_sessions[0]) != current_session:
             return 'You are not authorised to add results for the past session: ' \
                    '{}/{}'.format(int(result_acad_sessions[0]), int(result_acad_sessions[0]) + 1), 401
@@ -291,7 +291,8 @@ def add_result_records(list_of_results, level=None):
         course_details_dict = {}
 
     for index, result_details in enumerate(list_of_results):
-        errors, status_code = add_single_result_record(index, result_details, result_errors_file, course_details_dict, level)
+        idx = index + 1  # start index at 1
+        errors, status_code = add_single_result_record(idx, result_details, result_errors_file, course_details_dict, level)
         error_log.extend(errors)
 
     result_errors_file.close()
@@ -321,8 +322,8 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
     if level:
         levels = [600, 700, 800] if level == 600 else [level]
         if current_level not in levels:
-            error_text = "You are not allowed to enter results for {} at index {} whose current level is {}. " \
-                         "Please meet the {} level course adviser".format(mat_no, index, current_level, current_level)
+            error_text = "You are not allowed to enter results for {} at index {} whose current level is " \
+                         "{}".format(mat_no, index, current_level)
             result_errors_file.writelines(str(result_details) + '  error: ' + error_text + '\n')
             error_log.append(error_text)
             print(Fore.RED, '[WARNING]: ', error_log[-1], Style.RESET_ALL)
