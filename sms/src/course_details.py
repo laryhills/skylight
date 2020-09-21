@@ -22,7 +22,7 @@ def get_options(group=None):
 def get_all(level=None, options=True, inactive=False):
     courses = Courses.query
     if level:
-        courses = courses.filter_by(course_level=level)
+        courses = courses.filter_by(level=level)
     if not inactive:
         courses = courses.filter_by(active=1)
     if options:
