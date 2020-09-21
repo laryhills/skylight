@@ -42,15 +42,7 @@ def get_maximum_credits_for_course_reg():
 
 
 def get_credits(mat_no=None, mode_of_entry=1, session=None, lpad=False):
-    """
-    Returns a list of total credits for each level
-
-    :param mat_no:
-    :param mode_of_entry:
-    :param session:
-    :param lpad: If true, prepends the return list with zeros to make list length consistent with levels
-    :return:
-    """
+    "Returns a list of total credits for each level"
     if mat_no:
         session = get_DB(mat_no)
         mode_of_entry = personal_info.get(mat_no)["mode_of_entry"]
@@ -65,15 +57,7 @@ def get_credits(mat_no=None, mode_of_entry=1, session=None, lpad=False):
 
 
 def get_courses(mat_no=None, mode_of_entry=1, session=None, lpad=True):
-    """
-    Returns student/session courses list for all levels
-
-    :param mat_no:
-    :param mode_of_entry:
-    :param session:
-    :param lpad: If true, prepends the return list with zeros to make list length consistent with levels
-    :return:
-    """
+    "Returns student/session courses list for all levels"
     if mat_no:
         session = get_DB(mat_no)
         mode_of_entry = personal_info.get(mat_no)["mode_of_entry"]
@@ -131,25 +115,18 @@ def get_carryovers(mat_no, level=None, next_level=False):
     return carryovers
 
 
-def result_poll(mat_no, level=None):
-    """
-    Get the results of a student
-
-    Returns the result for all levels if `level` is None else for `level`
-
-    :param mat_no: mat number of student
-    :param level: level of the result
-    :return: List of results
-    """
+def result_poll(mat_no, table=None):
+    """Get the results of a student as seen in Results Table.
+    Specify table for particular table, else returns from all Result tables"""
     db_name = get_DB(mat_no)
-    session = load_session(db_name)
-    ans=[]
-    levels = [level] if level else range(100,900,100)
-    for level in levels:
-        resLvl = eval('session.Result{}.query.filter_by(mat_no=mat_no).first()'.format(level))
-        resStr = eval('session.Result{}Schema().dump(resLvl)'.format(level))
-        ans.append(resStr)
-    return ans
+    if not db_name:
+        return None
+    session, results = load_session(db_name), []
+    for table in [table] if table else range(100,900,100):
+        res_tbl = getattr(session, f"Result{table}").query.filter_by(mat_no=mat_no).first()
+        result = getattr(session, f"Result{table}Schema")().dump(res_tbl)
+        results.append(result)
+    return results
 
 
 def get_result_at_acad_session(acad_session, res_poll=None, mat_no=None):
