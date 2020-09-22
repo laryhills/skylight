@@ -42,13 +42,17 @@ def get(mat_no, retJSON=False):
                 if result[course]:
                     if course == "CHM112":
                         # Manually deal with this typo Special cases, del on fix DB
-                        course, sem, credit, title = "CHM122", 2, 3, "General Chemistry II"
+                        course, sem, credit, title, course_level = "CHM122", 2, 3, "General Chemistry II", 100
                         (score, grade) = [x.strip() for x in result["CHM112"].split(',')]
                     else:
                         course_props = course_details.get(course)
                         sem = course_props['semester']
                         credit = course_props['credit']
                         title = course_props['title']
+                        if person['mode_of_entry'] != 1 and course[:3] == "GST":
+                            course_level = person["mode_of_entry"] * 100
+                        else:
+                            course_level = course_props["level"]
                         (score, grade) = [x.strip() for x in result[course].split(',')]
 
                     if grade == 'F' or grade == 'ABS':
@@ -56,7 +60,7 @@ def get(mat_no, retJSON=False):
                     else:
                         credits_passed += credit
                     credits_total += credit
-                    lvlResult[["first_sem", "second_sem"][sem-1]].append(((lvl+1)*100,course,title,credit,int(score),grade))
+                    lvlResult[["first_sem", "second_sem"][sem-1]].append(((lvl+1)*100,course,title,credit,int(score),grade,course_level))
 
             finalResults.append(lvlResult)
             student_details["credits"].append((credits_total,credits_passed,credits_failed))
