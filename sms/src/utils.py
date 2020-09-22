@@ -178,48 +178,56 @@ def get_grading_point(session):
     return dict(map(lambda x: x.split()[:-1], grading_rules))
 
 
-def get_registered_courses(mat_no, db_level=None):
-    """
-    Get courses registered from all course reg tables if db_level=None else from "CourseReg<db_level>" table
+def get_registered_courses(mat_no, table=None):
+    "Get courses registered from all course reg tables if table=None else from CourseReg<table>"
+    # TODO favor crs_reg_poll
+    # TODO check if list better option than dict
+    session, courses_registered = load_session(get_DB(mat_no)), {}
 
-    :param mat_no:
-    :param db_level:
-    :return:
-    """
-    db_name = get_DB(mat_no)
-    session = load_session(db_name)
-    levels = [db_level] if db_level else range(100, 900, 100)
-    courses_registered = {}
-
-    for _level in levels:
-        courses_regd = eval('session.CourseReg{}'.format(_level)).query.filter_by(mat_no=mat_no).first()
-        courses_regd_str = eval('session.CourseReg{}Schema()'.format(_level)).dump(courses_regd)
-        courses_registered[_level] = {'courses': [], 'table': 'CourseReg{}'.format(_level)}
-        if not courses_regd_str:
+    for table in [table] if table else range(100,900,100):
+        courses_regd_tbl = getattr(session, f"CourseReg{table}").query.filter_by(mat_no=mat_no).first()
+        courses_regd = getattr(session, f"CourseReg{table}Schema")().dump(courses_regd_tbl)
+        # TODO If index same as table property in dict, why re-store?
+        courses_registered[table] = {"courses": [], "table": f"CourseReg{table}"}
+        if not courses_regd:
+            # TODO after last valid course reg, right pad as no gaps expected
             continue
 
-        courses_regd_str.pop('mat_no')
-        carryovers = courses_regd_str.pop('carryovers')
-        courses_registered[_level]['course_reg_session'] = courses_regd_str.pop('session')
-        courses_registered[_level]['course_reg_level'] = courses_regd_str.pop('level')
+        courses_regd.pop('mat_no')
+        carryovers = courses_regd.pop('carryovers')
+        # TODO why remove them and reassign back?
+        courses_registered[table]['course_reg_session'] = courses_regd.pop('session')
+        courses_registered[table]['course_reg_level'] = courses_regd.pop('level')
         for field in ['probation', 'fees_status', 'others', 'tcr']:
-            courses_registered[_level][field] = courses_regd_str.pop(field)
+            courses_registered[table][field] = courses_regd.pop(field)
 
-        for course in courses_regd_str:
-            if courses_regd_str[course] in [1, '1']:
-                courses_registered[_level]['courses'].append(course)
+        for course in courses_regd:
+            # TODO use correct type
+            if courses_regd[course] in [1, '1']:
+                courses_registered[table]['courses'].append(course)
 
-        courses_registered[_level]['courses'] = sorted(courses_registered[_level]['courses'])
+        courses_registered[table]['courses'] = sorted(courses_registered[table]['courses'])
+        # TODO use proper type checking
         if carryovers and carryovers not in [0, '0', '']:
-            courses_registered[_level]['courses'].extend(sorted(carryovers.split(',')))
+            courses_registered[table]['courses'].extend(sorted(carryovers.split(',')))
 
     return courses_registered
 
 
+def course_reg_poll(mat_no, table=None):
+    """Get the course reg of a student as seen on CourseReg Table.
+    Specify table for particular table, else returns from all CourseReg tables"""
+    session, crs_regs = load_session(get_DB(mat_no)), []
+    for table in [table] if table else range(100,900,100):
+        reg_tbl = getattr(session, f"CourseReg{table}").query.filter_by(mat_no=mat_no).first()
+        crs_reg = getattr(session, f"CourseReg{table}Schema")().dump(reg_tbl)
+        crs_regs.append(crs_reg)
+    return crs_regs
+
+
 def compute_gpa(mat_no, ret_json=True):
-    person = personal_info.get(mat_no=mat_no)
-    mode_of_entry = person['mode_of_entry']
-    gpas = [[0, 0, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0]][mode_of_entry - 1]
+    mode_of_entry = personal_info.get(mat_no)["mode_of_entry"]
+    gpas = [0] * (6 - mode_of_entry)
     level_percent = [[10, 15, 20, 25, 30], [10, 20, 30, 40], [25, 35, 40]][mode_of_entry - 1]
     # TODO check if lpad necessary, use props for level percent
     level_credits = get_credits(mat_no, mode_of_entry)
