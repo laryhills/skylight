@@ -274,7 +274,7 @@ def post_course_reg(data):
 def delete_course_reg_entry(mat_no, acad_session):
     course_reg = course_reg_utils.get_course_reg_at_acad_session(acad_session, mat_no=mat_no)
     if not course_reg:
-        return 'Course Registration for session {}/{} not found'.format(acad_session, acad_session+1), 404
+        return 'Course Registration for session {}/{} does not exist'.format(acad_session, acad_session+1), 404
 
     db_name = utils.get_DB(mat_no)
     session = utils.load_session(db_name)
