@@ -234,7 +234,8 @@ def course_reg_poll(mat_no, table=None):
     return crs_regs
 
 
-def compute_gpa(mat_no, ret_json=True):
+def compute_gpa(mat_no):
+    # TODO is this ever used? If not why?, add docstring
     mode_of_entry = personal_info.get(mat_no)["mode_of_entry"]
     gpas = [0] * (6 - mode_of_entry)
     percentages = Props.query.filter_by(key="LevelPercent").first().valustr
@@ -244,20 +245,10 @@ def compute_gpa(mat_no, ret_json=True):
     # TODO insert course credit, level into result statement
     for result in result_statement.get(mat_no)["results"]:
         for record in (result["first_sem"] + result["second_sem"]):
-            (course, grade) = (record[1], record[5])
-            course_props = course_details.get(course)
-            lvl = int(course_props["level"] / 100) - 1
-            if mode_of_entry != 1:
-                if course in ['GST111', 'GST112', 'GST121', 'GST122', 'GST123']:
-                    lvl = 0
-                else:
-                    lvl -= 1
-            credit = course_props["credit"]
+            (course, credit, grade, course_level) = (record[1], record[3], record[5], record[6])
+            lvl = int(course_level / 100) - 1
             product = int(grade_weight[grade]) * credit
             gpas[lvl] += (product / level_credits[lvl])
-
-    if ret_json:
-        return dumps(gpas)
     return gpas
 
 
