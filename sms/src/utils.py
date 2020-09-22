@@ -15,7 +15,8 @@ get_DB = users.get_DB
 get_level = users.get_level
 load_session = users.load_session
 get_current_session = config.get_current_session
-csv_fn = lambda csv: csv.split(",") if csv else []
+csv_fn = lambda csv, fn=lambda x:x: map(fn, csv.split(",")) if csv else []
+spc_fn = lambda spc, fn=lambda x:x: map(fn, spc.split(" ")) if spc else []
 
 
 def get_dept(full=True):
@@ -41,11 +42,11 @@ def get_maximum_credits_for_course_reg():
     return {"normal": normal, "clause_of_51": clause_of_51}
 
 
-def get_credits(mat_no=None, mode_of_entry=1, session=None, lpad=False):
+def get_credits(mat_no=None, mode_of_entry=None, session=None, lpad=False):
     "Returns a list of total credits for each level"
     if mat_no:
         session = get_DB(mat_no)
-        mode_of_entry = personal_info.get(mat_no)["mode_of_entry"]
+        mode_of_entry = mode_of_entry or personal_info.get(mat_no)["mode_of_entry"]
     session = load_session(session)
     Credits, CreditsSchema = session.Credits, session.CreditsSchema
 
@@ -56,11 +57,11 @@ def get_credits(mat_no=None, mode_of_entry=1, session=None, lpad=False):
     return level_credits
 
 
-def get_courses(mat_no=None, mode_of_entry=1, session=None, lpad=True):
+def get_courses(mat_no=None, mode_of_entry=None, session=None, lpad=True):
     "Returns student/session courses list for all levels"
     if mat_no:
         session = get_DB(mat_no)
-        mode_of_entry = personal_info.get(mat_no)["mode_of_entry"]
+        mode_of_entry = mode_of_entry or personal_info.get(mat_no)["mode_of_entry"]
     session = load_session(session)
     Courses, CoursesSchema = session.Courses, session.CoursesSchema
 
@@ -228,11 +229,11 @@ def course_reg_poll(mat_no, table=None):
 def compute_gpa(mat_no, ret_json=True):
     mode_of_entry = personal_info.get(mat_no)["mode_of_entry"]
     gpas = [0] * (6 - mode_of_entry)
-    level_percent = [[10, 15, 20, 25, 30], [10, 20, 30, 40], [25, 35, 40]][mode_of_entry - 1]
-    # TODO check if lpad necessary, use props for level percent
+    percentages = Props.query.filter_by(key="LevelPercent").first().valustr
+    level_percent = [spc_fn(x,int) for x in csv_fn(percentages)][mode_of_entry - 1]
     level_credits = get_credits(mat_no, mode_of_entry)
     grade_weight = get_grading_point(get_DB(mat_no))
-
+    # TODO insert course credit, level into result statement
     for result in result_statement.get(mat_no)["results"]:
         for record in (result["first_sem"] + result["second_sem"]):
             (course, grade) = (record[1], record[5])
@@ -249,8 +250,7 @@ def compute_gpa(mat_no, ret_json=True):
 
     if ret_json:
         return dumps(gpas)
-    else:
-        return gpas
+    return gpas
 
 
 def get_gpa_credits(mat_no, session=None):
