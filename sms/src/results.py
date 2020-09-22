@@ -330,8 +330,8 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
             return error_log, 403
 
     if not (-1 <= score <= 100):
-        error_text = "Unexpected value for score, '{}', for {} at index {}; " \
-                     "result not added".format(score, mat_no, index)
+        error_text = "Unexpected score for {}, '{}', for {} at index {}; " \
+                     "result not added".format(course_code, score, mat_no, index)
         result_errors_file.writelines(str(result_details) + '  error: ' + error_text + '\n')
         error_log.append(error_text)
         print(Fore.RED, '[WARNING]: ', error_log[-1], Style.RESET_ALL)
@@ -472,17 +472,16 @@ def update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_leve
     level_credits_passed = gpa_credits[index][1] if gpa_credits[index][1] else 0
 
     if grade != previous_grade:
-        creds = utils.get_credits(mat_no)
-        # ensure to get the right value irrespective of the size of the list (PUTME vs DE students)
-        # TODO use lpad param with get_credits to keep uniform
-        level_credits = creds[index + (len(creds) - 5)]
+        creds = utils.get_credits(mat_no, lpad=True)
+        level_credits = creds[index]
         grading_point_rule = utils.get_grading_point(utils.get_DB(mat_no))
         grading_point = int(grading_point_rule[grade]) if grade != 'ABS' else 0
         grading_point_old = int(grading_point_rule[previous_grade]) if previous_grade else 0
 
-        level_gpa = level_gpa + ((course_credit * (grading_point - grading_point_old)) / level_credits)
+        diff = grading_point - grading_point_old
+        level_gpa = level_gpa + ((course_credit * diff) / level_credits)
 
-        sign_multiplier = (grading_point - grading_point_old) // abs(grading_point - grading_point_old)
+        sign_multiplier = diff // abs(diff) if diff != 0 else 0
         level_credits_passed += course_credit * sign_multiplier
 
     gpa_credits[index] = (round(level_gpa, 4), level_credits_passed)
