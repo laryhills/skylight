@@ -1,3 +1,4 @@
+from re import match
 from sms import config
 from operator import add
 from functools import reduce
@@ -222,6 +223,13 @@ def course_reg_poll(mat_no, table=None):
     for table in [table] if table else range(100,900,100):
         reg_tbl = getattr(session, f"CourseReg{table}").query.filter_by(mat_no=mat_no).first()
         crs_reg = getattr(session, f"CourseReg{table}Schema")().dump(reg_tbl)
+        crs_reg["courses"] = []
+        for key, val in crs_reg.copy().items():
+            if match("[A-Z][A-Z][A-Z][0-9][0-9][0-9]", key):
+                if crs_reg.pop(key):
+                    crs_reg["courses"].append(key)
+        # TODO CorseReg100 has carryover default as 0, fix in DB
+        crs_reg["courses"] += csv_fn(crs_reg.pop("carryovers", ""))
         crs_regs.append(crs_reg)
     return crs_regs
 
