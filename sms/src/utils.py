@@ -319,6 +319,7 @@ def compute_degree_class(mat_no, cgpa=None, acad_session=None):
 
 
 def get_level_weightings(mod):
+    # TODO call from Props, replace earlier direct Props calls for weights
     if mod == 1: return [.1, .15, .2, .25, .3]
     elif mod == 2: return [0, .1, .2, .3, .4]
     else: return [0, 0, .25, .35, .4]
