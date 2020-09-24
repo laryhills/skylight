@@ -242,7 +242,7 @@ def compute_gpa(mat_no):
     level_percent = [spc_fn(x,int) for x in csv_fn(percentages)][mode_of_entry - 1]
     level_credits = get_credits(mat_no, mode_of_entry)
     grade_weight = get_grading_point(get_DB(mat_no))
-    # TODO insert course credit, level into result statement
+    # TODO probation still counts towards GPA, fix
     for result in result_statement.get(mat_no)["results"]:
         for record in (result["first_sem"] + result["second_sem"]):
             (course, credit, grade, course_level) = (record[1], record[3], record[5], record[6])
@@ -252,10 +252,8 @@ def compute_gpa(mat_no):
     return gpas
 
 
-def get_gpa_credits(mat_no, session=None):
-    if not session:
-        db_name = get_DB(mat_no)
-        session = load_session(db_name)
+def get_gpa_credits(mat_no):
+    session = load_session(get_DB(mat_no))
     stud = session.GPA_Credits.query.filter_by(mat_no=mat_no).first()
     gpa_credits = stud.level100, stud.level200, stud.level300, stud.level400, stud.level500
     gpas, credits = [], []
