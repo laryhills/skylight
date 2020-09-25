@@ -5,7 +5,7 @@ CREATE TABLE "Props" (
 	`VALUEINT`	INTEGER,
 	PRIMARY KEY(KEY)
 );
-INSERT INTO `Props` VALUES ('GradingRule','A 5 70,B 4 60,C 3 50,D 2 45,E 1 40,F 0 0',NULL);
+INSERT INTO `Props` VALUES ('GradingRule','A 5 70,B 4 60,C 3 50,D 2 45,E 1 40,F 0 0,ABS 0 0',NULL);
 INSERT INTO `Props` VALUES ('CurrentSession',NULL,2019);
 INSERT INTO `Props` VALUES ('MaxRegCredits',NULL,50);
 INSERT INTO `Props` VALUES ('CondMaxRegCredits500',NULL,51);
