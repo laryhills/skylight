@@ -236,10 +236,9 @@ def course_reg_poll(mat_no, table=None):
 
 def compute_gpa(mat_no):
     # TODO is this ever used? If not why?, add docstring
+    # TODO test handle ABS after DB regenerated
     mode_of_entry = personal_info.get(mat_no)["mode_of_entry"]
     gpas = [0] * (6 - mode_of_entry)
-    percentages = Props.query.filter_by(key="LevelPercent").first().valustr
-    level_percent = [spc_fn(x,int) for x in csv_fn(percentages)][mode_of_entry - 1]
     level_credits = get_credits(mat_no, mode_of_entry)
     grade_weight = get_grading_point(get_DB(mat_no))
     # TODO probation still counts towards GPA, fix
@@ -307,11 +306,12 @@ def get_degree_class(mat_no=None, cgpa=None, acad_session=None):
             return deg_class
 
 
-def get_level_weightings(mod):
-    # TODO call from Props, replace earlier direct Props calls for weights
-    if mod == 1: return [.1, .15, .2, .25, .3]
-    elif mod == 2: return [0, .1, .2, .3, .4]
-    else: return [0, 0, .25, .35, .4]
+def get_level_weightings(mode_of_entry, lpad=True):
+    percentages = Props.query.filter_by(key="LevelPercent").first().valuestr
+    level_percent = [spc_fn(x,lambda x: int(x)/100) for x in csv_fn(percentages)][mode_of_entry - 1]
+    if lpad:
+        return [0] * (mode_of_entry - 1) + level_percent
+    return level_percent
 
 
 def compute_category(mat_no, level_written, session_taken, tcr, tcp, owed_courses_exist=True):
