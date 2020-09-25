@@ -18,6 +18,7 @@ load_session = users.load_session
 get_current_session = config.get_current_session
 
 dictify = lambda flat_list: {x[0]:x[1:] for x in flat_list}
+multisort = lambda iters: sorted(iters, key=lambda x: x[0][0] + x[0][3])
 csv_fn = lambda csv, fn=lambda x:x: list(map(fn, csv.split(","))) if csv else []
 spc_fn = lambda spc, fn=lambda x:x: list(map(fn, spc.split(" "))) if spc else []
 
@@ -455,16 +456,3 @@ def multiprocessing_wrapper(func, iterable, context, use_workers=True, max_worke
         max_workers = max_workers if max_workers else min(len(iterable), 4)
         with ProcessPoolExecutor(max_workers=max_workers) as executor:
             [executor.submit(func, item, *context) for item in iterable]
-
-
-def multisort(iters):
-    """
-    Sort course list first by course_code, next by the course level using the first integer in course_code: MEE(3)11
-
-    :param iters:
-    :return:
-    """
-    # todo: refactor this to use actual course_level from courses db
-    iters = sorted(iters, key=lambda x: x[0])
-    iters = sorted(iters, key=lambda x: x[0][3])
-    return iters
