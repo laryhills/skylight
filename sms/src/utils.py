@@ -16,8 +16,8 @@ get_DB = users.get_DB
 get_level = users.get_level
 load_session = users.load_session
 get_current_session = config.get_current_session
-csv_fn = lambda csv, fn=lambda x:x: map(fn, csv.split(",")) if csv else []
-spc_fn = lambda spc, fn=lambda x:x: map(fn, spc.split(" ")) if spc else []
+csv_fn = lambda csv, fn=lambda x:x: list(map(fn, csv.split(","))) if csv else []
+spc_fn = lambda spc, fn=lambda x:x: list(map(fn, spc.split(" "))) if spc else []
 
 
 def get_dept(full=True):
@@ -252,7 +252,18 @@ def compute_gpa(mat_no):
     return gpas
 
 
+def gpa_credits_poll(mat_no):
+    "Poll level GPAs, credits and CGPA for student from DB"
+    session = load_session(get_DB(mat_no))
+    student = session.GPA_Credits.query.filter_by(mat_no=mat_no).first()
+    ret_val = [student.cgpa]
+    for lvl in range(500,0,-100):
+        ret_val.append(csv_fn(getattr(student, f"level{lvl}") or "null,null", loads))
+    return ret_val[::-1]
+
+
 def get_gpa_credits(mat_no):
+    # TODO deprecate and favor gpa_credits_poll
     session = load_session(get_DB(mat_no))
     stud = session.GPA_Credits.query.filter_by(mat_no=mat_no).first()
     gpa_credits = stud.level100, stud.level200, stud.level300, stud.level400, stud.level500
@@ -269,6 +280,7 @@ def get_gpa_credits(mat_no):
 
 
 def get_cgpa(mat_no):
+    # TODO deprecate and favor gpa_credits_poll
     """
     fetch the current cgpa for student with mat_no from the student's entry session database
 
