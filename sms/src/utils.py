@@ -295,37 +295,16 @@ def get_cgpa(mat_no):
     return student.cgpa
 
 
-def get_session_degree_class(acad_session):
-    """
-    Get the degree-class dictionary for an academic session with lower limits as keys
-
-    :param acad_session:
-    :return:
-    """
+def get_degree_class(mat_no=None, cgpa=None, acad_session=None):
+    "Get the degree-class text for student"
+    # TODO only lower limit is used, why both boundaries stored?
+    acad_session = acad_session or get_DB(mat_no)
+    cgpa = cgpa or gpa_credits_poll(mat_no)[-1]
     session = load_session(acad_session)
-    degree_class = session.DegreeClass.query.all()
-    degree_class = {float(deg.limits.split(',')[0]): deg.cls for deg in degree_class}
-    return degree_class
-
-
-def compute_degree_class(mat_no, cgpa=None, acad_session=None):
-    """
-    get the degree-class text for graduated students
-
-    :param mat_no:
-    :param cgpa:
-    :param acad_session:
-    :return:
-    """
-    # todo extend this for non-graduated students
-    if not cgpa: cgpa = get_cgpa(mat_no)
-    if not acad_session: acad_session = int(get_DB(mat_no)[:4])
-
-    degree_class = get_session_degree_class(acad_session)
-    for lower_limit in sorted(degree_class.keys(), reverse=True):
-        if cgpa >= lower_limit:
-            return degree_class[lower_limit]
-    return ''
+    deg_classes = [(csv_fn(x.limits,loads)[0], x.cls) for x in session.DegreeClass.query.all()]
+    for cutoff, deg_class in deg_classes:
+        if cgpa>= cutoff:
+            return deg_class
 
 
 def get_level_weightings(mod):

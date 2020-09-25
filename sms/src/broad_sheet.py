@@ -19,7 +19,7 @@ from sms.src.course_reg_utils import process_personal_info, get_optional_courses
 from sms.src.results import get_results_for_acad_session, get_results_for_level
 from sms.src.script import get_students_by_level
 from sms.src.users import access_decorator
-from sms.src.utils import multiprocessing_wrapper, compute_degree_class, get_cgpa, dictify, multisort, \
+from sms.src.utils import multiprocessing_wrapper, get_degree_class, get_cgpa, dictify, multisort, \
     get_current_session, get_registered_courses, get_level, get_dept, get_entry_session_from_level
 
 init()  # initialize colorama
@@ -244,7 +244,7 @@ def enrich_mat_no_list(mat_nos, acad_session, level, level_courses):
         result_details['surname'] = personal_info['surname']
         result_details['grad_status'] = personal_info['grad_status']
         result_details['cgpa'] = round(get_cgpa(mat_no), 2)
-        result_details['degree_class'] = compute_degree_class(mat_no, cgpa=result_details['cgpa'])
+        result_details['degree_class'] = get_degree_class(mat_no, cgpa=result_details['cgpa'])
 
         # fetch previously passed level results (100 and 500 level)
         if level_written > 500 and level == 500:
