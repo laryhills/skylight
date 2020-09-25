@@ -16,6 +16,8 @@ get_DB = users.get_DB
 get_level = users.get_level
 load_session = users.load_session
 get_current_session = config.get_current_session
+
+dictify = lambda flat_list: {x[0]:x[1:] for x in flat_list}
 csv_fn = lambda csv, fn=lambda x:x: list(map(fn, csv.split(","))) if csv else []
 spc_fn = lambda spc, fn=lambda x:x: list(map(fn, spc.split(" "))) if spc else []
 
@@ -132,6 +134,8 @@ def result_poll(mat_no, table=None):
 
 
 def get_result_at_acad_session(acad_session, res_poll=None, mat_no=None):
+    # TODO deprecate and use result_poll in a list comprehension
+    # preferably result statement instead if can be helped
     """
     Get results for a specific session
     
@@ -150,6 +154,7 @@ def get_result_at_acad_session(acad_session, res_poll=None, mat_no=None):
 
 
 def serialize_carryovers(carryover_string):
+    # TODO deprecate, favor spc_fn and csv_fn instead
     """
     Serialize string containing carryover results into a list of results
     [[course_code, score, grade], [...], ...]
@@ -182,7 +187,7 @@ def get_grading_point(session):
 
 def get_registered_courses(mat_no, table=None):
     "Get courses registered from all course reg tables if table=None else from CourseReg<table>"
-    # TODO favor crs_reg_poll
+    # TODO deprecate favor crs_reg_poll
     # TODO check if list better option than dict
     session, courses_registered = load_session(get_DB(mat_no)), {}
 
@@ -307,6 +312,7 @@ def get_degree_class(mat_no=None, cgpa=None, acad_session=None):
 
 
 def get_level_weightings(mode_of_entry, lpad=True):
+    "Get fraction each level GPA contributes to final CGPA for specified entry mode"
     percentages = Props.query.filter_by(key="LevelPercent").first().valuestr
     level_percent = [spc_fn(x,lambda x: int(x)/100) for x in csv_fn(percentages)][mode_of_entry - 1]
     if lpad:
@@ -327,7 +333,7 @@ def compute_category(mat_no, level_written, session_taken, tcr, tcp, owed_course
     """
     # todo: Handle condition for transfer
     person = personal_info.get(mat_no)
-    res_poll = result_poll(mat_no, 0)
+    res_poll = result_poll(mat_no)
     creds = get_credits(mat_no)
 
     entry_session = person['session_admitted']
@@ -426,29 +432,8 @@ def get_category(mat_no, level, session=None):
 
 
 def get_num_of_prize_winners():
-    """
-    Retrieves the number of prize winners
-
-    :return: number of prize winners
-    """
-    # TODO: Query this from the master db
-    return 1
-
-
-def dictify(flat_list, key_index=0):
-    """
-    convert a flat list of lists (or tuples) to a dictionary, with the value at key_index as key
-
-    :param flat_list:
-    :param key_index:
-    :return:
-    """
-    dic = {}
-    for lis in flat_list:
-        lis = list(lis)
-        key = lis.pop(key_index)
-        dic[key] = lis[0] if len(lis) == 1 and isinstance(lis[0], dict) else lis
-    return dic
+    "Retrieves the number of prize winners"
+    return Props.query.filter_by(key="NumPrizeWinners").first().valueint
 
 
 def multiprocessing_wrapper(func, iterable, context, use_workers=True, max_workers=None):

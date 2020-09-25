@@ -644,8 +644,8 @@ def split_courses_by_semester(course_list, semester_value_index):
     """
     split_course_list = [list(filter(lambda x: x[semester_value_index] == sem, course_list)) for sem in (1, 2)]
     dic = {
-        'first_sem': utils.dictify(split_course_list[0], key_index=0),
-        'second_sem': utils.dictify(split_course_list[1], key_index=0),
+        'first_sem': utils.dictify(split_course_list[0]),
+        'second_sem': utils.dictify(split_course_list[1]),
     }
     return dic
 
