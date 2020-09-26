@@ -47,6 +47,7 @@ def get_num_of_prize_winners():
 
 
 def get_grading_point(session):
+    # TODO use spc_fn and/or csv_fn, dict values should be int not str
     grading_rules = load_session(session).GradingRule.query.first().rule.split(",")
     return dict(map(lambda x: x.split()[:-1], grading_rules))
 
@@ -178,13 +179,9 @@ def get_carryovers(mat_no, level=None, next_level=False):
 
 
 def compute_grade(score, session):
-    if score == -1:
-        return "ABS"
-    if not 0 <= score <= 100:
-        return None
     grading_rules = load_session(session).GradingRule.query.first().rule.split(",")
     for grade, weight, cutoff in [x.split() for x in grading_rules]:
-        if score >= int(cutoff):
+        if 100 >= score >= int(cutoff):
             return grade
 
 
