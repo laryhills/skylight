@@ -18,7 +18,7 @@ load_session = users.load_session
 get_current_session = config.get_current_session
 
 dictify = lambda flat_list: {x[0]:x[1:] for x in flat_list}
-multisort = lambda iters: sorted(iters, key=lambda x: x[0][0] + x[0][3])
+multisort = lambda iters: sorted(sorted(iters, key=lambda x: x[0]), key=lambda x: x[0][3])
 csv_fn = lambda csv, fn=lambda x:x: list(map(fn, csv.split(","))) if csv else []
 spc_fn = lambda spc, fn=lambda x:x: list(map(fn, spc.split(" "))) if spc else []
 
@@ -40,10 +40,9 @@ def get_entry_session_from_level(session, level):
     return session_list[idx]
 
 
-def get_maximum_credits_for_course_reg():
-    normal = Props.query.filter_by(key="MaxRegCredits").first().valueint
-    clause_of_51 = Props.query.filter_by(key="CondMaxRegCredits500").first().valueint
-    return {"normal": normal, "clause_of_51": clause_of_51}
+def get_maximum_credits_for_course_reg(conditional=False):
+    key = ["MaxRegCredits", "CondMaxRegCredits500"][conditional]
+    return Props.query.filter_by(key=key).first().valueint
 
 
 def get_credits(mat_no=None, mode_of_entry=None, session=None, lpad=False):
