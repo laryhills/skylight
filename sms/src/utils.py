@@ -18,7 +18,7 @@ load_session = users.load_session
 get_current_session = config.get_current_session
 
 dictify = lambda flat_list: {x[0]:x[1:] for x in flat_list}
-multisort = lambda iters: sorted(sorted(iters, key=lambda x: x[0]), key=lambda x: x[0][3])
+multisort = lambda iters: sorted(iters, key=lambda x:x[0][3]+x[0])
 csv_fn = lambda csv, fn=lambda x:x: list(map(fn, csv.split(","))) if csv else []
 spc_fn = lambda spc, fn=lambda x:x: list(map(fn, spc.split(" "))) if spc else []
 
