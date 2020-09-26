@@ -12,20 +12,28 @@ Handle frequently called or single use simple utility functions
 These aren't exposed endpoints and needn't return json data
 '''
 
+# FUNCTION MAPPINGS
 get_DB = users.get_DB
 get_level = users.get_level
 load_session = users.load_session
 get_current_session = config.get_current_session
 
+# LAMBDAS
 dictify = lambda flat_list: {x[0]:x[1:] for x in flat_list}
 multisort = lambda iters: sorted(iters, key=lambda x:x[0][3]+x[0])
 csv_fn = lambda csv, fn=lambda x:x: list(map(fn, csv.split(","))) if csv else []
 spc_fn = lambda spc, fn=lambda x:x: list(map(fn, spc.split(" "))) if spc else []
 
 
+# DB POLLS
 def get_dept(full=True):
     dept = loads(Props.query.filter_by(key="Department").first().valuestr)
     return dept[full]
+
+
+def get_maximum_credits_for_course_reg(conditional=False):
+    key = ["MaxRegCredits", "CondMaxRegCredits500"][conditional]
+    return Props.query.filter_by(key=key).first().valueint
 
 
 def get_session_from_level(entry_session, level):
@@ -35,14 +43,71 @@ def get_session_from_level(entry_session, level):
 
 
 def get_entry_session_from_level(session, level):
+    # TODO merge with get_session_from_level
     session_list = loads(Props.query.filter_by(key="SessionList").first().valuestr)
     idx = session_list.index(session) - level//100 + 1
     return session_list[idx]
 
 
-def get_maximum_credits_for_course_reg(conditional=False):
-    key = ["MaxRegCredits", "CondMaxRegCredits500"][conditional]
-    return Props.query.filter_by(key=key).first().valueint
+def get_num_of_prize_winners():
+    "Retrieves the number of prize winners"
+    return Props.query.filter_by(key="NumPrizeWinners").first().valueint
+
+
+def get_grading_point(session):
+    grading_rules = load_session(session).GradingRule.query.first().rule.split(",")
+    return dict(map(lambda x: x.split()[:-1], grading_rules))
+
+
+def get_level_weightings(mode_of_entry, lpad=True):
+    "Get fraction each level GPA contributes to final CGPA for specified entry mode"
+    percentages = Props.query.filter_by(key="LevelPercent").first().valuestr
+    level_percent = [spc_fn(x,lambda x: int(x)/100) for x in csv_fn(percentages)][mode_of_entry - 1]
+    if lpad:
+        return [0] * (mode_of_entry - 1) + level_percent
+    return level_percent
+
+
+def gpa_credits_poll(mat_no):
+    "Poll level GPAs, credits and CGPA for student from DB"
+    session = load_session(get_DB(mat_no))
+    student = session.GPA_Credits.query.filter_by(mat_no=mat_no).first()
+    ret_val = [student.cgpa]
+    for lvl in range(500,0,-100):
+        ret_val.append(csv_fn(getattr(student, f"level{lvl}") or "null,null", loads))
+    return ret_val[::-1]
+
+
+def course_reg_poll(mat_no, table=None):
+    """Get the course reg of a student as seen on CourseReg Table.
+    Specify table for particular table, else returns from all CourseReg tables"""
+    session, crs_regs = load_session(get_DB(mat_no)), []
+    for table in [table] if table else range(100,900,100):
+        reg_tbl = getattr(session, f"CourseReg{table}").query.filter_by(mat_no=mat_no).first()
+        crs_reg = getattr(session, f"CourseReg{table}Schema")().dump(reg_tbl)
+        crs_reg["courses"] = []
+        for key, val in crs_reg.copy().items():
+            if match("[A-Z][A-Z][A-Z][0-9][0-9][0-9]", key):
+                if crs_reg.pop(key):
+                    crs_reg["courses"].append(key)
+        # TODO CorseReg100 has carryover default as 0, fix in DB
+        crs_reg["courses"] += csv_fn(crs_reg.pop("carryovers", ""))
+        crs_regs.append(crs_reg)
+    return crs_regs
+
+
+def result_poll(mat_no, table=None):
+    """Get the results of a student as seen in Results Table.
+    Specify table for particular table, else returns from all Result tables"""
+    db_name = get_DB(mat_no)
+    if not db_name:
+        return None
+    session, results = load_session(db_name), []
+    for table in [table] if table else range(100,900,100):
+        res_tbl = getattr(session, f"Result{table}").query.filter_by(mat_no=mat_no).first()
+        result = getattr(session, f"Result{table}Schema")().dump(res_tbl)
+        results.append(result)
+    return results
 
 
 def get_credits(mat_no=None, mode_of_entry=None, session=None, lpad=False):
@@ -76,6 +141,7 @@ def get_courses(mat_no=None, mode_of_entry=None, session=None, lpad=True):
     return level_courses
 
 
+# UTILITIES
 def get_carryovers(mat_no, level=None, next_level=False):
     """
     Returns a dictionary of the carryover courses for a student for each semester
@@ -119,40 +185,6 @@ def get_carryovers(mat_no, level=None, next_level=False):
     return carryovers
 
 
-def result_poll(mat_no, table=None):
-    """Get the results of a student as seen in Results Table.
-    Specify table for particular table, else returns from all Result tables"""
-    db_name = get_DB(mat_no)
-    if not db_name:
-        return None
-    session, results = load_session(db_name), []
-    for table in [table] if table else range(100,900,100):
-        res_tbl = getattr(session, f"Result{table}").query.filter_by(mat_no=mat_no).first()
-        result = getattr(session, f"Result{table}Schema")().dump(res_tbl)
-        results.append(result)
-    return results
-
-
-def get_result_at_acad_session(acad_session, res_poll=None, mat_no=None):
-    # TODO deprecate and use result_poll in a list comprehension
-    # preferably result statement instead if can be helped
-    """
-    Get results for a specific session
-    
-    :param acad_session: the session for which to fetch results
-    :param res_poll: result of result_poll() 
-    :param mat_no:  (optional) supply this only if res_poll is not given
-    :return: a tuple: (result dictionary, table fetched from)
-    """
-    if not res_poll:
-        res_poll = result_poll(mat_no)
-    for index, result in enumerate(res_poll):
-        if result and result['session'] == acad_session:
-            table = 'Result' + str((index + 1) * 100)
-            return result, table
-    return {}, ''
-
-
 def compute_grade(score, session):
     if score == -1:
         return "ABS"
@@ -162,65 +194,6 @@ def compute_grade(score, session):
     for grade, weight, cutoff in [x.split() for x in grading_rules]:
         if score >= int(cutoff):
             return grade
-
-
-def get_grading_point(session):
-    grading_rules = load_session(session).GradingRule.query.first().rule.split(",")
-    return dict(map(lambda x: x.split()[:-1], grading_rules))
-
-
-def get_registered_courses(mat_no, table=None):
-    "Get courses registered from all course reg tables if table=None else from CourseReg<table>"
-    # TODO deprecate favor crs_reg_poll
-    # TODO check if list better option than dict
-    session, courses_registered = load_session(get_DB(mat_no)), {}
-
-    for table in [table] if table else range(100,900,100):
-        courses_regd_tbl = getattr(session, f"CourseReg{table}").query.filter_by(mat_no=mat_no).first()
-        courses_regd = getattr(session, f"CourseReg{table}Schema")().dump(courses_regd_tbl)
-        # TODO If index same as table property in dict, why re-store?
-        courses_registered[table] = {"courses": [], "table": f"CourseReg{table}"}
-        if not courses_regd:
-            # TODO after last valid course reg, right pad as no gaps expected
-            continue
-
-        courses_regd.pop('mat_no')
-        carryovers = courses_regd.pop('carryovers')
-        # TODO why remove them and reassign back?
-        courses_registered[table]['course_reg_session'] = courses_regd.pop('session')
-        courses_registered[table]['course_reg_level'] = courses_regd.pop('level')
-        for field in ['probation', 'fees_status', 'others', 'tcr']:
-            courses_registered[table][field] = courses_regd.pop(field)
-
-        for course in courses_regd:
-            # TODO use correct type
-            if courses_regd[course] in [1, '1']:
-                courses_registered[table]['courses'].append(course)
-
-        courses_registered[table]['courses'] = sorted(courses_registered[table]['courses'])
-        # TODO use proper type checking
-        if carryovers and carryovers not in [0, '0', '']:
-            courses_registered[table]['courses'].extend(sorted(carryovers.split(',')))
-
-    return courses_registered
-
-
-def course_reg_poll(mat_no, table=None):
-    """Get the course reg of a student as seen on CourseReg Table.
-    Specify table for particular table, else returns from all CourseReg tables"""
-    session, crs_regs = load_session(get_DB(mat_no)), []
-    for table in [table] if table else range(100,900,100):
-        reg_tbl = getattr(session, f"CourseReg{table}").query.filter_by(mat_no=mat_no).first()
-        crs_reg = getattr(session, f"CourseReg{table}Schema")().dump(reg_tbl)
-        crs_reg["courses"] = []
-        for key, val in crs_reg.copy().items():
-            if match("[A-Z][A-Z][A-Z][0-9][0-9][0-9]", key):
-                if crs_reg.pop(key):
-                    crs_reg["courses"].append(key)
-        # TODO CorseReg100 has carryover default as 0, fix in DB
-        crs_reg["courses"] += csv_fn(crs_reg.pop("carryovers", ""))
-        crs_regs.append(crs_reg)
-    return crs_regs
 
 
 def compute_gpa(mat_no):
@@ -240,49 +213,6 @@ def compute_gpa(mat_no):
     return gpas
 
 
-def gpa_credits_poll(mat_no):
-    "Poll level GPAs, credits and CGPA for student from DB"
-    session = load_session(get_DB(mat_no))
-    student = session.GPA_Credits.query.filter_by(mat_no=mat_no).first()
-    ret_val = [student.cgpa]
-    for lvl in range(500,0,-100):
-        ret_val.append(csv_fn(getattr(student, f"level{lvl}") or "null,null", loads))
-    return ret_val[::-1]
-
-
-def get_gpa_credits(mat_no):
-    # TODO deprecate and favor gpa_credits_poll
-    session = load_session(get_DB(mat_no))
-    stud = session.GPA_Credits.query.filter_by(mat_no=mat_no).first()
-    gpa_credits = stud.level100, stud.level200, stud.level300, stud.level400, stud.level500
-    gpas, credits = [], []
-    for gpa_credit in gpa_credits:
-        if gpa_credit:
-            gpa, credit = list(map(float, gpa_credit.split(',')))
-            credit = int(credit)
-        else: gpa, credit = None, None
-        gpas.append(gpa)
-        credits.append(credit)
-
-    return gpas, credits
-
-
-def get_cgpa(mat_no):
-    # TODO deprecate and favor gpa_credits_poll
-    """
-    fetch the current cgpa for student with mat_no from the student's entry session database
-
-    NOTE: THIS DOES NOT DO ANY CALCULATIONS
-
-    :param mat_no:
-    :return:
-    """
-    db_name = get_DB(mat_no)
-    session = load_session(db_name)
-    student = session.GPA_Credits.query.filter_by(mat_no=mat_no).first()
-    return student.cgpa
-
-
 def get_degree_class(mat_no=None, cgpa=None, acad_session=None):
     "Get the degree-class text for student"
     # TODO only lower limit is used, why both boundaries stored?
@@ -293,15 +223,6 @@ def get_degree_class(mat_no=None, cgpa=None, acad_session=None):
     for cutoff, deg_class in deg_classes:
         if cgpa>= cutoff:
             return deg_class
-
-
-def get_level_weightings(mode_of_entry, lpad=True):
-    "Get fraction each level GPA contributes to final CGPA for specified entry mode"
-    percentages = Props.query.filter_by(key="LevelPercent").first().valuestr
-    level_percent = [spc_fn(x,lambda x: int(x)/100) for x in csv_fn(percentages)][mode_of_entry - 1]
-    if lpad:
-        return [0] * (mode_of_entry - 1) + level_percent
-    return level_percent
 
 
 def compute_category(mat_no, level_written, session_taken, tcr, tcp, owed_courses_exist=True):
@@ -415,11 +336,6 @@ def get_category(mat_no, level, session=None):
     return category
 
 
-def get_num_of_prize_winners():
-    "Retrieves the number of prize winners"
-    return Props.query.filter_by(key="NumPrizeWinners").first().valueint
-
-
 def multiprocessing_wrapper(func, iterable, context, use_workers=True, max_workers=None):
     """
     use multiprocessing to call a function on members of an iterable
@@ -439,3 +355,93 @@ def multiprocessing_wrapper(func, iterable, context, use_workers=True, max_worke
         max_workers = max_workers if max_workers else min(len(iterable), 4)
         with ProcessPoolExecutor(max_workers=max_workers) as executor:
             [executor.submit(func, item, *context) for item in iterable]
+
+
+# DEPRECATED
+def get_gpa_credits(mat_no):
+    # TODO deprecate and favor gpa_credits_poll
+    session = load_session(get_DB(mat_no))
+    stud = session.GPA_Credits.query.filter_by(mat_no=mat_no).first()
+    gpa_credits = stud.level100, stud.level200, stud.level300, stud.level400, stud.level500
+    gpas, credits = [], []
+    for gpa_credit in gpa_credits:
+        if gpa_credit:
+            gpa, credit = list(map(float, gpa_credit.split(',')))
+            credit = int(credit)
+        else: gpa, credit = None, None
+        gpas.append(gpa)
+        credits.append(credit)
+
+    return gpas, credits
+
+
+def get_cgpa(mat_no):
+    # TODO deprecate and favor gpa_credits_poll
+    """
+    fetch the current cgpa for student with mat_no from the student's entry session database
+
+    NOTE: THIS DOES NOT DO ANY CALCULATIONS
+
+    :param mat_no:
+    :return:
+    """
+    db_name = get_DB(mat_no)
+    session = load_session(db_name)
+    student = session.GPA_Credits.query.filter_by(mat_no=mat_no).first()
+    return student.cgpa
+
+
+def get_result_at_acad_session(acad_session, res_poll=None, mat_no=None):
+    # TODO deprecate and use result_poll in a list comprehension
+    # preferably result statement instead if can be helped
+    """
+    Get results for a specific session
+
+    :param acad_session: the session for which to fetch results
+    :param res_poll: result of result_poll()
+    :param mat_no:  (optional) supply this only if res_poll is not given
+    :return: a tuple: (result dictionary, table fetched from)
+    """
+    if not res_poll:
+        res_poll = result_poll(mat_no)
+    for index, result in enumerate(res_poll):
+        if result and result['session'] == acad_session:
+            table = 'Result' + str((index + 1) * 100)
+            return result, table
+    return {}, ''
+
+
+def get_registered_courses(mat_no, table=None):
+    "Get courses registered from all course reg tables if table=None else from CourseReg<table>"
+    # TODO deprecate favor crs_reg_poll
+    # TODO check if list better option than dict
+    session, courses_registered = load_session(get_DB(mat_no)), {}
+
+    for table in [table] if table else range(100,900,100):
+        courses_regd_tbl = getattr(session, f"CourseReg{table}").query.filter_by(mat_no=mat_no).first()
+        courses_regd = getattr(session, f"CourseReg{table}Schema")().dump(courses_regd_tbl)
+        # TODO If index same as table property in dict, why re-store?
+        courses_registered[table] = {"courses": [], "table": f"CourseReg{table}"}
+        if not courses_regd:
+            # TODO after last valid course reg, right pad as no gaps expected
+            continue
+
+        courses_regd.pop('mat_no')
+        carryovers = courses_regd.pop('carryovers')
+        # TODO why remove them and reassign back?
+        courses_registered[table]['course_reg_session'] = courses_regd.pop('session')
+        courses_registered[table]['course_reg_level'] = courses_regd.pop('level')
+        for field in ['probation', 'fees_status', 'others', 'tcr']:
+            courses_registered[table][field] = courses_regd.pop(field)
+
+        for course in courses_regd:
+            # TODO use correct type
+            if courses_regd[course] in [1, '1']:
+                courses_registered[table]['courses'].append(course)
+
+        courses_registered[table]['courses'] = sorted(courses_registered[table]['courses'])
+        # TODO use proper type checking
+        if carryovers and carryovers not in [0, '0', '']:
+            courses_registered[table]['courses'].extend(sorted(carryovers.split(',')))
+
+    return courses_registered
