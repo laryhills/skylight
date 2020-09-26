@@ -685,6 +685,6 @@ def strip_res_poll_item(res_poll_item):
     category = res_poll_item.pop('category')
     tcp = res_poll_item.pop('tcp')
     level_written = res_poll_item.pop('level')
-    carryovers = utils.serialize_carryovers(res_poll_item.pop('carryovers'))
-    unusual_results = utils.serialize_carryovers(res_poll_item.pop('unusual_results'))
+    carryovers = [utils.spc_fn(x) for x in utils.csv_fn(res_poll_item.pop('carryovers'))]
+    unusual_results = [utils.spc_fn(x) for x in utils.csv_fn(res_poll_item.pop('unusual_results'))]
     return res_poll_item, category, tcp, level_written, carryovers, unusual_results

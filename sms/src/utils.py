@@ -153,22 +153,6 @@ def get_result_at_acad_session(acad_session, res_poll=None, mat_no=None):
     return {}, ''
 
 
-def serialize_carryovers(carryover_string):
-    # TODO deprecate, favor spc_fn and csv_fn instead
-    """
-    Serialize string containing carryover results into a list of results
-    [[course_code, score, grade], [...], ...]
-    
-    :param carryover_string: 
-    :return: 
-    """
-    if not carryover_string:
-        return []
-    carryovers = carryover_string.split(',')
-    carryovers = [x.split(' ') for x in carryovers if carryovers]
-    return carryovers
-
-
 def compute_grade(score, session):
     if score == -1:
         return "ABS"
