@@ -216,16 +216,6 @@ def get_degree_class(mat_no=None, cgpa=None, acad_session=None):
 
 # NOT YET REFACTORED
 def compute_category(mat_no, level_written, session_taken, tcr, tcp, owed_courses_exist=True):
-    """
-
-    :param mat_no:
-    :param level_written:
-    :param session_taken:
-    :param tcr: total credits registered for session
-    :param tcp: total credits passed
-    :param owed_courses_exist:
-    :return:
-    """
     # todo: Handle condition for transfer
     person = personal_info.get(mat_no)
     res_poll = result_poll(mat_no)
