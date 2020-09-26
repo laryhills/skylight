@@ -610,6 +610,7 @@ def calculate_category_deprecated(result_record, courses_registered):
     :param courses_registered: a list of course_codes for courses registered
     :return:
     """
+    # TODO remove this if deprecated, doesn't appear to be used anywhere
     results_object = deepcopy(result_record)
     mat_no = results_object.pop('mat_no')
     session_taken = results_object.pop('session')
