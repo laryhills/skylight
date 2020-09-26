@@ -27,7 +27,7 @@ spc_fn = lambda spc, fn=lambda x:x: list(map(fn, spc.split(" "))) if spc else []
 
 # DB POLLS
 def get_dept(full=True):
-    dept = loads(Props.query.filter_by(key="Department").first().valuestr)
+    dept = csv_fn(Props.query.filter_by(key="Department").first().valuestr)
     return dept[full]
 
 
@@ -37,9 +37,10 @@ def get_maximum_credits_for_course_reg(conditional=False):
 
 
 def get_session_from_level(session, level, reverse=False):
-    session_list = loads(Props.query.filter_by(key="SessionList").first().valuestr)
+    session_list = csv_fn(Props.query.filter_by(key="SessionList").first().valuestr, int)
     idx = session_list.index(session) + [level//100 - 1, 1 - level//100][reverse]
     return session_list[idx]
+
 
 def get_num_of_prize_winners():
     "Retrieves the number of prize winners"
