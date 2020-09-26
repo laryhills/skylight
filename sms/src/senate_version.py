@@ -10,7 +10,7 @@ from sms.src.users import access_decorator
 from sms.src.script import get_students_details_by_category, get_final_year_students_by_category
 from sms.models.master import Category, Category500
 from sms.config import app, CACHE_BASE_DIR
-from sms.src.utils import get_dept, get_num_of_prize_winners, get_entry_session_from_level, get_session_from_level
+from sms.src.utils import get_dept, get_num_of_prize_winners, get_session_from_level
 
 base_dir = os.path.dirname(__file__)
 categories = Category.query.all()
@@ -292,7 +292,7 @@ def get_500(entry_session):
 
 @access_decorator
 def get(acad_session, level):
-    entry_session = get_entry_session_from_level(acad_session, level)
+    entry_session = get_session_from_level(acad_session, level, True)
 
     if level == 500:
         return get_500(entry_session)

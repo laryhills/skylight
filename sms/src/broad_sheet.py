@@ -20,7 +20,7 @@ from sms.src.results import get_results_for_acad_session, get_results_for_level
 from sms.src.script import get_students_by_level
 from sms.src.users import access_decorator
 from sms.src.utils import multiprocessing_wrapper, get_degree_class, get_cgpa, dictify, multisort, \
-    get_current_session, get_registered_courses, get_level, get_dept, get_entry_session_from_level
+    get_current_session, get_registered_courses, get_level, get_dept
 
 init()  # initialize colorama
 
@@ -195,7 +195,7 @@ def get_filtered_student_by_level(acad_session, level=None):
     levels = [level] if level else list(range(100, 600, 100))
     students_by_level = {}
     for level in levels:
-        associated_db = get_entry_session_from_level(acad_session, level)
+        associated_db = get_session_from_level(acad_session, level, True)
         students = get_students_by_level(associated_db, level)
         # students = list(filter(lambda mat: get_level_at_acad_session(mat, acad_session) == level, students))
         students_by_level[level] = sorted(students)

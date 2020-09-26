@@ -4,8 +4,7 @@
 
 from sms.config import get_current_session
 from sms.src.users import get_level
-from sms.src.utils import load_session, get_dept, get_credits, get_gpa_credits, get_category, get_carryovers, \
-    get_entry_session_from_level
+from sms.src.utils import load_session, get_dept, get_credits, get_gpa_credits, get_category, get_carryovers
 from sms.models.courses import Courses
 from sms.models.master import Category, Category500
 
@@ -270,7 +269,7 @@ def get_other_students_details(mat_no, session, group):
 def get_students_for_course_adviser(level, acad_session=None, retDB=False):
     if not acad_session:
         acad_session = get_current_session()
-    entry_session = get_entry_session_from_level(acad_session, level)
+    entry_session = get_session_from_level(acad_session, level, True)
     return get_students_by_level(entry_session, level, is_course_adviser=True, retDB=retDB)
 
 

@@ -1,8 +1,8 @@
 from re import match
+from json import loads
 from sms import config
 from operator import add
 from functools import reduce
-from json import loads, dumps
 from concurrent.futures.process import ProcessPoolExecutor
 from sms.models.master import Category, Category500, Props
 from sms.src import personal_info, course_details, result_statement, users
@@ -36,18 +36,10 @@ def get_maximum_credits_for_course_reg(conditional=False):
     return Props.query.filter_by(key=key).first().valueint
 
 
-def get_session_from_level(entry_session, level):
+def get_session_from_level(session, level, reverse=False):
     session_list = loads(Props.query.filter_by(key="SessionList").first().valuestr)
-    idx = session_list.index(entry_session) + level//100 - 1
+    idx = session_list.index(session) + [level//100 - 1, 1 - level//100][reverse]
     return session_list[idx]
-
-
-def get_entry_session_from_level(session, level):
-    # TODO merge with get_session_from_level
-    session_list = loads(Props.query.filter_by(key="SessionList").first().valuestr)
-    idx = session_list.index(session) - level//100 + 1
-    return session_list[idx]
-
 
 def get_num_of_prize_winners():
     "Retrieves the number of prize winners"
@@ -225,6 +217,7 @@ def get_degree_class(mat_no=None, cgpa=None, acad_session=None):
             return deg_class
 
 
+# NOT YET REFACTORED
 def compute_category(mat_no, level_written, session_taken, tcr, tcp, owed_courses_exist=True):
     """
 
