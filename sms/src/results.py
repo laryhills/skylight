@@ -10,7 +10,6 @@ well as updating gpa record of the student
 
 """
 import os.path
-from copy import deepcopy
 from colorama import init, Fore, Style
 from sms.src import course_reg_utils, personal_info, course_details, utils
 from sms.src.users import access_decorator
@@ -194,7 +193,8 @@ def get_results(mat_no, acad_session):
         if course_level != level:
             carryover_reg_courses.append(course_dets)
             continue
-        score, grade = res.get(course_code, ',').split(',')
+        _score_grade = res.get(course_code, ',') or ','
+        score, grade = _score_grade.split(',')
         if not (score and grade):
             score, grade = carryovers_dict.get(course_code, ['', ''])
         score, grade = ('', '') if score == '-1' else (score, grade)
@@ -466,7 +466,7 @@ def update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_leve
     except ImportError:
         return 'Student not found in database', 403
 
-    gpa_credits = list(zip(*utils.get_gpa_credits(mat_no)))
+    gpa_credits = utils.gpa_credits_poll(mat_no)[:-1]
     index = (course_level // 100 - 1)
     level_gpa = gpa_credits[index][0] if gpa_credits[index][0] else 0
     level_credits_passed = gpa_credits[index][1] if gpa_credits[index][1] else 0
@@ -475,7 +475,7 @@ def update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_leve
         creds = utils.get_credits(mat_no, lpad=True)
         level_credits = creds[index]
         grading_point_rule = utils.get_grading_point(utils.get_DB(mat_no))
-        grading_point = int(grading_point_rule[grade]) if grade != 'ABS' else 0
+        grading_point = int(grading_point_rule[grade])
         grading_point_old = int(grading_point_rule[previous_grade]) if previous_grade else 0
 
         diff = grading_point - grading_point_old
@@ -488,10 +488,9 @@ def update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_leve
     cgpa = 0
     mode_of_entry = personal_info.get(mat_no)['mode_of_entry']
     weights = utils.get_level_weightings(mode_of_entry)
-    while 0 in weights: weights.remove(0)
 
-    for idx in range(1, len(weights)+1):
-        cgpa += weights[-idx] * gpa_credits[-idx][0] if gpa_credits[-idx] and gpa_credits[-idx][0] else 0
+    for idx in range(len(weights)):
+        cgpa += weights[idx] * gpa_credits[idx][0] if gpa_credits[idx] and gpa_credits[idx][0] else 0
 
     gpa_record = {'mat_no': mat_no, 'cgpa': round(cgpa, 4)}
     for key, idx in [('level{}00'.format(lev+1), lev) for lev in range(5)]:
@@ -601,39 +600,6 @@ def check_owed_courses_exists(mat_no, level_written, grade, course_dets):
         if not owed_courses[0] and not owed_courses[1] and grade not in ['F', 'ABS']:
             return False
     return True
-
-
-def calculate_category_deprecated(result_record, courses_registered):
-    """
-
-    :param result_record: a session's result record from result poll
-    :param courses_registered: a list of course_codes for courses registered
-    :return:
-    """
-    # TODO remove this if deprecated, doesn't appear to be used anywhere
-    results_object = deepcopy(result_record)
-    mat_no = results_object.pop('mat_no')
-    session_taken = results_object.pop('session')
-    level_written = results_object.pop('level')
-    carryovers = results_object.pop('carryovers')
-    results_object.pop('tcp')
-    results_object.pop('category')
-    results_object.pop('unusual_results')
-
-    carryovers = carryovers.split(',') if carryovers else []
-    carryovers = [[x.split(' ')[0], x.split(' ')[2]] for x in carryovers if carryovers]
-    result_courses = [[x, results_object[x].split(',')[1]] for x in results_object if results_object[x]]
-    result_courses.extend(carryovers)
-    total_credits, credits_passed = 0, 0
-    for course in courses_registered:
-        credit = course_details.get(course)['credit']
-        crs_grade = [x[1] for x in result_courses if x[0] == course]
-        if crs_grade and crs_grade[0] not in ['F', 'ABS']:
-            credits_passed += credit
-        total_credits += credit
-
-    category = utils.compute_category(mat_no, level_written, session_taken, total_credits, credits_passed)
-    return category
 
 
 def split_courses_by_semester(course_list, semester_value_index):
