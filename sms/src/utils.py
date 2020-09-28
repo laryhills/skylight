@@ -21,9 +21,9 @@ get_current_session = config.get_current_session
 # LAMBDAS
 dictify = lambda flat_list: {x[0]:x[1:] for x in flat_list}
 multisort = lambda iters: sorted(iters, key=lambda x:x[0][3]+x[0])
+query = lambda cls, col, key: cls.query.filter(col == key).first()
 csv_fn = lambda csv, fn=lambda x:x: list(map(fn, csv.split(","))) if csv else []
 spc_fn = lambda spc, fn=lambda x:x: list(map(fn, spc.split(" "))) if spc else []
-
 
 # DB POLLS
 def get_dept(full=True):
@@ -217,22 +217,33 @@ def get_degree_class(mat_no=None, cgpa=None, acad_session=None):
 
 # NOT YET REFACTORED
 def compute_category(mat_no, level_written, session_taken, tcr, tcp, owed_courses_exist=True):
-    # todo: Handle condition for transfer
-    person = personal_info.get(mat_no)
+    # TODO Handle condition for transfer
+    # TODO move to DB(s)
+    # TODO rough draft, fix overtime
+    categories = {x: {500:[(100,"A"), (0, "B")]} for x in range(2003,2020)}
+    for x in range(2014,2020):
+        categories[x].update({100:[(100,"A"), (78.26,"B"), (50,"C"), (0,"D")]})
+
+    entry_session = personal_info.get(mat_no)["session_admitted"]
     res_poll = result_poll(mat_no)
-    creds = get_credits(mat_no)
 
-    entry_session = person['session_admitted']
-    previous_categories = [x['category'] for x in res_poll if x and x['session'] < session_taken]
-
-    # ensure to get the right value of level_credits irrespective of the size of the list (PUTME vs DE students)
-    # TODO check lpad with get_credits
-    index = (level_written // 100 - 1)
-    level_credits = creds[index + (len(creds) - 5)]
+    catg_rule = categories[entry_session].get(level_written,[(100,"A"), (50,"B"), (25,"C"), (0,"D")])
+    prev_probated = "C" in [x['category'] for x in res_poll if x and x['session'] < session_taken]
+    level_credits = get_credits(mat_no, lpad=True)[level_written//100-1]
 
     # add previous tcp to current for 100 level probation students
-    if level_written == 100 and 'C' in previous_categories:
+    if level_written == 100 and prev_probated:
         tcp += sum([x['tcp'] for x in res_poll if x and x['level'] == level_written and x['session'] < session_taken])
+
+    percent_passed = tcp / level_credits * 100
+    for lower,catg in catg_rule:
+        if percent_passed >= lower:
+            category = catg
+            break
+    # Process special cases
+    if category == "D" and prev_probated:
+        category = "E"
+    return category
 
     if level_written >= 500:
         if tcp == tcr and not owed_courses_exist: return 'A'
