@@ -211,14 +211,19 @@ def get_results(mat_no, acad_session):
         course_dets.pop()
         course_dets.extend([score, grade])
 
+    gpa_credits = utils.gpa_credits_poll(mat_no)
+
     result_details = {
         'mat_no': mat_no,
         'name': details['surname'] + ' ' + details['othernames'],
         'level': level,
         'session': session,
+        'entry_session': details['session_admitted'],
         'result': regular_reg_courses,
         'carryovers': carryover_reg_courses,
-        'unusual_results': unusual_results
+        'unusual_results': unusual_results,
+        'level_gpa': gpa_credits[level//100 - 1][0],
+        'cgpa': gpa_credits[-1]
     }
 
     return result_details, 200
@@ -467,7 +472,7 @@ def update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_leve
         return 'Student not found in database', 403
 
     gpa_credits = utils.gpa_credits_poll(mat_no)[:-1]
-    index = (course_level // 100 - 1)
+    index = course_level // 100 - 1
     level_gpa = gpa_credits[index][0] if gpa_credits[index][0] else 0
     level_credits_passed = gpa_credits[index][1] if gpa_credits[index][1] else 0
 

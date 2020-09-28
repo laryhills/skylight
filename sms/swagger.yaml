@@ -1187,6 +1187,8 @@ definitions:
         type: integer
       session:
         type: integer
+      entry_session:
+        type: integer
       result:
         type: array
         items: {}
@@ -1195,6 +1197,10 @@ definitions:
         items: {}
       unusual_results:
         type: string
+      level_gpa:
+        type: number
+      cgpa:
+        type: number
 
   Accounts_post:
     type: object
