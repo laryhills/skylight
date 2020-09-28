@@ -191,7 +191,6 @@ def get_filtered_student_by_level(acad_session, level=None):
     for level in levels:
         associated_db = get_session_from_level(acad_session, level, True)
         students = get_students_by_level(associated_db, level)
-        # students = list(filter(lambda mat: get_level_at_acad_session(mat, acad_session) == level, students))
         students_by_level[level] = sorted(students)
     return students_by_level
 
