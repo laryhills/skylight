@@ -10,17 +10,14 @@ import pdfkit
 from colorama import init, Fore, Style
 from flask import render_template, send_from_directory, url_for
 
-# workaround for windows not passing app context to the child process
-from sms.config import app as current_app
-
-from sms.config import CACHE_BASE_DIR
+from sms.config import app as current_app, CACHE_BASE_DIR
 from sms.src import course_details
 from sms.src.course_reg_utils import process_personal_info, get_optional_courses
 from sms.src.results import get_results_for_acad_session, get_results_for_level
 from sms.src.script import get_students_by_level
 from sms.src.users import access_decorator
-from sms.src.utils import multiprocessing_wrapper, get_degree_class, get_cgpa, dictify, multisort, \
-    get_current_session, get_registered_courses, get_level, get_dept
+from sms.src.utils import multiprocessing_wrapper, get_degree_class, dictify, multisort, \
+    get_dept, gpa_credits_poll, get_session_from_level
 
 init()  # initialize colorama
 
@@ -113,7 +110,7 @@ def render_html(item, acad_session, index_to_display, file_dir, first_sem_only=F
         mat_nos, acad_session, level, courses)
     students = tuple(students.items())
 
-    fix_table_column_width_error = 7 if first_sem_only else 4
+    fix_table_column_width_error = 8 if first_sem_only else 4
 
     len_first_sem_carryovers = max(len_first_sem_carryovers, fix_table_column_width_error)
     len_second_sem_carryovers = max(len_second_sem_carryovers, fix_table_column_width_error)
@@ -127,10 +124,7 @@ def render_html(item, acad_session, index_to_display, file_dir, first_sem_only=F
     for ite in range(iters+1):
         left = ite * pagination
         right = (ite + 1) * pagination
-        if right <= len(students):
-            paginated_students = dictify(students[left:right])
-        else:
-            paginated_students = dictify(students[left:])
+        paginated_students = dict(students[left:right])
 
         with current_app.app_context():
             html = render_template(
@@ -171,7 +165,7 @@ def generate_pdf(html_name, file_dir, file_format='pdf'):
         'log-level': 'warn',  # error, warn, info, none
     }
     pdfkit.from_file(os.path.join(CACHE_BASE_DIR, file_dir, html_name),
-                     os.path.join(CACHE_BASE_DIR, file_dir, html_name[:-5] + '.' + file_format),
+                     os.path.join(CACHE_BASE_DIR, file_dir, html_name.replace('html', file_format)),
                      options=options)
 
 
@@ -183,7 +177,7 @@ def generate_image(html_name, file_dir, file_format='png'):
         'log-level': 'warn',
     }
     imgkit.from_file(os.path.join(CACHE_BASE_DIR, file_dir, html_name),
-                     os.path.join(CACHE_BASE_DIR, file_dir, html_name[:-5] + '.' + file_format),
+                     os.path.join(CACHE_BASE_DIR, file_dir, html_name.replace('html', file_format)),
                      options=options)
 
 
@@ -200,16 +194,6 @@ def get_filtered_student_by_level(acad_session, level=None):
         # students = list(filter(lambda mat: get_level_at_acad_session(mat, acad_session) == level, students))
         students_by_level[level] = sorted(students)
     return students_by_level
-
-
-# def get_level_at_acad_session(mat_no, acad_session):
-#     if acad_session == get_current_session():
-#         return get_level(mat_no)
-#     c_reg = get_registered_courses(mat_no)
-#     for key in range(800, 0, -100):
-#         if c_reg[key]['course_reg_session'] and c_reg[key]['course_reg_session'] == acad_session:
-#             return c_reg[key]['course_reg_level']
-#     return ''
 
 
 def enrich_mat_no_list(mat_nos, acad_session, level, level_courses):
@@ -243,24 +227,16 @@ def enrich_mat_no_list(mat_nos, acad_session, level, level_courses):
         result_details['othernames'] = personal_info['othernames']
         result_details['surname'] = personal_info['surname']
         result_details['grad_status'] = personal_info['grad_status']
-        result_details['cgpa'] = round(get_cgpa(mat_no), 2)
+        result_details['cgpa'] = round(float(gpa_credits_poll(mat_no)[-1]), 2)
         result_details['degree_class'] = get_degree_class(mat_no, cgpa=result_details['cgpa'])
 
         # fetch previously passed level results (100 and 500 level)
-        if level_written > 500 and level == 500:
-            # add the previously passed courses for spill students
-            passed_500_courses = get_previously_passed_level_result(mat_no, level, level_written, acad_session, level_courses)
-            passed_500_courses['first_sem'].update(result_details['regular_courses']['first_sem'])
-            passed_500_courses['second_sem'].update(result_details['regular_courses']['second_sem'])
-            result_details['regular_courses'] = passed_500_courses
-
-        elif level_written == 100 and personal_info['is_symlink'] in [1, '1']:
+        if (level_written > 500 and level == 500) or (level_written == 100 and personal_info['is_symlink'] == 1):
             # todo: refactor this when symlinks has been updated to store history
-            # add the previously passed courses for 100 level probation students
-            passed_100_courses = get_previously_passed_level_result(mat_no, level, level_written, acad_session, level_courses)
-            passed_100_courses['first_sem'].update(result_details['regular_courses']['first_sem'])
-            passed_100_courses['second_sem'].update(result_details['regular_courses']['second_sem'])
-            result_details['regular_courses'] = passed_100_courses
+            prev_written_courses = get_previously_passed_level_result(mat_no, level, level_written, acad_session, level_courses)
+            prev_written_courses['first_sem'].update(result_details['regular_courses']['first_sem'])
+            prev_written_courses['second_sem'].update(result_details['regular_courses']['second_sem'])
+            result_details['regular_courses'] = prev_written_courses
 
         # compute stats
         sem_tcp, sem_tcr, sem_tcf, failed_courses = sum_semester_credits(result_details, grade_index=1, credit_index=2)
@@ -290,7 +266,7 @@ def sum_semester_credits(result_details, grade_index, credit_index):
         for course in courses:
             credit = courses[course][credit_index]
             if credit == '': continue
-            elif isinstance(credit, str) and credit != '': credit = int(credit.replace(' *', ''))
+            elif isinstance(credit, str): credit = int(credit.replace(' *', ''))
 
             if courses[course][grade_index] not in ['F', 'ABS', 'F *', 'ABS *']:
                 tcp[index] += credit
@@ -298,12 +274,6 @@ def sum_semester_credits(result_details, grade_index, credit_index):
                 tcf[index] += credit
                 failed_courses[index].append(course)
             tcr[index] += credit
-
-    # test conformity btw results and tcr, tcp columns
-    # course_reg = get_course_reg_at_acad_session(result_details['session_written'], mat_no=result_details['mat_no'])
-    # if course_reg and (sum(tcp) != result_details['tcp'] or sum(tcr) != course_reg['tcr']):
-    #     print('{}AssertionError: {} ==> tcp: {:>2} != {:>2}; tcr: {:>2} != {:>2}'.format(Fore.RED, Style.RESET_ALL
-    #           + result_details['mat_no'], sum(tcp), result_details['tcp'], sum(tcr), course_reg['tcr']))
 
     return tcp, tcr, tcf, failed_courses
 
