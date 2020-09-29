@@ -236,7 +236,7 @@ def compute_category(mat_no, level_written, session_taken, tcr, tcp, owed_course
     if tcp == tcr:
         return "A"
     if tcr == 0:
-        return None #TODO replace with category
+        return ["H", "K"][level_written < 500]
 
     percent_passed = tcp / level_credits * 100
     catg_rule = categories. get(entry_session, {500:[(0, "B")]}).get(level_written,[(50,"B"), (25,"C"), (0,"D")])
