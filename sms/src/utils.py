@@ -220,14 +220,13 @@ def compute_category(mat_no, level_written, session_taken, tcr, tcp, owed_course
     # TODO Handle condition for transfer
     # TODO move to DB(s)
     # TODO rough draft, fix overtime
-    categories = {x: {500:[(100,"A"), (0, "B")]} for x in range(2003,2020)}
-    for x in range(2014,2020):
-        categories[x].update({100:[(100,"A"), (78.26,"B"), (50,"C"), (0,"D")]})
+    # TODO phase out owed_courses_exist
+    categories = {x: {100:[(100,"A"), (78.26,"B"), (50,"C"), (0,"D")]} for x in range(2014,2020)}
 
     entry_session = personal_info.get(mat_no)["session_admitted"]
-    res_poll = result_poll(mat_no)
+    catg_rule = categories. get(entry_session, {500:[(100,"A"), (0, "B")]}).get(level_written,[(100,"A"), (50,"B"), (25,"C"), (0,"D")])
 
-    catg_rule = categories[entry_session].get(level_written,[(100,"A"), (50,"B"), (25,"C"), (0,"D")])
+    res_poll = result_poll(mat_no)
     prev_probated = "C" in [x['category'] for x in res_poll if x and x['session'] < session_taken]
     level_credits = get_credits(mat_no, lpad=True)[level_written//100-1]
 
