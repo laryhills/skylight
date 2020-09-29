@@ -19,6 +19,7 @@ load_session = users.load_session
 get_current_session = config.get_current_session
 
 # LAMBDAS
+ltoi = lambda x: x//100-1
 dictify = lambda flat_list: {x[0]:x[1:] for x in flat_list}
 multisort = lambda iters: sorted(iters, key=lambda x:x[0][3]+x[0])
 query = lambda cls, col, key: cls.query.filter(col == key).first()
@@ -38,7 +39,7 @@ def get_maximum_credits_for_course_reg(conditional=False):
 
 def get_session_from_level(session, level, reverse=False):
     session_list = csv_fn(Props.query.filter_by(key="SessionList").first().valuestr, int)
-    idx = session_list.index(session) + [level//100 - 1, 1 - level//100][reverse]
+    idx = session_list.index(session) + [ltoi(level), 1 - level//100][reverse]
     return session_list[idx]
 
 
@@ -144,7 +145,7 @@ def get_carryovers(mat_no, level=None, next_level=False):
     """
     level = level or get_level(mat_no)
     first_sem, second_sem = set(), set()
-    for course in get_courses(mat_no)[:level//100+next_level-1]:
+    for course in get_courses(mat_no)[:ltoi(level)+next_level]:
         first_sem |= set(course[0])
         second_sem |= set(course[1])
 
@@ -168,8 +169,8 @@ def get_carryovers(mat_no, level=None, next_level=False):
     category = ([None] + result_statement.get(mat_no)["category"])[-1]
     if category == "C" and level in (200, 300, 400):
         # Handle probation carryovers
-        first_sem |= set(get_courses(mat_no)[level//100-1][0])
-        second_sem |= set(get_courses(mat_no)[level//100-1][1])
+        first_sem |= set(get_courses(mat_no)[ltoi(level)][0])
+        second_sem |= set(get_courses(mat_no)[ltoi(level)][1])
 
     carryovers = {"first_sem":[],"second_sem":[]}
     courses = [("first_sem", course) for course in first_sem] + [("second_sem", course) for course in second_sem]
@@ -215,62 +216,35 @@ def get_degree_class(mat_no=None, cgpa=None, acad_session=None):
             return deg_class
 
 
-# NOT YET REFACTORED
-def compute_category(mat_no, level_written, session_taken, tcr, tcp, owed_courses_exist=True):
-    # TODO Handle condition for transfer
-    # TODO move to DB(s)
-    # TODO rough draft, fix overtime
-    # TODO phase out owed_courses_exist
-    categories = {x: {100:[(78.26,"B"), (50,"C"), (0,"D")]} for x in range(2014,2020)}
-
-    entry_session = personal_info.get(mat_no)["session_admitted"]
-
-    res_poll = result_poll(mat_no)
-    prev_probated = "C" in [x['category'] for x in res_poll if x and x['session'] < session_taken]
-    level_credits = get_credits(mat_no, lpad=True)[level_written//100-1]
-
-    # add previous tcp to current for 100 level probation students
-    if level_written == 100 and prev_probated:
-        tcp += sum([x['tcp'] for x in res_poll if x and x['level'] == level_written and x['session'] < session_taken])
-
+def compute_category_new(tcr, Result):
+    entry_session = get_DB(Result.mat_no)[:4]
+    results = result_statement.get(Result.mat_no)
+    tcp, session, level = Result.tcp, Result.session, Result.level
+    level_credits = get_credits(mat_no, lpad=True)[ltoi(level)]
+    tables = [ltoi(x["table"]) for x in results if x["session"] < session]
+    prev_probated = "C" in [results["category"][i] for i in tables]
+    # Add previous passed credits for 100L probated students
+    if level == 100 and prev_probated:
+        tcp += sum([results["credits"][i][1] for i in tables])
     if tcp == tcr:
         return "A"
     if tcr == 0:
-        return ["H", "K"][level_written < 500]
-
+        return ["H", "K"][level < 500]
+    # TODO pull categories from DB, Handle owed_courses_exist, Handle condition for transfer
+    categories = {x: {100:[(78.26,"B"), (50,"C"), (0,"D")]} for x in range(2014,2020)}
+    catg_rule = categories. get(entry_session, {500:[(0, "B")]}).get(level,[(50,"B"), (25,"C"), (0,"D")])
     percent_passed = tcp / level_credits * 100
-    catg_rule = categories. get(entry_session, {500:[(0, "B")]}).get(level_written,[(50,"B"), (25,"C"), (0,"D")])
-    for lower,catg in catg_rule:
+    for lower, catg in catg_rule:
         if percent_passed >= lower:
             category = catg
             break
-    # Process special cases
+    # Handle if probated before
     if category == "C" and prev_probated:
         category = "E"
     return category
 
-    if level_written >= 500:
-        if tcp == tcr and not owed_courses_exist: return 'A'
-        else: return 'B'
-    else:
-        if tcr == 0:
-            retval = 'D' if 'C' not in previous_categories else 'E'
-            return retval
-        elif tcp == tcr:
-            return 'A'
-        elif level_written == 100 and entry_session >= 2014:
-            if tcp >= 36: return 'B'
-            elif 23 <= tcp < 36: return 'C'
-            elif 'C' not in previous_categories: return 'D'
-            else: return 'E'
-        else:
-            percent_passed = tcp / level_credits * 100
-            if percent_passed >= 50: return 'B'
-            elif 25 <= percent_passed < 50: return 'C'
-            elif 'C' not in previous_categories: return 'D'
-            else: return 'E'
 
-
+# NOT YET REFACTORED
 def get_category_for_unregistered_students(level):
     """
     Retrieves the category for unregistered students
@@ -441,3 +415,38 @@ def get_registered_courses(mat_no, table=None):
             courses_registered[table]['courses'].extend(sorted(carryovers.split(',')))
 
     return courses_registered
+
+
+def compute_category(mat_no, level_written, session_taken, tcr, tcp, owed_courses_exist=True):
+    # TODO Handle condition for transfer
+    entry_session = personal_info.get(mat_no)["session_admitted"]
+
+    res_poll = result_poll(mat_no)
+    prev_probated = "C" in [x['category'] for x in res_poll if x and x['session'] < session_taken]
+    level_credits = get_credits(mat_no, lpad=True)[level_written//100-1]
+
+    # add previous tcp to current for 100 level probation students
+    if level_written == 100 and prev_probated:
+        tcp += sum([x['tcp'] for x in res_poll if x and x['level'] == level_written and x['session'] < session_taken])
+
+
+    if level_written >= 500:
+        if tcp == tcr and not owed_courses_exist: return 'A'
+        else: return 'B'
+    else:
+        if tcr == 0:
+            retval = 'D' if 'C' not in previous_categories else 'E'
+            return retval
+        elif tcp == tcr:
+            return 'A'
+        elif level_written == 100 and entry_session >= 2014:
+            if tcp >= 36: return 'B'
+            elif 23 <= tcp < 36: return 'C'
+            elif 'C' not in previous_categories: return 'D'
+            else: return 'E'
+        else:
+            percent_passed = tcp / level_credits * 100
+            if percent_passed >= 50: return 'B'
+            elif 25 <= percent_passed < 50: return 'C'
+            elif 'C' not in previous_categories: return 'D'
+            else: return 'E'
