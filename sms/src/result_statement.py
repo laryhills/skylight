@@ -37,7 +37,7 @@ def get(mat_no, retJSON=False):
                     (course, score, grade) = co.split()
                     result[course] = ",".join([score, grade])
             credits_passed = credits_failed = credits_total = 0
-            lvlResult = {"first_sem": [], "second_sem": [], 'level': level, 'session': session}
+            lvlResult = {"first_sem": [], "second_sem": [], 'level': level, 'session': session, "table": (lvl+1)*100}
             for course in result:
                 if result[course]:
                     if course == "CHM112":
