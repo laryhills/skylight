@@ -221,10 +221,9 @@ def compute_category(mat_no, level_written, session_taken, tcr, tcp, owed_course
     # TODO move to DB(s)
     # TODO rough draft, fix overtime
     # TODO phase out owed_courses_exist
-    categories = {x: {100:[(100,"A"), (78.26,"B"), (50,"C"), (0,"D")]} for x in range(2014,2020)}
+    categories = {x: {100:[(78.26,"B"), (50,"C"), (0,"D")]} for x in range(2014,2020)}
 
     entry_session = personal_info.get(mat_no)["session_admitted"]
-    catg_rule = categories. get(entry_session, {500:[(100,"A"), (0, "B")]}).get(level_written,[(100,"A"), (50,"B"), (25,"C"), (0,"D")])
 
     res_poll = result_poll(mat_no)
     prev_probated = "C" in [x['category'] for x in res_poll if x and x['session'] < session_taken]
@@ -234,7 +233,13 @@ def compute_category(mat_no, level_written, session_taken, tcr, tcp, owed_course
     if level_written == 100 and prev_probated:
         tcp += sum([x['tcp'] for x in res_poll if x and x['level'] == level_written and x['session'] < session_taken])
 
+    if tcp == tcr:
+        return "A"
+    if tcr == 0:
+        return None #TODO replace with category
+
     percent_passed = tcp / level_credits * 100
+    catg_rule = categories. get(entry_session, {500:[(0, "B")]}).get(level_written,[(50,"B"), (25,"C"), (0,"D")])
     for lower,catg in catg_rule:
         if percent_passed >= lower:
             category = catg
