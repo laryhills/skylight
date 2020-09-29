@@ -240,7 +240,7 @@ def compute_category(mat_no, level_written, session_taken, tcr, tcp, owed_course
             category = catg
             break
     # Process special cases
-    if category == "D" and prev_probated:
+    if category == "C" and prev_probated:
         category = "E"
     return category
 
