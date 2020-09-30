@@ -347,17 +347,13 @@ paths:
   /senate_version:
     get:
       tags: [Sheets]
-      operationId: sms.src.senate_version.get
+      operationId: sms.src.sheets.senate_version_get
       produces:
         - application/pdf
       parameters:
         - in: query
-          name: acad_session
-          type: integer
-          required: true
-        - in: query
-          name: level
-          type: integer
+          name: job_id
+          type: string
           required: true
       responses:
         200:
@@ -1017,6 +1013,56 @@ paths:
           description: Authentication failed
         440:
           description: Session expired, login again
+
+
+  /jobs:
+    get:
+      tags: [Jobs]
+      operationId: sms.src.jobs.get
+      parameters:
+        - in: query
+          name: job_id
+          required: true
+          type: string
+      responses:
+        200:
+          description: Success
+          schema:
+            type: object
+            properties:
+              progress:
+                type: number
+              description:
+                type: string
+              status:
+                type: string
+        404:
+          description: Task not found
+        401:
+          description: Authentication failed
+        440:
+          description: Session expired, login again
+    post:
+      tags: [Jobs]
+      operationId: sms.src.jobs.post
+      summary: Job schedule
+      description: Queues a task based on it's id
+      parameters:
+        - in: body
+          name: data
+          schema:
+            type: object
+            properties:
+              schedule_id:
+                type: integer
+              args:
+                type: array
+                items: {}
+      responses:
+        200:
+          description: Job successfully scheduled
+          schema:
+            type: string
 
 
 
