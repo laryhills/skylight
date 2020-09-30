@@ -37,14 +37,11 @@ def get(mat_no):
     if not db_name:
         return None
     session = utils.load_session(db_name)
-    PersonalInfo = session.PersonalInfo
-    PersonalInfoSchema = session.PersonalInfoSchema
-    student_data = PersonalInfo.query.filter_by(mat_no=mat_no).first()
-    personalinfo_schema = PersonalInfoSchema()
-    personalinfo_obj = personalinfo_schema.dump(student_data)
-    personalinfo_obj['level'] = abs(personalinfo_obj['level'])
-    personalinfo_obj.update({'grad_status': student_data.grad_status})
-    return personalinfo_obj
+    student_data = session.PersonalInfo.query.filter_by(mat_no=mat_no).first()
+    personal_info_obj = session.PersonalInfoSchema().dump(student_data)
+    personal_info_obj['level'] = abs(personal_info_obj['level'])
+    personal_info_obj.update({'grad_status': student_data.grad_status})
+    return personal_info_obj
 
 
 def post(data):
