@@ -11,9 +11,9 @@ from colorama import init, Fore, Style
 from flask import render_template, send_from_directory, url_for
 
 from sms.config import app as current_app, CACHE_BASE_DIR
-from sms.src import course_details
+from sms.src import course_details, result_statement
 from sms.src.course_reg_utils import process_personal_info, get_optional_courses
-from sms.src.results import get_results_for_acad_session, get_results_for_level
+from sms.src.results import get_results_for_acad_session
 from sms.src.script import get_students_by_level
 from sms.src.users import access_decorator
 from sms.src.utils import multiprocessing_wrapper, get_degree_class, dictify, multisort, \
@@ -232,7 +232,7 @@ def enrich_mat_no_list(mat_nos, acad_session, level, level_courses):
         # fetch previously passed level results (100 and 500 level)
         if (level_written > 500 and level == 500) or (level_written == 100 and personal_info['is_symlink'] == 1):
             # todo: refactor this when symlinks has been updated to store history
-            prev_written_courses = get_previously_passed_level_result(mat_no, level, level_written, acad_session, level_courses)
+            prev_written_courses = get_prev_level_results(mat_no, level, level_written, acad_session, level_courses)
             prev_written_courses['first_sem'].update(result_details['regular_courses']['first_sem'])
             prev_written_courses['second_sem'].update(result_details['regular_courses']['second_sem'])
             result_details['regular_courses'] = prev_written_courses
@@ -277,31 +277,32 @@ def sum_semester_credits(result_details, grade_index, credit_index):
     return tcp, tcr, tcf, failed_courses
 
 
-def get_previously_passed_level_result(mat_no, broadsheet_level, level_written, acad_session, level_courses):
+def get_prev_level_results(mat_no, broadsheet_level, level_written, acad_session, level_courses):
     regular_courses = {'first_sem': {}, 'second_sem': {}}
     option = {'first_sem': '', 'second_sem': ''}
     results = {}
 
     levels = [broadsheet_level] if broadsheet_level == 100 else range(500, level_written, 100)
-    for level in levels:
-        results.update(get_results_for_level(mat_no, level)[0])
+    res_from_stmt = result_statement.get(mat_no)['results']
+    [results.update({res['session']: res}) for res in res_from_stmt if res['level'] in levels]
 
     for session in sorted(results.keys()):
         if session >= acad_session:
             continue
-        for key in ['regular_courses', 'carryovers']:
-            for semester in ['first_sem', 'second_sem']:
-                for course in results[session][key][semester]:
-                    course_dets = results[session][key][semester][course]
-                    # add course
-                    if course in level_courses[semester]:  # and (course_dets[1] not in ['F', 'ABS']):
-                        # add an asterisk to the score and grade to indicate it's out of session
-                        course_dets[0] += ' *'
-                        course_dets[1] += ' *'
-                        regular_courses[semester][course] = course_dets
-                        # replace old option with new one if necessary
-                        if level_courses[semester][course][1] > 0 and course != option[semester]:
-                            if option[semester] != '': regular_courses[semester].pop(option[semester])
-                            option[semester] = course
+        for sem_idx, semester in enumerate(['first_sem', 'second_sem']):
+            for index in range(len(results[session][semester])):
+                course_dets = results[session][semester][index]
+                course, course_dets = course_dets[1], [course_dets[idx] for idx in (4, 5, 3, 6)]
+                course_dets.insert(3, sem_idx+1)
+                # add course
+                if course in level_courses[semester]:  # and (course_dets[1] not in ['F', 'ABS']):
+                    # add an asterisk to the score and grade to indicate it's out of session
+                    course_dets[0] = str(course_dets[0]) + ' *'
+                    course_dets[1] += ' *'
+                    regular_courses[semester][course] = course_dets
+                    # replace old option with new one if necessary
+                    if level_courses[semester][course][1] > 0 and course != option[semester]:
+                        if option[semester] != '': regular_courses[semester].pop(option[semester])
+                        option[semester] = course
+                results[session][semester][index] = dictify([[course] + course_dets])
     return regular_courses
-
