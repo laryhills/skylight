@@ -110,7 +110,7 @@ def init_new_course_reg(mat_no, acad_session, table_to_populate, current_level, 
     mode_of_entry = s_personal_info.pop('mode_of_entry_numeric')
     # populating choices
     try:
-        index = (int(current_level) // 100) - 1
+        index = utils.ltoi(int(current_level))
     except Exception as e:
         print(e)
         return 'Cannot determine current level of student', 400

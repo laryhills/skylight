@@ -19,7 +19,7 @@ load_session = users.load_session
 get_current_session = config.get_current_session
 
 # LAMBDAS
-ltoi = lambda x: x//100-1
+ltoi = lambda x: x//100 - 1
 dictify = lambda flat_list: {x[0]:x[1:] for x in flat_list}
 multisort = lambda iters: sorted(iters, key=lambda x:x[0][3]+x[0])
 query = lambda cls, col, key: cls.query.filter(col == key).first()
@@ -390,7 +390,7 @@ def compute_category_deprecated(mat_no, level_written, session_taken, tcr, tcp, 
 
     res_poll = result_poll(mat_no)
     prev_probated = "C" in [x['category'] for x in res_poll if x and x['session'] < session_taken]
-    level_credits = get_credits(mat_no, lpad=True)[level_written//100-1]
+    level_credits = get_credits(mat_no, lpad=True)[ltoi(level_written)]
 
     # add previous tcp to current for 100 level probation students
     if level_written == 100 and prev_probated:

@@ -13,7 +13,7 @@ from sms.src import result_statement
 from sms.config import app as current_app, CACHE_BASE_DIR
 from sms.src.users import access_decorator
 from sms.src.ext.html_parser import split_html
-from sms.src.utils import get_level_weightings, get_carryovers, gpa_credits_poll
+from sms.src.utils import get_level_weightings, get_carryovers, gpa_credits_poll, ltoi
 
 base_dir = os.path.dirname(__file__)
 uniben_logo_path = 'file:///' + os.path.join(os.path.split(base_dir)[0], 'templates', 'static', 'Uniben_logo.png')
@@ -41,7 +41,7 @@ def get(mat_no, raw_score=False, to_print=False):
     owed_courses = owed_courses['first_sem'] + owed_courses['second_sem']
     gpa_check = [''] * 5
     for course in owed_courses:
-        index = course[2] // 100 - 1
+        index = ltoi(course[2])
         gpa_check[index] = '*'
 
     with current_app.app_context():
