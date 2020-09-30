@@ -12,6 +12,9 @@ reports_dir = os.path.join(base_dir, 'reports')
 summary_dir = os.path.join(reports_dir, 'summary')
 print_regex_pattern = f'fme_skylight[{os.path.sep}]+sms[{os.path.sep}]+src'
 
+if not os.path.exists(summary_dir):
+    os.makedirs(summary_dir)
+
 report_start, cum_time_col = 8, 3
 summary = {}
 
