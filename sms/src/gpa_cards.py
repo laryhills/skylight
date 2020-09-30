@@ -1,3 +1,5 @@
+from sms.config import get_current_session
+from sms.src import personal_info
 from sms.src.script import get_students_for_course_adviser
 from sms.src.users import access_decorator
 from sms.src.utils import get_session_from_level, gpa_credits_poll
@@ -14,11 +16,10 @@ def get(level):
 def get_students_details(students, entry_session):
     students_details_dict = dict.fromkeys(students)
     for db_name in students:
-        session = load_session(db_name)
         for mat_no in students[db_name]:
-            bio_obj = session.PersonalInfo.query.filter_by(mat_no=mat_no).first()
-            name = bio_obj.othernames + ' ' + bio_obj.surname
-            name += ' (Miss)' if bio_obj.sex == 'F' else ''
+            bio = personal_info.get(mat_no)
+            name = bio['othernames'] + ' ' + bio['surname']
+            name += ' (Miss)' if bio['sex'] == 'F' else ''
 
             *gpa_credits, cgpa = gpa_credits_poll(mat_no)
             details = {
