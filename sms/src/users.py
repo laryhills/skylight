@@ -11,6 +11,7 @@ from sms.models.user import User
 from sms.models.logs import LogsSchema
 from sms.models.master import Master, MasterSchema, Props
 from sms.config import app, bcrypt, add_token, get_token, remove_token, db
+from sms.src.redis_utils import start_redis_worker, stop_redis_worker
 
 
 fn_props = {
@@ -34,7 +35,10 @@ fn_props = {
     "jobs.clear_cache_base_dir": {
         "perms": {},
         "logs": lambda user, params: "{} program cache cleared".format(user)
-    }
+    },
+    "senate_version.get": {"perms": {"superuser", "read"},
+                           "logs": lambda user, params: "{} requested senate version for the {} session".format(user, params.get('acad_session'))
+                           },
 }
 
 
@@ -244,6 +248,19 @@ def get_kwargs(func, args, kwargs):
     return my_kwargs
 
 
+def get_current_user():
+    try:
+        token = request.headers["token"]
+        user_params = get_token(token['token'])
+    except KeyError:
+        return User.query.filter_by(username="ucheigbeka").first()
+    if user_params:
+        username = user_params.get('username')
+        return User.query.filter_by(username=username).first()
+    else:
+        return None
+
+
 def login(token):
     try:
         user = detokenize(token['token'])
@@ -252,6 +269,7 @@ def login(token):
             token_dict = {'token': token['token']}
             add_token(token['token'], stored_user.username, loads(stored_user.permissions))
             token_dict['title'] = stored_user.title
+            start_redis_worker(stored_user)
             log(user['username'], 'users.login', login, [], [])
             return token_dict, 200
         return None, 401
@@ -261,6 +279,9 @@ def login(token):
 
 @access_decorator
 def logout(token):
+    user = get_current_user()
+    if user:
+        stop_redis_worker(user)
     remove_token(token['token'])
     return None, 200
 
@@ -303,9 +324,6 @@ fn_props.update({
     "broad_sheet.get": {"perms": {"superuser", "read"},
                         "logs": lambda user, params: "{} requested broad-sheets for the {} session".format(user, params.get('acad_session'))
                         },
-    "senate_version.get": {"perms": {"superuser", "read"},
-                           "logs": lambda user, params: "{} requested senate version for the {} session".format(user,params.get('acad_session'))
-                           },
     "gpa_cards.get": {"perms": {"levels", "read"},
                       "logs": lambda user, params: "{} requested {} level gpa card".format(user, params.get('level'))
                       },
