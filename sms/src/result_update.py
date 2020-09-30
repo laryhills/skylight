@@ -29,7 +29,7 @@ def get(mat_no, raw_score=False, to_print=False):
     mod = ['PUTME', 'DE(200)', 'DE(300)'][result_stmt['mode_of_entry'] - 1]
     entry_session = result_stmt['entry_session']
     grad_session = result_stmt['grad_session']
-    results = multisort(remove_empty(result_stmt['results']))
+    results = multisort(result_stmt['results'])
     no_of_pages = len(results) + 1
     credits = result_stmt['credits']
     gpas, level_credits = list(zip(*gpa_credits_poll(mat_no)[:-1]))
@@ -124,16 +124,13 @@ def multisort(results):
     return results
 
 
-def remove_empty(results):
-    """
-    This function is to remove result records which contain only "unusual results", that is, no course registration
-
-    :param results:
-    :return:
-    """
-    for index, result in enumerate(results):
-        if not (result['first_sem'] or result['second_sem']):
-            results[index] = []
-    while [] in results:
-        results.remove([])
-    return results
+# def remove_empty(results):
+#     """
+#     This function is to remove result records which contain only "unusual results", that is, no course registration
+#     """
+#     for index, result in enumerate(results):
+#         if not (result['first_sem'] or result['second_sem']):
+#             results[index] = []
+#     while [] in results:
+#         results.remove([])
+#     return results
