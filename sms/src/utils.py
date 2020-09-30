@@ -216,7 +216,7 @@ def get_degree_class(mat_no=None, cgpa=None, acad_session=None):
             return deg_class
 
 
-def compute_category_new(tcr, Result):
+def compute_category(tcr, Result):
     entry_session = get_DB(Result.mat_no)[:4]
     results = result_statement.get(Result.mat_no)
     tcp, session, level = Result.tcp, Result.session, Result.level
@@ -384,7 +384,7 @@ def get_registered_courses(mat_no, table=None):
     return courses_registered
 
 
-def compute_category(mat_no, level_written, session_taken, tcr, tcp, owed_courses_exist=True):
+def compute_category_deprecated(mat_no, level_written, session_taken, tcr, tcp, owed_courses_exist=True):
     # TODO Handle condition for transfer
     entry_session = personal_info.get(mat_no)["session_admitted"]
 
