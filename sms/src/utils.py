@@ -328,39 +328,6 @@ def multiprocessing_wrapper(func, iterable, context, use_workers=True, max_worke
 
 
 # DEPRECATED
-def get_gpa_credits(mat_no):
-    # TODO deprecate and favor gpa_credits_poll
-    session = load_session(get_DB(mat_no))
-    stud = session.GPA_Credits.query.filter_by(mat_no=mat_no).first()
-    gpa_credits = stud.level100, stud.level200, stud.level300, stud.level400, stud.level500
-    gpas, credits = [], []
-    for gpa_credit in gpa_credits:
-        if gpa_credit:
-            gpa, credit = list(map(float, gpa_credit.split(',')))
-            credit = int(credit)
-        else: gpa, credit = None, None
-        gpas.append(gpa)
-        credits.append(credit)
-
-    return gpas, credits
-
-
-def get_cgpa(mat_no):
-    # TODO deprecate and favor gpa_credits_poll
-    """
-    fetch the current cgpa for student with mat_no from the student's entry session database
-
-    NOTE: THIS DOES NOT DO ANY CALCULATIONS
-
-    :param mat_no:
-    :return:
-    """
-    db_name = get_DB(mat_no)
-    session = load_session(db_name)
-    student = session.GPA_Credits.query.filter_by(mat_no=mat_no).first()
-    return student.cgpa
-
-
 def get_result_at_acad_session(acad_session, res_poll=None, mat_no=None):
     # TODO deprecate and use result_poll in a list comprehension
     # preferably result statement instead if can be helped

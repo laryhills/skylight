@@ -4,7 +4,8 @@
 
 from sms.config import get_current_session
 from sms.src.users import get_level
-from sms.src.utils import load_session, get_dept, get_credits, get_gpa_credits, get_category, get_carryovers
+from sms.src.utils import load_session, get_dept, get_credits, get_category, get_carryovers, \
+    get_session_from_level, gpa_credits_poll
 from sms.models.courses import Courses
 from sms.models.master import Category, Category500
 
@@ -214,7 +215,7 @@ def get_details_for_ref_students(mat_no, session):
     level = get_level(mat_no)
     try:
         session_failed_courses = get_session_failed_courses(mat_no, level, session)
-        credits_passed_list = get_gpa_credits(mat_no, session)[1]
+        credits_passed_list = list(zip(*gpa_credits_poll(mat_no)[:-1]))[1]
         total_credits_passed = sum(filter(lambda x: x, credits_passed_list))
         total_credits = sum(get_credits(mat_no, session=session.__name__[12:16]))
     except AttributeError:

@@ -1,7 +1,14 @@
 from sms.src.script import get_students_for_course_adviser
-from sms.config import get_current_session
-from sms.src.users import load_session, access_decorator
-from sms.src.utils import get_gpa_credits
+from sms.src.users import access_decorator
+from sms.src.utils import get_session_from_level, gpa_credits_poll
+
+
+@access_decorator
+def get(level):
+    entry_session = get_session_from_level(get_current_session(), level, True)
+    students = get_students_for_course_adviser(level, retDB=True)
+    student_details = get_students_details(students, entry_session)
+    return student_details, 200
 
 
 def get_students_details(students, entry_session):
@@ -13,17 +20,13 @@ def get_students_details(students, entry_session):
             name = bio_obj.othernames + ' ' + bio_obj.surname
             name += ' (Miss)' if bio_obj.sex == 'F' else ''
 
-            gpa_creds_obj = session.GPA_Credits.query.filter_by(mat_no=mat_no).first()
-            gpas = get_gpa_credits(mat_no, session=session)[0]
-            cgpa = float(gpa_creds_obj.cgpa)
-
+            *gpa_credits, cgpa = gpa_credits_poll(mat_no)
             details = {
-                    'mat_no': mat_no,
-                    'name': name,
-                    'gpas': gpas,
-                    'cgpa': cgpa
-                }
-
+                'mat_no': mat_no,
+                'name': name,
+                'gpas': list(zip(*gpa_credits))[0],
+                'cgpa': float(cgpa)
+            }
             if students_details_dict.get(db_name):
                 students_details_dict[db_name].append(details)
             else:
@@ -43,11 +46,3 @@ def get_students_details(students, entry_session):
     students_details = ordinary_students_details + spillover_students_details
 
     return students_details
-
-
-@access_decorator
-def get(level):
-    entry_session = get_session_from_level(get_current_session(), level, True)
-    students = get_students_for_course_adviser(level, retDB=True)
-    student_details = get_students_details(students, entry_session)
-    return student_details, 200
