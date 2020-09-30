@@ -116,48 +116,6 @@ def get_results_for_acad_session(mat_no, acad_session, return_empty=False):
     return frame, 200
 
 
-def get_results_for_level(mat_no, level_written, return_empty=False):
-    """
-
-    :param mat_no:
-    :param level_written:
-    :param return_empty: return object with empty fields instead of 404
-    :return:
-    """
-    res_poll = utils.result_poll(mat_no)
-    results = {res['session']: (index, res) for index, res in enumerate(res_poll) if res and res['level'] == level_written}
-    result_for_level = {}
-
-    for session in sorted(results.keys()):
-        index, result = results[session]
-        table = 'Result' + str((index + 1) * 100)
-        if result:
-            result, level_written, tcp, category = refine_res_poll_item(result)
-        elif return_empty:
-            result = {'regular_courses': [], 'carryovers': [], 'unusual_results': []}
-            level_written, tcp, category = '', 0, ''
-        else:
-            continue
-
-        regular_courses = split_courses_by_semester(utils.multisort(result['regular_courses']), 4)
-        carryovers = split_courses_by_semester(utils.multisort(result['carryovers']), 4)
-        unusual_results = split_courses_by_semester(utils.multisort(result['unusual_results']), 4)
-
-        frame = {'mat_no': mat_no,
-                 'table': table,
-                 'level_written': level_written,
-                 'session_written': session,
-                 'tcp': tcp,
-                 'regular_courses': regular_courses,
-                 'carryovers': carryovers,
-                 'unusual_results': unusual_results,
-                 'category': category,
-                 }
-        result_for_level[session] = frame
-
-    return result_for_level, 200
-
-
 def get_results(mat_no, acad_session):
     from sms.src.course_reg import get_existing_course_reg
 

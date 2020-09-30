@@ -338,7 +338,7 @@ def get_students_by_level(entry_session, level, is_course_adviser=False, retDB=F
         other_students = list(map(lambda stud: stud.mat_no, other_students))
         students.extend(other_students)
 
-    return students
+    return sorted(list(set(students)))
 
 
 def filter_students_by_category(level, category, db_name, students):
