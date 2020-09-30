@@ -435,6 +435,7 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
             result_record['carryovers'] = ','.join(carryovers)
 
     # get the session category
+    # todo: do sth with this
     owed_courses_exist = check_owed_courses_exists(mat_no, level_written, grade, course_dets) if not is_unusual else True
     if not courses_registered:
         tcr, tcp = 0, 0
@@ -444,9 +445,10 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
         elif grade in ['F', 'ABS'] and previous_grade not in ['F', 'ABS', ''] and not is_unusual:
             result_record['tcp'] -= course_credit
         tcr, tcp = course_registration['tcr'], result_record['tcp']
-    result_record['category'] = utils.compute_category(mat_no, level_written, session_taken, tcr, tcp, owed_courses_exist)
 
     res_record = result_xxx_schema.load(result_record)
+    res_record.category = utils.compute_category(tcr, res_record)
+
     db_session = result_xxx_schema.Meta.sqla_session
     db_session.add(res_record)
     if grade == 'ABS':
