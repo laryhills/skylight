@@ -26,6 +26,7 @@ query = lambda cls, col, key: cls.query.filter(col == key).first()
 csv_fn = lambda csv, fn=lambda x:x: list(map(fn, csv.split(","))) if csv else []
 spc_fn = lambda spc, fn=lambda x:x: list(map(fn, spc.split(" "))) if spc else []
 
+
 # DB POLLS
 def get_dept(full=True):
     dept = csv_fn(Props.query.filter_by(key="Department").first().valuestr)
@@ -185,6 +186,7 @@ def compute_grade(score, session):
     for grade, weight, cutoff in [x.split() for x in grading_rules]:
         if 100 >= score >= int(cutoff):
             return grade
+    return ''
 
 
 def compute_gpa(mat_no):
@@ -212,16 +214,16 @@ def get_degree_class(mat_no=None, cgpa=None, acad_session=None):
     session = load_session(acad_session)
     deg_classes = [(csv_fn(x.limits,loads)[0], x.cls) for x in session.DegreeClass.query.all()]
     for cutoff, deg_class in deg_classes:
-        if cgpa>= cutoff:
+        if cgpa >= cutoff:
             return deg_class
 
 
 def compute_category(tcr, Result):
-    entry_session = get_DB(Result.mat_no)[:4]
+    entry_session = int(get_DB(Result.mat_no)[:4])
     results = result_statement.get(Result.mat_no)
     tcp, session, level = Result.tcp, Result.session, Result.level
-    level_credits = get_credits(mat_no, lpad=True)[ltoi(level)]
-    tables = [ltoi(x["table"]) for x in results if x["session"] < session]
+    level_credits = get_credits(Result.mat_no, lpad=True)[ltoi(level)]
+    tables = [ltoi(x["table"]) for x in results["results"] if x["session"] < session]
     prev_probated = "C" in [results["category"][i] for i in tables]
     # Add previous passed credits for 100L probated students
     if level == 100 and prev_probated:
@@ -231,8 +233,8 @@ def compute_category(tcr, Result):
     if tcr == 0:
         return ["H", "K"][level < 500]
     # TODO pull categories from DB, Handle owed_courses_exist, Handle condition for transfer
-    categories = {x: {100:[(78.26,"B"), (50,"C"), (0,"D")]} for x in range(2014,2020)}
-    catg_rule = categories. get(entry_session, {500:[(0, "B")]}).get(level,[(50,"B"), (25,"C"), (0,"D")])
+    categories = {x: {100:[(78.26,"B"), (50,"C"), (0,"D")]} for x in range(2014,get_current_session()+1)}
+    catg_rule = {**categories.get(entry_session), 500:[(0, "B")]}.get(level,[(50,"B"), (25,"C"), (0,"D")])
     percent_passed = tcp / level_credits * 100
     for lower, catg in catg_rule:
         if percent_passed >= lower:
