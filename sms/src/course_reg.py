@@ -51,7 +51,7 @@ def get(mat_no, acad_session):
     if obj[1] != 200:
         return obj
     old_course_reg = obj[0]
-    old_course_reg['max_credits'] = utils.get_maximum_credits_for_course_reg()['normal']
+    old_course_reg['max_credits'] = utils.get_maximum_credits_for_course_reg()
     return old_course_reg, 200
 
 
@@ -110,7 +110,7 @@ def init_new_course_reg(mat_no, acad_session, table_to_populate, current_level, 
     mode_of_entry = s_personal_info.pop('mode_of_entry_numeric')
     # populating choices
     try:
-        index = (int(current_level) // 100) - 1
+        index = utils.ltoi(int(current_level))
     except Exception as e:
         print(e)
         return 'Cannot determine current level of student', 400
@@ -132,7 +132,7 @@ def init_new_course_reg(mat_no, acad_session, table_to_populate, current_level, 
 
     # Getting maximum possible credits to register
     level_max_credits = max(
-        utils.get_maximum_credits_for_course_reg()['normal'],
+        utils.get_maximum_credits_for_course_reg(),
         utils.get_credits(mat_no, lpad=True)[index]
     )
 
@@ -149,7 +149,7 @@ def init_new_course_reg(mat_no, acad_session, table_to_populate, current_level, 
     if current_level >= 500:
         credit_sum += course_reg_utils.sum_credits_many(first_sem_choices, second_sem_choices, index_for_credits=2)
         credit_sum -= abridged_options_credit_sum
-        conditional_max = utils.get_maximum_credits_for_course_reg()['clause_of_51']
+        conditional_max = utils.get_maximum_credits_for_course_reg(conditional=True)
         if credit_sum == conditional_max:
             level_max_credits = conditional_max
 

@@ -1,8 +1,8 @@
 from re import match
+from json import loads
 from sms import config
 from operator import add
 from functools import reduce
-from json import loads, dumps
 from concurrent.futures.process import ProcessPoolExecutor
 from sms.models.master import Category, Category500, Props
 from sms.src import personal_info, course_details, result_statement, users
@@ -12,35 +12,98 @@ Handle frequently called or single use simple utility functions
 These aren't exposed endpoints and needn't return json data
 '''
 
+# FUNCTION MAPPINGS
 get_DB = users.get_DB
 get_level = users.get_level
 load_session = users.load_session
 get_current_session = config.get_current_session
-csv_fn = lambda csv, fn=lambda x:x: map(fn, csv.split(",")) if csv else []
-spc_fn = lambda spc, fn=lambda x:x: map(fn, spc.split(" ")) if spc else []
+
+# LAMBDAS
+ltoi = lambda x: x//100 - 1
+dictify = lambda flat_list: {x[0]:x[1:] for x in flat_list}
+multisort = lambda iters: sorted(iters, key=lambda x:x[0][3]+x[0])
+query = lambda cls, col, key: cls.query.filter(col == key).first()
+csv_fn = lambda csv, fn=lambda x:x: list(map(fn, csv.split(","))) if csv else []
+spc_fn = lambda spc, fn=lambda x:x: list(map(fn, spc.split(" "))) if spc else []
 
 
+# DB POLLS
 def get_dept(full=True):
-    dept = loads(Props.query.filter_by(key="Department").first().valuestr)
+    dept = csv_fn(Props.query.filter_by(key="Department").first().valuestr)
     return dept[full]
 
 
-def get_session_from_level(entry_session, level):
-    session_list = loads(Props.query.filter_by(key="SessionList").first().valuestr)
-    idx = session_list.index(entry_session) + level//100 - 1
+def get_maximum_credits_for_course_reg(conditional=False):
+    key = ["MaxRegCredits", "CondMaxRegCredits500"][conditional]
+    return Props.query.filter_by(key=key).first().valueint
+
+
+def get_session_from_level(session, level, reverse=False):
+    session_list = csv_fn(Props.query.filter_by(key="SessionList").first().valuestr, int)
+    idx = session_list.index(session) + [ltoi(level), 1 - level//100][reverse]
     return session_list[idx]
 
 
-def get_entry_session_from_level(session, level):
-    session_list = loads(Props.query.filter_by(key="SessionList").first().valuestr)
-    idx = session_list.index(session) - level//100 + 1
-    return session_list[idx]
+def get_num_of_prize_winners():
+    "Retrieves the number of prize winners"
+    return Props.query.filter_by(key="NumPrizeWinners").first().valueint
 
 
-def get_maximum_credits_for_course_reg():
-    normal = Props.query.filter_by(key="MaxRegCredits").first().valueint
-    clause_of_51 = Props.query.filter_by(key="CondMaxRegCredits500").first().valueint
-    return {"normal": normal, "clause_of_51": clause_of_51}
+def get_grading_point(session):
+    # TODO use spc_fn and/or csv_fn, dict values should be int not str
+    grading_rules = load_session(session).GradingRule.query.first().rule.split(",")
+    return dict(map(lambda x: x.split()[:-1], grading_rules))
+
+
+def get_level_weightings(mode_of_entry, lpad=True):
+    "Get fraction each level GPA contributes to final CGPA for specified entry mode"
+    percentages = Props.query.filter_by(key="LevelPercent").first().valuestr
+    level_percent = [spc_fn(x,lambda x: int(x)/100) for x in csv_fn(percentages)][mode_of_entry - 1]
+    if lpad:
+        return [0] * (mode_of_entry - 1) + level_percent
+    return level_percent
+
+
+def gpa_credits_poll(mat_no):
+    "Poll level GPAs, credits and CGPA for student from DB"
+    session = load_session(get_DB(mat_no))
+    student = session.GPA_Credits.query.filter_by(mat_no=mat_no).first()
+    ret_val = [student.cgpa]
+    for lvl in range(500,0,-100):
+        ret_val.append(csv_fn(getattr(student, f"level{lvl}") or "null,null", loads))
+    return ret_val[::-1]
+
+
+def course_reg_poll(mat_no, table=None):
+    """Get the course reg of a student as seen on CourseReg Table.
+    Specify table for particular table, else returns from all CourseReg tables"""
+    session, crs_regs = load_session(get_DB(mat_no)), []
+    for table in [table] if table else range(100,900,100):
+        reg_tbl = getattr(session, f"CourseReg{table}").query.filter_by(mat_no=mat_no).first()
+        crs_reg = getattr(session, f"CourseReg{table}Schema")().dump(reg_tbl)
+        crs_reg["courses"] = []
+        for key, val in crs_reg.copy().items():
+            if match("[A-Z][A-Z][A-Z][0-9][0-9][0-9]", key):
+                if crs_reg.pop(key):
+                    crs_reg["courses"].append(key)
+        # TODO CorseReg100 has carryover default as 0, fix in DB
+        crs_reg["courses"] += csv_fn(crs_reg.pop("carryovers", ""))
+        crs_regs.append(crs_reg)
+    return crs_regs
+
+
+def result_poll(mat_no, table=None):
+    """Get the results of a student as seen in Results Table.
+    Specify table for particular table, else returns from all Result tables"""
+    db_name = get_DB(mat_no)
+    if not db_name:
+        return None
+    session, results = load_session(db_name), []
+    for table in [table] if table else range(100,900,100):
+        res_tbl = getattr(session, f"Result{table}").query.filter_by(mat_no=mat_no).first()
+        result = getattr(session, f"Result{table}Schema")().dump(res_tbl)
+        results.append(result)
+    return results
 
 
 def get_credits(mat_no=None, mode_of_entry=None, session=None, lpad=False):
@@ -74,6 +137,7 @@ def get_courses(mat_no=None, mode_of_entry=None, session=None, lpad=True):
     return level_courses
 
 
+# UTILITIES
 def get_carryovers(mat_no, level=None, next_level=False):
     """
     Returns a dictionary of the carryover courses for a student for each semester
@@ -82,7 +146,7 @@ def get_carryovers(mat_no, level=None, next_level=False):
     """
     level = level or get_level(mat_no)
     first_sem, second_sem = set(), set()
-    for course in get_courses(mat_no)[:level//100+next_level-1]:
+    for course in get_courses(mat_no)[:ltoi(level)+next_level]:
         first_sem |= set(course[0])
         second_sem |= set(course[1])
 
@@ -106,8 +170,8 @@ def get_carryovers(mat_no, level=None, next_level=False):
     category = ([None] + result_statement.get(mat_no)["category"])[-1]
     if category == "C" and level in (200, 300, 400):
         # Handle probation carryovers
-        first_sem |= set(get_courses(mat_no)[level//100-1][0])
-        second_sem |= set(get_courses(mat_no)[level//100-1][1])
+        first_sem |= set(get_courses(mat_no)[ltoi(level)][0])
+        second_sem |= set(get_courses(mat_no)[ltoi(level)][1])
 
     carryovers = {"first_sem":[],"second_sem":[]}
     courses = [("first_sem", course) for course in first_sem] + [("second_sem", course) for course in second_sem]
@@ -117,26 +181,114 @@ def get_carryovers(mat_no, level=None, next_level=False):
     return carryovers
 
 
-def result_poll(mat_no, table=None):
-    """Get the results of a student as seen in Results Table.
-    Specify table for particular table, else returns from all Result tables"""
-    db_name = get_DB(mat_no)
-    if not db_name:
-        return None
-    session, results = load_session(db_name), []
-    for table in [table] if table else range(100,900,100):
-        res_tbl = getattr(session, f"Result{table}").query.filter_by(mat_no=mat_no).first()
-        result = getattr(session, f"Result{table}Schema")().dump(res_tbl)
-        results.append(result)
-    return results
+def compute_grade(score, session):
+    grading_rules = load_session(session).GradingRule.query.first().rule.split(",")
+    for grade, weight, cutoff in [x.split() for x in grading_rules]:
+        if 100 >= score >= int(cutoff):
+            return grade
+    return ''
 
 
+def compute_gpa(mat_no):
+    # TODO is this ever used? If not why?, add docstring
+    # TODO test handle ABS after DB regenerated
+    mode_of_entry = personal_info.get(mat_no)["mode_of_entry"]
+    gpas = [0] * (6 - mode_of_entry)
+    level_credits = get_credits(mat_no, mode_of_entry)
+    grade_weight = get_grading_point(get_DB(mat_no))
+    # TODO probation still counts towards GPA, fix
+    for result in result_statement.get(mat_no)["results"]:
+        for record in (result["first_sem"] + result["second_sem"]):
+            (course, credit, grade, course_level) = (record[1], record[3], record[5], record[6])
+            lvl = int(course_level / 100) - 1
+            product = int(grade_weight[grade]) * credit
+            gpas[lvl] += (product / level_credits[lvl])
+    return gpas
+
+
+def get_degree_class(mat_no=None, cgpa=None, acad_session=None):
+    "Get the degree-class text for student"
+    # TODO only lower limit is used, why both boundaries stored?
+    acad_session = acad_session or get_DB(mat_no)
+    cgpa = cgpa or gpa_credits_poll(mat_no)[-1]
+    session = load_session(acad_session)
+    deg_classes = [(csv_fn(x.limits,loads)[0], x.cls) for x in session.DegreeClass.query.all()]
+    for cutoff, deg_class in deg_classes:
+        if cgpa >= cutoff:
+            return deg_class
+
+
+def compute_category(tcr, Result):
+    entry_session = int(get_DB(Result.mat_no)[:4])
+    results = result_statement.get(Result.mat_no)
+    tcp, session, level = Result.tcp, Result.session, Result.level
+    level_credits = get_credits(Result.mat_no, lpad=True)[ltoi(level)]
+    tables = [ltoi(x["table"]) for x in results["results"] if x["session"] < session]
+    prev_probated = "C" in [results["category"][i] for i in tables]
+    # Add previous passed credits for 100L probated students
+    if level == 100 and prev_probated:
+        tcp += sum([results["credits"][i][1] for i in tables])
+    if tcp == tcr:
+        return "A"
+    if tcr == 0:
+        return ["H", "K"][level < 500]
+    # TODO pull categories from DB, Handle owed_courses_exist, Handle condition for transfer
+    categories = {x: {100:[(78.26,"B"), (50,"C"), (0,"D")]} for x in range(2014,get_current_session()+1)}
+    catg_rule = {**categories.get(entry_session), 500:[(0, "B")]}.get(level,[(50,"B"), (25,"C"), (0,"D")])
+    percent_passed = tcp / level_credits * 100
+    for lower, catg in catg_rule:
+        if percent_passed >= lower:
+            category = catg
+            break
+    # Handle if probated before
+    if category == "C" and prev_probated:
+        category = "E"
+    return category
+
+
+# NOT YET REFACTORED
+def get_category(mat_no, table):
+    "Retrieves the category of a students with mat_no `mat_no` from the database"
+    result = result_poll(mat_no, table)[0]
+    if result:
+        return result["category"]
+    crs_reg = course_reg_poll(mat_no, table)[0]
+    if crs_reg["courses"]:
+	return ["H", "K"][crs_reg["level"] < 500]
+    level = personal_info.get(mat_no)["level"]
+    return ["B", "G"][level < 500]
+
+
+def multiprocessing_wrapper(func, iterable, context, use_workers=True, max_workers=None):
+    """
+    use multiprocessing to call a function on members of an iterable
+
+    (number of workers limited to 5)
+
+    :param func: the function to call
+    :param iterable: items you want to call func on
+    :param context: params that are passed to all instances
+    :param use_workers: whether to spawn off child processes
+    :param max_workers: maximum number of child processes to use
+    :return:
+    """
+    if not use_workers:
+        [func(item, *context) for item in iterable]
+    else:
+        max_workers = max_workers if max_workers else min(len(iterable), 4)
+        with ProcessPoolExecutor(max_workers=max_workers) as executor:
+            [executor.submit(func, item, *context) for item in iterable]
+
+
+# DEPRECATED
 def get_result_at_acad_session(acad_session, res_poll=None, mat_no=None):
+    # TODO deprecate and use result_poll in a list comprehension
+    # preferably result statement instead if can be helped
     """
     Get results for a specific session
-    
+
     :param acad_session: the session for which to fetch results
-    :param res_poll: result of result_poll() 
+    :param res_poll: result of result_poll()
     :param mat_no:  (optional) supply this only if res_poll is not given
     :return: a tuple: (result dictionary, table fetched from)
     """
@@ -149,40 +301,9 @@ def get_result_at_acad_session(acad_session, res_poll=None, mat_no=None):
     return {}, ''
 
 
-def serialize_carryovers(carryover_string):
-    """
-    Serialize string containing carryover results into a list of results
-    [[course_code, score, grade], [...], ...]
-    
-    :param carryover_string: 
-    :return: 
-    """
-    if not carryover_string:
-        return []
-    carryovers = carryover_string.split(',')
-    carryovers = [x.split(' ') for x in carryovers if carryovers]
-    return carryovers
-
-
-def compute_grade(score, session):
-    if score == -1:
-        return "ABS"
-    if not 0 <= score <= 100:
-        return None
-    grading_rules = load_session(session).GradingRule.query.first().rule.split(",")
-    for grade, weight, cutoff in [x.split() for x in grading_rules]:
-        if score >= int(cutoff):
-            return grade
-
-
-def get_grading_point(session):
-    grading_rules = load_session(session).GradingRule.query.first().rule.split(",")
-    return dict(map(lambda x: x.split()[:-1], grading_rules))
-
-
 def get_registered_courses(mat_no, table=None):
     "Get courses registered from all course reg tables if table=None else from CourseReg<table>"
-    # TODO favor crs_reg_poll
+    # TODO deprecate favor crs_reg_poll
     # TODO check if list better option than dict
     session, courses_registered = load_session(get_DB(mat_no)), {}
 
@@ -216,141 +337,18 @@ def get_registered_courses(mat_no, table=None):
     return courses_registered
 
 
-def course_reg_poll(mat_no, table=None):
-    """Get the course reg of a student as seen on CourseReg Table.
-    Specify table for particular table, else returns from all CourseReg tables"""
-    session, crs_regs = load_session(get_DB(mat_no)), []
-    for table in [table] if table else range(100,900,100):
-        reg_tbl = getattr(session, f"CourseReg{table}").query.filter_by(mat_no=mat_no).first()
-        crs_reg = getattr(session, f"CourseReg{table}Schema")().dump(reg_tbl)
-        crs_reg["courses"] = []
-        for key, val in crs_reg.copy().items():
-            if match("[A-Z][A-Z][A-Z][0-9][0-9][0-9]", key):
-                if crs_reg.pop(key):
-                    crs_reg["courses"].append(key)
-        # TODO CorseReg100 has carryover default as 0, fix in DB
-        crs_reg["courses"] += csv_fn(crs_reg.pop("carryovers", ""))
-        crs_regs.append(crs_reg)
-    return crs_regs
+def compute_category_deprecated(mat_no, level_written, session_taken, tcr, tcp, owed_courses_exist=True):
+    # TODO Handle condition for transfer
+    entry_session = personal_info.get(mat_no)["session_admitted"]
 
-
-def compute_gpa(mat_no):
-    # TODO is this ever used? If not why?, add docstring
-    mode_of_entry = personal_info.get(mat_no)["mode_of_entry"]
-    gpas = [0] * (6 - mode_of_entry)
-    percentages = Props.query.filter_by(key="LevelPercent").first().valustr
-    level_percent = [spc_fn(x,int) for x in csv_fn(percentages)][mode_of_entry - 1]
-    level_credits = get_credits(mat_no, mode_of_entry)
-    grade_weight = get_grading_point(get_DB(mat_no))
-    # TODO insert course credit, level into result statement
-    for result in result_statement.get(mat_no)["results"]:
-        for record in (result["first_sem"] + result["second_sem"]):
-            (course, credit, grade, course_level) = (record[1], record[3], record[5], record[6])
-            lvl = int(course_level / 100) - 1
-            product = int(grade_weight[grade]) * credit
-            gpas[lvl] += (product / level_credits[lvl])
-    return gpas
-
-
-def get_gpa_credits(mat_no, session=None):
-    if not session:
-        db_name = get_DB(mat_no)
-        session = load_session(db_name)
-    stud = session.GPA_Credits.query.filter_by(mat_no=mat_no).first()
-    gpa_credits = stud.level100, stud.level200, stud.level300, stud.level400, stud.level500
-    gpas, credits = [], []
-    for gpa_credit in gpa_credits:
-        if gpa_credit:
-            gpa, credit = list(map(float, gpa_credit.split(',')))
-            credit = int(credit)
-        else: gpa, credit = None, None
-        gpas.append(gpa)
-        credits.append(credit)
-
-    return gpas, credits
-
-
-def get_cgpa(mat_no):
-    """
-    fetch the current cgpa for student with mat_no from the student's entry session database
-
-    NOTE: THIS DOES NOT DO ANY CALCULATIONS
-
-    :param mat_no:
-    :return:
-    """
-    db_name = get_DB(mat_no)
-    session = load_session(db_name)
-    student = session.GPA_Credits.query.filter_by(mat_no=mat_no).first()
-    return student.cgpa
-
-
-def get_session_degree_class(acad_session):
-    """
-    Get the degree-class dictionary for an academic session with lower limits as keys
-
-    :param acad_session:
-    :return:
-    """
-    session = load_session(acad_session)
-    degree_class = session.DegreeClass.query.all()
-    degree_class = {float(deg.limits.split(',')[0]): deg.cls for deg in degree_class}
-    return degree_class
-
-
-def compute_degree_class(mat_no, cgpa=None, acad_session=None):
-    """
-    get the degree-class text for graduated students
-
-    :param mat_no:
-    :param cgpa:
-    :param acad_session:
-    :return:
-    """
-    # todo extend this for non-graduated students
-    if not cgpa: cgpa = get_cgpa(mat_no)
-    if not acad_session: acad_session = int(get_DB(mat_no)[:4])
-
-    degree_class = get_session_degree_class(acad_session)
-    for lower_limit in sorted(degree_class.keys(), reverse=True):
-        if cgpa >= lower_limit:
-            return degree_class[lower_limit]
-    return ''
-
-
-def get_level_weightings(mod):
-    if mod == 1: return [.1, .15, .2, .25, .3]
-    elif mod == 2: return [0, .1, .2, .3, .4]
-    else: return [0, 0, .25, .35, .4]
-
-
-def compute_category(mat_no, level_written, session_taken, tcr, tcp, owed_courses_exist=True):
-    """
-
-    :param mat_no:
-    :param level_written:
-    :param session_taken:
-    :param tcr: total credits registered for session
-    :param tcp: total credits passed
-    :param owed_courses_exist:
-    :return:
-    """
-    # todo: Handle condition for transfer
-    person = personal_info.get(mat_no)
-    res_poll = result_poll(mat_no, 0)
-    creds = get_credits(mat_no)
-
-    entry_session = person['session_admitted']
-    previous_categories = [x['category'] for x in res_poll if x and x['session'] < session_taken]
-
-    # ensure to get the right value of level_credits irrespective of the size of the list (PUTME vs DE students)
-    # TODO check lpad with get_credits
-    index = (level_written // 100 - 1)
-    level_credits = creds[index + (len(creds) - 5)]
+    res_poll = result_poll(mat_no)
+    prev_probated = "C" in [x['category'] for x in res_poll if x and x['session'] < session_taken]
+    level_credits = get_credits(mat_no, lpad=True)[ltoi(level_written)]
 
     # add previous tcp to current for 100 level probation students
-    if level_written == 100 and 'C' in previous_categories:
+    if level_written == 100 and prev_probated:
         tcp += sum([x['tcp'] for x in res_poll if x and x['level'] == level_written and x['session'] < session_taken])
+
 
     if level_written >= 500:
         if tcp == tcr and not owed_courses_exist: return 'A'
@@ -372,124 +370,3 @@ def compute_category(mat_no, level_written, session_taken, tcr, tcp, owed_course
             elif 25 <= percent_passed < 50: return 'C'
             elif 'C' not in previous_categories: return 'D'
             else: return 'E'
-
-
-def get_category_for_unregistered_students(level):
-    """
-    Retrieves the category for unregistered students
-
-    :param level: level of students
-    :return: category of unregistered students
-    """
-    group = 'unregistered students'
-    if level >= 500:
-        cat_obj = Category500.query.filter_by(group=group).first()
-    else:
-        cat_obj = Category.query.filter_by(group=group).first()
-
-    return cat_obj.category
-
-
-def get_category_for_absent_students(level):
-    """
-    Retrieves the category for students with absent cases
-
-    :param level: level of students
-    :return: category of students with absent cases
-    """
-    if level >= 500:
-        group = 'carryover students'
-        cat_obj = Category500.query.filter_by(group=group).first()
-    else:
-        group = 'absent from examination'
-        cat_obj = Category.query.filter_by(group=group).first()
-
-    return cat_obj.category
-
-
-def get_category(mat_no, level, session=None):
-    """
-    Retrieves the category of a students with mat_no `mat_no` from the database
-
-    :param mat_no: mat_no of student
-    :param level: level of student
-    :param session: (Optional) session module object of student
-    :return: category of student
-    """
-    if not session:
-        db_name = get_DB(mat_no)
-        session = load_session(db_name)
-    res_obj = eval('session.Result{}'.format(level))
-    student = res_obj.query.filter_by(mat_no=mat_no).first()
-    if student:
-        category = student.category
-    else:
-        course_reg_obj = eval('session.CourseReg{}'.format(level))
-        registered_courses = bool(course_reg_obj.query.filter_by(mat_no=mat_no).first())
-        # Should probably apply this to the db
-        if registered_courses:
-            category = get_category_for_unregistered_students(level)
-        else:
-            category = get_category_for_absent_students(level)
-
-    return category
-
-
-def get_num_of_prize_winners():
-    """
-    Retrieves the number of prize winners
-
-    :return: number of prize winners
-    """
-    # TODO: Query this from the master db
-    return 1
-
-
-def dictify(flat_list, key_index=0):
-    """
-    convert a flat list of lists (or tuples) to a dictionary, with the value at key_index as key
-
-    :param flat_list:
-    :param key_index:
-    :return:
-    """
-    dic = {}
-    for lis in flat_list:
-        lis = list(lis)
-        key = lis.pop(key_index)
-        dic[key] = lis[0] if len(lis) == 1 and isinstance(lis[0], dict) else lis
-    return dic
-
-
-def multiprocessing_wrapper(func, iterable, context, use_workers=True, max_workers=None):
-    """
-    use multiprocessing to call a function on members of an iterable
-
-    (number of workers limited to 5)
-
-    :param func: the function to call
-    :param iterable: items you want to call func on
-    :param context: params that are passed to all instances
-    :param use_workers: whether to spawn off child processes
-    :param max_workers: maximum number of child processes to use
-    :return:
-    """
-    if not use_workers:
-        [func(item, *context) for item in iterable]
-    else:
-        max_workers = max_workers if max_workers else min(len(iterable), 4)
-        with ProcessPoolExecutor(max_workers=max_workers) as executor:
-            [executor.submit(func, item, *context) for item in iterable]
-
-
-def multisort(iters):
-    """
-    Sort course list first by course_code, next by the course level using the first integer in course_code: MEE(3)11
-
-    :param iters:
-    :return:
-    """
-    # todo: refactor this to use actual course_level from courses db
-    iters = sorted(iters, key=lambda x: x[0])
-    iters = sorted(iters, key=lambda x: x[0][3])
-    return iters
