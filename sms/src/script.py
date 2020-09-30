@@ -386,7 +386,7 @@ def get_students_by_category(level, entry_session, category=None, get_all=False)
             session = load_session(db_name)
             for mat_no in mat_no_dict[db_name]:
                 level = level if level != 500 else get_level(mat_no)  # Accounts for spillover students
-                cat = get_category(mat_no, level, session=session)
+                cat = get_category(mat_no, level)
                 if students[db_name].get(cat):
                     students[db_name][cat].append(mat_no)
                 else:

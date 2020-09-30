@@ -246,7 +246,6 @@ def compute_category(tcr, Result):
     return category
 
 
-# NOT YET REFACTORED
 def get_category(mat_no, table):
     "Retrieves the category of a students with mat_no `mat_no` from the database"
     result = result_poll(mat_no, table)[0]
@@ -259,6 +258,7 @@ def get_category(mat_no, table):
     return ["B", "G"][level < 500]
 
 
+# NOT YET REFACTORED
 def multiprocessing_wrapper(func, iterable, context, use_workers=True, max_workers=None):
     """
     use multiprocessing to call a function on members of an iterable
