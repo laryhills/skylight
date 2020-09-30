@@ -254,7 +254,7 @@ def get_category(mat_no, table):
         return result["category"]
     crs_reg = course_reg_poll(mat_no, table)[0]
     if crs_reg["courses"]:
-	return ["H", "K"][crs_reg["level"] < 500]
+	    return ["H", "K"][crs_reg["level"] < 500]
     level = personal_info.get(mat_no)["level"]
     return ["B", "G"][level < 500]
 
@@ -349,24 +349,23 @@ def compute_category_deprecated(mat_no, level_written, session_taken, tcr, tcp, 
     if level_written == 100 and prev_probated:
         tcp += sum([x['tcp'] for x in res_poll if x and x['level'] == level_written and x['session'] < session_taken])
 
-
     if level_written >= 500:
         if tcp == tcr and not owed_courses_exist: return 'A'
         else: return 'B'
     else:
         if tcr == 0:
-            retval = 'D' if 'C' not in previous_categories else 'E'
+            retval = 'D' if not prev_probated else 'E'
             return retval
         elif tcp == tcr:
             return 'A'
         elif level_written == 100 and entry_session >= 2014:
             if tcp >= 36: return 'B'
             elif 23 <= tcp < 36: return 'C'
-            elif 'C' not in previous_categories: return 'D'
+            elif not prev_probated: return 'D'
             else: return 'E'
         else:
             percent_passed = tcp / level_credits * 100
             if percent_passed >= 50: return 'B'
             elif 25 <= percent_passed < 50: return 'C'
-            elif 'C' not in previous_categories: return 'D'
+            elif not prev_probated: return 'D'
             else: return 'E'
