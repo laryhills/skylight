@@ -5,10 +5,10 @@ Engineering, University of Benin.
 # Requirements
 Skylight requires python >= 3.8 and redis >= 3.2.100. Make sure the server is running locally on port 6379.
 
-**Note**: Due to the non-availability of `os.fork`, one of the dependencies, rq, does not run on the Windows native Python interpreter. An alternative for Windows users would be to run a Unix emulation using [Windows SubSystem for Linux (WSL)]('https://msdn.microsoft.com/en-us/commandline/wsl/about')
+**Note**: Due to the non-availability of `os.fork`, one of the dependencies, rq, does not run on the Windows native Python interpreter. An alternative for Windows users would be to run a Unix emulation using [Windows SubSystem for Linux (WSL)](https://msdn.microsoft.com/en-us/commandline/wsl/about)
 
 ## Setup Instructions
-- Download and install redis. On Windows, Microsoft maintains installers [here]('http://github.com/MicrosoftArchive/redis/releases'). Linux and Mac OS X users can get it either through their package manager or directly from the [redis official website.]('https://redis.io/')
+- Download and install redis. On Windows, Microsoft maintains installers [here](http://github.com/MicrosoftArchive/redis/releases). Linux and Mac OS X users can get it either through their package manager or directly from the [redis official website.](https://redis.io/)
 - Start the redis server manually with the `redis-server` command. You can check if the server is running by pinging it with the `redis-cli PING`  command.
 - Install `pipenv` with python's default package manager
 ```
