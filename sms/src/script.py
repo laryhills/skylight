@@ -32,9 +32,9 @@ def populate_course_list(level):
     course_list = []
 
     level = 500 if level > 500 else level
-    course_objs = Courses.query.filter_by(course_level=level).all()
+    course_objs = Courses.query.filter_by(level=level).all()
     for obj in course_objs:
-        course_list.append(obj.course_code)
+        course_list.append(obj.code)
 
 
 def get_categories(final_year=False):
@@ -79,8 +79,7 @@ def get_cls_limits(cls, db_name=None, session=None):
     """
     if not session:
         session = load_session(db_name)
-    cls_obj = eval('session.DegreeClass')
-    limits = cls_obj.query.filter_by(cls=class_mapping[cls]).first().limits
+    limits = session.DegreeClass.query.filter_by(cls=class_mapping[cls]).first().limits
     return list(map(float, limits.split(',')))
 
 
@@ -95,7 +94,7 @@ def get_session_failed_courses(mat_no, level, session):
     :return: list of failed courses
     """
     failed_courses = []
-    res_obj = eval('session.Result{}'.format(level)).query.filter_by(mat_no=mat_no).first()
+    res_obj = getattr(session, 'Result{}'.format(level)).query.filter_by(mat_no=mat_no).first()
     if level <= 500:
         for course_code in course_list:
             score_grade = getattr(res_obj, course_code)
@@ -130,8 +129,8 @@ def get_student_details_for_cat(mat_no, level, session):
     name = student.othernames + ' ' + '<b>{}</b>'.format(student.surname)
     name += ' (Miss)' if student.sex == 'F' else ''
 
-    course_reg_model = eval('session.CourseReg{}'.format(level))
-    res_model = eval('session.Result{}'.format(level))
+    course_reg_model = getattr(session, 'CourseReg{}'.format(level))
+    res_model = getattr(session, 'Result{}'.format(level))
     course_reg_obj = course_reg_model.query.filter_by(mat_no=mat_no).first()
     res_obj = res_model.query.filter_by(mat_no=mat_no).first()
     if res_obj:
@@ -353,7 +352,7 @@ def filter_students_by_category(level, category, db_name, students):
     :return: list of students with ctagory `category`
     """
     session = load_session(db_name)
-    res_obj = eval('session.Result{}'.format(level))
+    res_obj = getattr(session, 'Result{}'.format(level))
     studs = []
     for mat_no in students:
         stud = res_obj.query.filter_by(mat_no=mat_no).first()
@@ -473,7 +472,7 @@ def filter_students_by_degree_class(degree_class, db_name, students):
     """
     session = load_session(db_name)
     limits = get_cls_limits(degree_class, session=session)
-    cgpa_obj = eval('session.GPA_Credits')
+    cgpa_obj = getattr(session, 'GPA_Credits')
     studs = []
     for stud in students:
         cgpa = cgpa_obj.query.filter_by(mat_no=stud).first().cgpa
