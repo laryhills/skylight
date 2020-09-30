@@ -222,7 +222,7 @@ def get_results(mat_no, acad_session):
         'result': regular_reg_courses,
         'carryovers': carryover_reg_courses,
         'unusual_results': unusual_results,
-        'level_gpa': gpa_credits[level//100 - 1][0],
+        'level_gpa': gpa_credits[utils.ltoi(level)][0],
         'cgpa': gpa_credits[-1]
     }
 
@@ -271,14 +271,8 @@ def _get_single_results_stats(mat_no, level, acad_session):
 
 def add_result_records(list_of_results, level=None):
     """
-    list_of_results =[
-             [course_code_1, session_written_1, mat_no_1, score_1],
-
-             [course_code_2, session_written_2, mat_no_2, score_2],
-
-             ...
-        ]
-    :param list_of_results:
+    :param list_of_results: [
+             [course_code_1, session_written_1, mat_no_1, score_1], ...]
     :param level: level for the results being entered; to control course advisers' access
     :return:
     """
@@ -297,14 +291,14 @@ def add_result_records(list_of_results, level=None):
 
     for index, result_details in enumerate(list_of_results):
         idx = index + 1  # start index at 1
-        errors, status_code = add_single_result_record(idx, result_details, result_errors_file, course_details_dict, level)
+        errors = add_single_result_record(idx, result_details, result_errors_file, course_details_dict, level)
         error_log.extend(errors)
 
     result_errors_file.close()
     print(Fore.CYAN, '====>>  ', '{} result entries added with {} errors'.format(
         len(list_of_results), len(error_log)), Style.RESET_ALL)
 
-    return error_log, 200
+    return error_log or ['Done'], 200
 
 
 def add_single_result_record(index, result_details, result_errors_file, course_details_dict, level=None):
@@ -324,31 +318,21 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
     error_log = []
 
     # Error check on level, grade and score
+    error_text = ''
     if level:
         levels = [600, 700, 800] if level == 600 else [level]
         if current_level not in levels:
             error_text = "You are not allowed to enter results for {} at index {} whose current level is " \
                          "{}".format(mat_no, index, current_level)
-            result_errors_file.writelines(str(result_details) + '  error: ' + error_text + '\n')
-            error_log.append(error_text)
-            print(Fore.RED, '[WARNING]: ', error_log[-1], Style.RESET_ALL)
-            return error_log, 403
-
-    if not (-1 <= score <= 100):
-        error_text = "Unexpected score for {}, '{}', for {} at index {}; " \
-                     "result not added".format(course_code, score, mat_no, index)
-        result_errors_file.writelines(str(result_details) + '  error: ' + error_text + '\n')
-        error_log.append(error_text)
-        print(Fore.RED, '[WARNING]: ', error_log[-1], Style.RESET_ALL)
-        return error_log, 403
-
-    if not grade:
+    if not (-1 <= score <= 100) and not error_text:
+        error_text = 'Unexpected score for {}, "{}", for {} at index {}; ' \
+                     'result not added'.format(course_code, score, mat_no, index)
+    if not grade and not error_text:
         error_text = '{0} at index {1} was not found in the database'.format(mat_no, index)
-        result_errors_file.writelines(str(result_details) + '  error: ' + error_text + '\n')
-        error_log.append(error_text)
-        print(Fore.RED, '[WARNING]: ', error_log[-1], Style.RESET_ALL)
-        return error_log, 404
+    if error_text:
+        return handle_errors(error_text, error_log, result_errors_file, result_details)
 
+    # Get course details
     if course_code in course_details_dict and course_details_dict[course_code]:
         course_dets = course_details_dict[course_code]
     else:
@@ -357,10 +341,7 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
         if not course_dets:
             # fail on non-existent course(s)
             error_text = '{} at index {} was not found in the database'.format(course_code, index)
-            result_errors_file.writelines(str(result_details) + '  error: ' + error_text + '\n')
-            error_log.append(error_text)
-            print(Fore.RED, '[WARNING]: ', error_log[-1], Style.RESET_ALL,)
-            return error_log, 404
+            return handle_errors(error_text, error_log, result_errors_file, result_details)
 
     course_credit = course_dets['credit']
     course_level = course_dets['level']
@@ -371,22 +352,21 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
     if course_registration == {}:
         course_registration = {'course_reg_level': current_level, 'courses': []}
         is_unusual = True
-        error_log.append('No course registration found for {0} at index {1} for the '
-                         '{2}/{3} session'.format(mat_no, index, session_taken, session_taken + 1))
-        print(Fore.RED, '[WARNING]: ', error_log[-1], Style.RESET_ALL)
+        error_log = handle_errors('No course registration found for {0} at index {1} for the {2}/{3} '
+                      'session'.format(mat_no, index, session_taken, session_taken + 1), error_log)
 
     courses_registered = course_registration['courses']
     if not is_unusual and course_code not in courses_registered:
         is_unusual = True
-        error_log.append('{0} at index {1} did not register {2} in the {3}/{4} '
-                         'session'.format(mat_no, index, course_code, session_taken, session_taken + 1))
-        print(Fore.RED, '[WARNING]: ', error_log[-1], Style.RESET_ALL)
+        error_log = handle_errors('{0} at index {1} did not register {2} in the {3}/{4} '
+                                  'session'.format(mat_no, index, course_code, session_taken, session_taken + 1), error_log)
 
     try:
         db_name = utils.get_DB(mat_no)
         session = utils.load_session(db_name)
     except ImportError:
-        return 'Student not found in database', 403
+        handle_errors('Student {} not found in database'.format(mat_no))
+        return error_log
 
     level_written = course_registration['course_reg_level']
     res_poll = utils.result_poll(mat_no)
@@ -398,16 +378,15 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
         # table_to_populate is empty, this would be redefined
         pass
     except ImportError:
-        return '{} table does not exist'.format(table_to_populate), 403
+        handle_errors('{} table does not exist'.format(table_to_populate))
+        return error_log
 
     if not result_record:
         if is_unusual and grade == 'ABS':
-            error_log.append('Unregistered course {} with grade "ABS" cannot be added for {}'.format(course_code, mat_no))
-            print(Fore.RED, '[WARNING]: ', error_log[-1], Style.RESET_ALL)
-            return error_log, 200
-
+            return handle_errors('Unregistered course {} with grade "ABS" cannot be added for '
+                                 '{}'.format(course_code, mat_no), error_log)
         table_to_populate = get_table_to_populate(course_registration, res_poll)
-        result_xxx_schema = eval('session.{}Schema()'.format(table_to_populate))
+        result_xxx_schema = getattr(session, table_to_populate + 'Schema')()
         params = mat_no, session_taken, courses_registered, result_xxx_schema, level_written
         result_record = prepare_new_results_table(*params)
 
@@ -435,8 +414,8 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
             result_record['carryovers'] = ','.join(carryovers)
 
     # get the session category
-    # todo: do sth with this
     owed_courses_exist = check_owed_courses_exists(mat_no, level_written, grade, course_dets) if not is_unusual else True
+    # todo: do sth with "owed_courses_exist"
     if not courses_registered:
         tcr, tcp = 0, 0
     else:
@@ -456,14 +435,12 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
     db_session.commit()
     db_session.close()
 
-    status = 400
+    # update GPA - Credits table
     if not is_unusual:
-        # update GPA - Credits table
-        error, status = update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_level)
-        if status != 200:
-            error_log.append(error)
+        ret_str = update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_level)
+        if ret_str: error_log.append(ret_str)
 
-    return error_log, status
+    return error_log
 
 
 def update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_level):
@@ -471,10 +448,10 @@ def update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_leve
         db_name = utils.get_DB(mat_no)
         session = utils.load_session(db_name)
     except ImportError:
-        return 'Student not found in database', 403
+        return 'Student not found in database'
 
     gpa_credits = utils.gpa_credits_poll(mat_no)[:-1]
-    index = course_level // 100 - 1
+    index = utils.ltoi(course_level)
     level_gpa = gpa_credits[index][0] if gpa_credits[index][0] else 0
     level_credits_passed = gpa_credits[index][1] if gpa_credits[index][1] else 0
 
@@ -508,14 +485,15 @@ def update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_leve
     db_session.add(gpa_record)
     db_session.commit()
     db_session.close()
-    return '', 200
+    return ''
 
 
 def delete_if_empty(res_record, result_record, db_session):
     retval = strip_res_poll_item(result_record)
     regulars_exist = any([res for res in retval[0] if retval[0][res] and retval[0][res] != '-1,ABS'])
-    # check carryovers, unusual results and regular courses in this order for any course
-    if not (retval[4] or retval[5] or regulars_exist):
+    exists = lambda idx: any([res[0] for res in retval[idx] if res[2] != 'ABS'])
+    carryovers_exist, unusual_results_exist = [exists(idx) for idx in (4, 5)]
+    if not any([regulars_exist, carryovers_exist, unusual_results_exist]):
         db_session.delete(res_record)
 
 
@@ -527,11 +505,11 @@ def get_table_to_populate(session_course_reg, full_res_poll):
     level_written = session_course_reg['course_reg_level']
     # selecting Result table for a fresh input (first result entered for the student for the session)
 
-    if session_course_reg['courses'] and not full_res_poll[int(session_course_reg['table'][-3:]) // 100 - 1]:
+    if session_course_reg['courses'] and not full_res_poll[utils.ltoi(int(session_course_reg['table'][-3:]))]:
         # use table corresponding to course reg table if available
         table_to_populate = 'Result' + session_course_reg['table'][-3:]
 
-    elif not full_res_poll[level_written // 100 - 1]:
+    elif not full_res_poll[utils.ltoi(level_written)]:
         # use table corresponding to result level if available
         table_to_populate = 'Result' + str(level_written)
 
@@ -662,3 +640,10 @@ def strip_res_poll_item(res_poll_item):
     carryovers = [utils.spc_fn(x) for x in utils.csv_fn(res_poll_item.pop('carryovers'))]
     unusual_results = [utils.spc_fn(x) for x in utils.csv_fn(res_poll_item.pop('unusual_results'))]
     return res_poll_item, category, tcp, level_written, carryovers, unusual_results
+
+
+def handle_errors(error_text, error_log_array=None, error_file=None, result_details=None):
+    if error_file and result_details: error_file.writelines(str(result_details) + '  error: ' + error_text + '\n')
+    if error_log_array is not None: error_log_array.append(error_text)
+    if error_text != '': print(Fore.RED, '[WARNING]: ', error_text, Style.RESET_ALL)
+    return error_log_array or []
