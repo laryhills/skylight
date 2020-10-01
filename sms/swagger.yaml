@@ -122,6 +122,35 @@ paths:
             type: array
             items: {}
 
+  /dynamic_props:
+    get:
+      tags: [ Props ]
+      operationId: sms.src.props.get_dynamic_props
+      responses:
+        200:
+          description: Success
+          schema:
+            $ref: '#/definitions/DynamicProps'
+
+    patch:
+      tags: [ Props ]
+      operationId: sms.src.props.update_dynamic_props
+      parameters:
+        - in: body
+          name: dynamic_props
+          required: true
+          schema:
+            $ref: '#/definitions/DynamicProps'
+      responses:
+        200:
+          description: Update Successful
+        401:
+          description: Authentication failed
+        403:
+          description: Forbidden
+        440:
+          description: Session expired, login again
+
 
   # =====================================================================================
   #                                    ACCOUNTS
@@ -1232,3 +1261,19 @@ definitions:
           items: {}
         cgpa:
           type: number
+
+  DynamicProps:
+    type: object
+    properties:
+      NumPrizeWinners:
+        type: integer
+      ViceChancellor:
+        type: string
+      Dean:
+        type: string
+      FacultyExamOfficer:
+        type: string
+      ChairmanSubCommitteeBCS:
+        type: string
+      HOD:
+        type: string

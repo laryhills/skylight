@@ -43,3 +43,9 @@ class MasterSchema(ma.ModelSchema):
     class Meta:
         model = Master
         sqla_session = db.session
+
+
+class PropsSchema(ma.ModelSchema):
+    class Meta:
+        model = Props
+        sqla_session = db.session

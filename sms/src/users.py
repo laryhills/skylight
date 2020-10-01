@@ -376,4 +376,10 @@ fn_props.update({
     "grading_rules.get": {"perms": {"levels", "read"},
                           "logs": lambda user, params: "{} requested for the grading rules for the {} academic session".format(user, params.get('acad_session'))
                           },
+    "props.get_dynamic_props": {"perms": {"superuser", "read"},
+                                "logs": lambda user, params: "{} requested administrative staff names for the session".format(user)
+                                },
+    "props.update_dynamic_props": {"perms": {"superuser", "write"},
+                                   "logs": lambda user, params: "{} updated administrative staff names for the session".format(user)
+                                   },
 })
