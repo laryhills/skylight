@@ -36,23 +36,12 @@ from sms.src.users import access_decorator
 
 @access_decorator
 def init_new(mat_no):
-    # perform some checks
-    current_session = utils.get_current_session()
-    check = check_registration_eligibility(mat_no, current_session)
-    if check[1] != 200:
-        return check
-    else:
-        return init_new_course_reg(*check[0])
+    return init_new_course_reg(mat_no)
 
 
 @access_decorator
 def get(mat_no, acad_session):
-    obj = get_existing_course_reg(mat_no, acad_session)
-    if obj[1] != 200:
-        return obj
-    old_course_reg = obj[0]
-    old_course_reg['max_credits'] = utils.get_maximum_credits_for_course_reg()
-    return old_course_reg, 200
+    return get_existing_course_reg(mat_no, acad_session)
 
 
 @access_decorator
@@ -79,15 +68,15 @@ def check_registration_eligibility(mat_no, acad_session):
     # does this check for the supplied mat_no in the academic session: acad_session
     current_level = utils.get_level(mat_no)
     res_poll = utils.result_poll(mat_no)
-    course_reg = utils.get_registered_courses(mat_no)
+    reg_poll = utils.course_reg_poll(mat_no)
 
-    course_reg_exists = course_reg_utils.get_course_reg_at_acad_session(acad_session, course_reg)
+    course_reg_exists = course_reg_utils.course_reg_for_session(mat_no, acad_session, reg_poll)
     if course_reg_exists:
         return 'Course Registration already exists', 403
 
     s_personal_info = course_reg_utils.process_personal_info(mat_no)
-    table_to_populate = course_reg_utils.get_table_to_populate(current_level, acad_session, res_poll, course_reg)
-    probation_status, previous_category = course_reg_utils.get_probation_status_and_prev_category(res_poll, acad_session)
+    table_to_populate = course_reg_utils.get_table_to_populate(current_level, acad_session, res_poll, reg_poll)
+    probation_status, prev_catg = course_reg_utils.get_probation_status_and_prev_category(res_poll, acad_session)
     graduation_status = s_personal_info['grad_status']
 
     # handle special cases
@@ -96,114 +85,110 @@ def check_registration_eligibility(mat_no, acad_session):
         error_text = 'Student cannot carry out course reg as he has graduated'
     elif table_to_populate == '':   # or int(table_to_populate[-3:]) + 100 > 800
         error_text = 'Student cannot carry out course reg as he has exceeded the 8-year limit'
-    elif previous_category not in 'ABC':
-        error_text = 'Student cannot carry out course reg as his previous category is {}'.format(previous_category)
+    elif prev_catg not in 'ABC':
+        error_text = 'Student cannot carry out course reg as his previous category is {}'.format(prev_catg)
     if error_text != '':
         return error_text, 403
 
-    ret_obj = (mat_no, acad_session, table_to_populate, current_level, probation_status, s_personal_info)
+    ret_obj = (table_to_populate, current_level, probation_status, s_personal_info)
     return ret_obj, 200
 
 
-def init_new_course_reg(mat_no, acad_session, table_to_populate, current_level, probation_status, s_personal_info):
-    first_sem_carryover_courses, second_sem_carryover_courses = course_reg_utils.fetch_carryovers(mat_no, current_level)
+def init_new_course_reg(mat_no):
+    # perform some checks
+    current_session = utils.get_current_session()
+    ret_tuple = check_registration_eligibility(mat_no, current_session)
+    if ret_tuple[1] != 200:
+        return ret_tuple
+    table_to_populate, current_level, probation_status, s_personal_info = ret_tuple[0]
+
+    carryovers = course_reg_utils.fetch_carryovers(mat_no, current_level)
     mode_of_entry = s_personal_info.pop('mode_of_entry_numeric')
     # populating choices
-    try:
-        index = utils.ltoi(int(current_level))
-    except Exception as e:
-        print(e)
-        return 'Cannot determine current level of student', 400
+    index = utils.ltoi(int(current_level))
+    if index > 4: index = 4
 
     level_courses = utils.get_courses(mat_no, mode_of_entry)
     options = course_reg_utils.get_optional_courses(current_level)
 
     # get the optional courses credit sum less one optional course which should be returned in level courses
-    abridged_options_credit_sum = course_reg_utils.sum_credits_many(options[0][1:] + options[1][1:])
+    abridged_options_credit_sum = course_reg_utils.sum_credits_many(options[0][1:], options[1][1:], credits_index=1)
 
     options = [[crs[0] for crs in options[sem]] for sem in (0, 1)]
     level_courses[index] = [list(set(level_courses[index][sem] + (options[sem]))) for sem in (0, 1)]
 
-    fields = ['code', 'title', 'credit', 'level']
-    first_sem_choices = course_reg_utils.enrich_course_list(level_courses[index][0], fields=fields)
-    second_sem_choices = course_reg_utils.enrich_course_list(level_courses[index][1], fields=fields)
-    first_sem_carryover_courses = course_reg_utils.enrich_course_list(first_sem_carryover_courses, fields=fields)
-    second_sem_carryover_courses = course_reg_utils.enrich_course_list(second_sem_carryover_courses, fields=fields)
+    course_lists = [*level_courses[index], *carryovers]
+    course_lists = list(map(course_reg_utils.enrich_course_list, course_lists))
+    choices, carryovers = course_lists[:2], course_lists[2:]
 
     # Getting maximum possible credits to register
     level_max_credits = max(
-        utils.get_maximum_credits_for_course_reg(),
+        utils.get_max_reg_credits(),
         utils.get_credits(mat_no, lpad=True)[index]
     )
 
     # Handle any case where carryover course credits exceeds the limit
-    credit_sum = course_reg_utils.sum_credits_many(first_sem_carryover_courses, second_sem_carryover_courses,
-                                                   index_for_credits=2)
-    if credit_sum > level_max_credits or max(len(first_sem_carryover_courses), len(second_sem_carryover_courses)) > 12:
+    credit_sum = course_reg_utils.sum_credits_many(*carryovers, credits_index=2)
+    if credit_sum > level_max_credits or max(len(carryovers[0]), len(carryovers[1])) > 12:
         # dump everything to choices
-        first_sem_choices.extend(first_sem_carryover_courses)
-        second_sem_choices.extend(second_sem_carryover_courses)
-        first_sem_carryover_courses, second_sem_carryover_courses = [], []
+        [choices[sem].extend(carryovers[sem]) for sem in (0, 1)]
+        carryovers = [[], []]
 
     # Implementing the "clause of 51"
     if current_level >= 500:
-        credit_sum += course_reg_utils.sum_credits_many(first_sem_choices, second_sem_choices, index_for_credits=2)
+        credit_sum += course_reg_utils.sum_credits_many(*choices, credits_index=2)
         credit_sum -= abridged_options_credit_sum
-        conditional_max = utils.get_maximum_credits_for_course_reg(conditional=True)
+        conditional_max = utils.get_max_reg_credits(conditional=True)
         if credit_sum == conditional_max:
             level_max_credits = conditional_max
 
     course_reg_frame = {'mat_no': mat_no,
                         'personal_info': s_personal_info,
                         'table_to_populate': table_to_populate,
-                        'course_reg_session': acad_session,
+                        'course_reg_session': current_session,
                         'course_reg_level': current_level,
                         'max_credits': level_max_credits,
-                        'courses': {'first_sem': utils.multisort(first_sem_carryover_courses),
-                                    'second_sem': utils.multisort(second_sem_carryover_courses)},
-                        'choices': {'first_sem': utils.multisort(first_sem_choices),
-                                    'second_sem': utils.multisort(second_sem_choices)},
+                        'courses': {'first_sem': utils.multisort(carryovers[0]),
+                                    'second_sem': utils.multisort(carryovers[1])},
+                        'choices': {'first_sem': utils.multisort(choices[0]),
+                                    'second_sem': utils.multisort(choices[1])},
                         'probation_status': probation_status,
                         'fees_status': 0,
                         'others': ''}
     return course_reg_frame, 200
 
 
-def get_existing_course_reg(mat_no, acad_session, course_reg=None, s_personal_info=None):
-    if not s_personal_info: s_personal_info = course_reg_utils.process_personal_info(mat_no)
-    if not course_reg:
-        all_course_reg = utils.get_registered_courses(mat_no)
-        course_reg = course_reg_utils.get_course_reg_at_acad_session(acad_session, all_course_reg)
-
-    if course_reg == {}:
+def get_existing_course_reg(mat_no, acad_session):
+    s_personal_info = course_reg_utils.process_personal_info(mat_no)
+    c_reg = course_reg_utils.course_reg_for_session(mat_no, acad_session)
+    if not c_reg:
         return 'No course registration for entered session', 404
 
     fields = ('code', 'title', 'credit', 'semester', 'level')
-    courses_registered = course_reg_utils.enrich_course_list(course_reg['courses'], fields=fields)
+    courses_registered = course_reg_utils.enrich_course_list(c_reg['courses'], fields=fields)
     courses = [[], []]  # first_sem, second_sem
     [courses[course.pop(3) - 1].append(course) for course in courses_registered]
 
     course_reg_frame = {'mat_no': mat_no,
                         'personal_info': s_personal_info,
-                        'table_to_populate': course_reg['table'],
-                        'course_reg_session': course_reg['course_reg_session'],
-                        'course_reg_level': course_reg['course_reg_level'],
-                        'max_credits': '',
+                        'table_to_populate': c_reg['table'],
+                        'course_reg_session': c_reg['session'],
+                        'course_reg_level': c_reg['level'],
+                        'max_credits': utils.get_max_reg_credits(),
                         'courses': {'first_sem': utils.multisort(courses[0]),
                                     'second_sem': utils.multisort(courses[1])},
                         'choices': {'first_sem': [],
                                     'second_sem': []},
-                        'probation_status': course_reg['probation'],
-                        'fees_status': course_reg['fees_status'],
-                        'others': course_reg['others']}
+                        'probation_status': c_reg['probation'],
+                        'fees_status': c_reg['fees_status'],
+                        'others': c_reg['others']}
     return course_reg_frame, 200
 
 
 def post_course_reg(data):
     level_options = course_reg_utils.get_optional_courses(data['course_reg_level'])
     level_options = utils.dictify(level_options[0] + level_options[1])
-    person_options = []
-    courses = []
+    courses, person_options = [], []
     tcr = [0, 0]
     for idx, sem in enumerate(['first_sem', 'second_sem']):
         for course_obj in data['courses'][sem]:
@@ -216,17 +201,8 @@ def post_course_reg(data):
     table_to_populate = data['table_to_populate']
     course_reg_session = data['course_reg_session']
 
-    try:
-        db_name = utils.get_DB(mat_no)
-        session = utils.load_session(db_name)
-    except ImportError:
-        return 'Student not found in database', 403
-
-    try:
-        course_reg_xxx_schema = getattr(session, table_to_populate + 'Schema')()
-    except AttributeError:
-        return '{} table does not exist'.format(table_to_populate), 403
-
+    session = utils.load_session(utils.get_DB(mat_no))
+    course_reg_xxx_schema = getattr(session, table_to_populate + 'Schema')()
     table_columns = course_reg_xxx_schema.load_fields.keys()
     registration = {}
     for col in table_columns:
@@ -235,15 +211,16 @@ def post_course_reg(data):
             courses.remove(col)
         elif col not in ['carryovers', 'mat_no', 'tcr', 'level', 'session', 'probation', 'fees_status', 'others']:
             registration[col] = '0'
-    registration['carryovers'] = ','.join(courses)
-    registration['mat_no'] = mat_no
-    registration['tcr'] = sum(tcr)
-    registration['level'] = data['course_reg_level']
-    registration['session'] = course_reg_session
-    registration['probation'] = data['probation_status']
-    registration['fees_status'] = data['fees_status']
-    registration['others'] = data['others']
-
+    registration.update({
+        'carryovers': ','.join(courses),
+        'mat_no': mat_no,
+        'tcr': sum(tcr),
+        'level': data['course_reg_level'],
+        'session': course_reg_session,
+        'probation': data['probation_status'],
+        'fees_status': data['fees_status'],
+        'others': data['others']
+    })
     course_registration = course_reg_xxx_schema.load(registration)
     db_session = course_reg_xxx_schema.Meta.sqla_session
 
@@ -260,9 +237,9 @@ def post_course_reg(data):
 
     # Here we check if there were any stray results waiting in unusual results for this session
     session_results = [x for x in utils.result_poll(mat_no) if x and (x['session'] == course_reg_session)]
-    if session_results and 'unusual_results' in session_results[0] and session_results[0]['unusual_results']:
-        unusual_results = session_results[0]['unusual_results'].split(',')
-        unusual_results = [[x.split(' ')[0], course_reg_session, mat_no, x.split(' ')[1]] for x in unusual_results]
+    if session_results and ('unusual_results' in session_results[0]) and session_results[0]['unusual_results']:
+        unusual_results = [utils.spc_fn(x) for x in utils.csv_fn(session_results[0]['carryovers'])]
+        unusual_results = [[x[0], course_reg_session, mat_no, x[1]] for x in unusual_results]
         log = results.add_result_records(unusual_results)
 
         if log[0]: success_text += '; results for unregistered courses still remain in database'
@@ -272,12 +249,11 @@ def post_course_reg(data):
 
 
 def delete_course_reg_entry(mat_no, acad_session):
-    course_reg = course_reg_utils.get_course_reg_at_acad_session(acad_session, mat_no=mat_no)
+    course_reg = course_reg_utils.course_reg_for_session(mat_no, acad_session)
     if not course_reg:
         return 'Course Registration for session {}/{} does not exist'.format(acad_session, acad_session+1), 404
 
-    db_name = utils.get_DB(mat_no)
-    session = utils.load_session(db_name)
+    session = utils.load_session(utils.get_DB(mat_no))
     courses_reg_schema = getattr(session, course_reg['table'] + 'Schema')
 
     courses_reg = courses_reg_schema.Meta.model.query.filter_by(mat_no=mat_no).first()

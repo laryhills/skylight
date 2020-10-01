@@ -33,7 +33,7 @@ def get_dept(full=True):
     return dept[full]
 
 
-def get_maximum_credits_for_course_reg(conditional=False):
+def get_max_reg_credits(conditional=False):
     key = ["MaxRegCredits", "CondMaxRegCredits500"][conditional]
     return Props.query.filter_by(key=key).first().valueint
 
