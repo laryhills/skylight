@@ -11,11 +11,13 @@ well as updating gpa record of the student
 """
 import os.path
 from colorama import init, Fore, Style
-from sms.src import course_reg_utils, personal_info, course_details, utils
-from sms.src.users import access_decorator
-from sms.src.script import get_students_for_course_adviser
-from sms.models.master import Props
+
 from sms.config import db
+from sms.models.master import Props
+from sms.src.course_reg_utils import course_reg_for_session, enrich_course_list
+from sms.src.script import get_students_for_course_adviser
+from sms.src.users import access_decorator
+from sms.src import personal_info, course_details, utils
 
 init()  # initialize colorama
 
@@ -203,10 +205,11 @@ def _get_multiple_results_stats(acad_session, level):
     return result_details, 200
 
 
-def _get_single_results_stats(mat_no, acad_session):
+def _get_single_results_stats(mat_no, level, acad_session):
+    # TODO: Is level necessary?
     info = personal_info.get(mat_no)
     name = info['surname'] + ' ' + info['othernames']
-    reg_courses = course_reg_utils.course_reg_for_session(mat_no, acad_session)
+    reg_courses = course_reg_for_session(mat_no, acad_session)
     reg_course_codes = reg_courses.get('courses', [])
     tcr = reg_courses.get('tcr', 0)
     res, _ = utils.get_result_at_acad_session(acad_session, mat_no=mat_no)
@@ -303,7 +306,7 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
     course_credit = course_dets['credit']
     course_level = course_dets['level']
     is_unusual = False
-    course_registration = course_reg_utils.course_reg_for_session(mat_no, session_taken)
+    course_registration = course_reg_for_session(mat_no, session_taken)
 
     if course_registration == {}:
         course_registration = {'level': current_level, 'courses': []}
@@ -558,8 +561,8 @@ def refine_res_poll_item(res_poll_item):
 
     # enrich the course lists
     fields = ('credit', 'semester', 'level')
-    regular_courses = course_reg_utils.enrich_course_list(regular_courses, fields=fields)
-    unusual_results = course_reg_utils.enrich_course_list(unusual_results, fields=fields)
+    regular_courses = enrich_course_list(regular_courses, fields=fields)
+    unusual_results = enrich_course_list(unusual_results, fields=fields)
 
     # get the actual carryovers
     # use a normalized level_written to account for spillover students (treated as 500 level students)

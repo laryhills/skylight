@@ -40,11 +40,7 @@ def get_table_to_populate(current_level, acad_session, res_poll, course_reg):
 
 
 def course_reg_for_session(mat_no, session, reg_poll=None):
-    """
-    :return: list of list
-    """
-    if not reg_poll:
-        reg_poll = course_reg_poll(mat_no)
+    if not reg_poll: reg_poll = course_reg_poll(mat_no)
     ret_val = [[ind, c_reg] for ind, c_reg in enumerate(reg_poll) if c_reg['courses'] and c_reg['session'] == session]
     if not ret_val:
         return {}
