@@ -22,6 +22,8 @@ itsdangerous = "==1.1.0"
 pytest = "*"
 colorama = "*"
 apscheduler = "*"
+redis = "==3.5.3"
+rq = "==1.5.2"
 
 [requires]
 python_version = "3.8"

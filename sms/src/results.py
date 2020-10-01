@@ -13,7 +13,7 @@ import os.path
 from colorama import init, Fore, Style
 from sms.src import course_reg_utils, personal_info, course_details, utils
 from sms.src.users import access_decorator
-from sms.src.script import get_students_by_level
+from sms.src.script import get_students_for_course_adviser
 from sms.models.master import Props
 from sms.config import db
 
@@ -188,8 +188,7 @@ def get_results(mat_no, acad_session):
 
 
 def _get_multiple_results_stats(acad_session, level):
-    entry_session = acad_session - (level / 100) + 1
-    students = get_students_by_level(entry_session, level)
+    students = get_students_for_course_adviser(level, acad_session=acad_session)
     result_details = []
     result_details_incomplete = []
 

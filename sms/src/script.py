@@ -8,6 +8,7 @@ from sms.src.utils import load_session, get_dept, get_credits, get_category, get
     get_session_from_level, gpa_credits_poll
 from sms.models.courses import Courses
 from sms.models.master import Category, Category500
+from sms.src.jobs import set_progress, set_increment, update_progress
 
 class_mapping = {
     '1': 'First class honours',
@@ -166,6 +167,7 @@ def get_student_details_for_cat(mat_no, level, session):
             'credits_passed': ''
         }
 
+    update_progress('senate_version.get')
     return details
 
 
@@ -241,6 +243,7 @@ def get_details_for_ref_students(mat_no, session):
         'outstanding_courses': ' '.join(outstanding_courses)
     }
 
+    update_progress('senate_version_500.get')
     return details
 
 
@@ -263,6 +266,7 @@ def get_other_students_details(mat_no, session, group):
         'remark': ''
     }
 
+    update_progress('senate_version_500.get')
     return details
 
 
@@ -288,6 +292,7 @@ def get_students_by_level(entry_session, level, is_course_adviser=False, retDB=F
     """
     entry_session_db_name = '{}_{}'.format(entry_session, entry_session + 1)
     session = load_session(entry_session_db_name)
+    num_students = 0
 
     # Regular students
     if level > 500 and is_course_adviser:
@@ -298,6 +303,7 @@ def get_students_by_level(entry_session, level, is_course_adviser=False, retDB=F
         students = {entry_session_db_name: list(map(lambda stud: stud.mat_no, students))}
     else:
         students = list(map(lambda stud: stud.mat_no, students))
+    num_students += len(students)
 
     level_num = level // 100
     other_students = session.SymLink.query.filter(getattr(session.SymLink, f'database_{level_num}') != None)\
@@ -312,6 +318,9 @@ def get_students_by_level(entry_session, level, is_course_adviser=False, retDB=F
         for num in range(7, 9):
             other_students.extend(session.SymLink.query.filter(getattr(session.SymLink, f'database_{num}') != None)
                                   .order_by(f'DATABASE_{num}').all())
+    num_students += len(other_students)
+    set_increment('senate_version.get', increment_basis=num_students)
+    set_increment('senate_version_500.get', increment_basis=num_students)
     if retDB:
         # groups the students by their database name
         stud_db_map, num = {}, [5, 6][is_course_adviser]
@@ -375,6 +384,12 @@ def get_students_by_category(level, entry_session, category=None, get_all=False)
     :param get_all: (Optional) if True return all categories of students
     :return: list of students if not `get_all` else dictionary of all category mapping to list of students
     """
+    set_progress('senate_version.get', description='Fetching students...')
+    set_increment('senate_version.get', duration=18)
+
+    set_progress('senate_version_500.get', description='Fetching students...')
+    set_increment('senate_version_500.get', duration=3.8)
+
     mat_no_dict = get_students_by_level(entry_session, level, retDB=True)
     if get_all:
         students = dict.fromkeys(mat_no_dict)
@@ -386,17 +401,20 @@ def get_students_by_category(level, entry_session, category=None, get_all=False)
             session = load_session(db_name)
             for mat_no in mat_no_dict[db_name]:
                 level = level if level != 500 else get_level(mat_no)  # Accounts for spillover students
-                cat = get_category(mat_no, level, session=session)
+                cat = get_category(mat_no, level)
                 if students[db_name].get(cat):
                     students[db_name][cat].append(mat_no)
                 else:
                     students[db_name][cat] = [mat_no]
+                update_progress('senate_version.get')
     else:
         students = dict.fromkeys(mat_no_dict)
         for db_name in mat_no_dict:
             filtered_studs = filter_students_by_category(level, category, db_name, mat_no_dict[db_name])
             students[db_name] = filtered_studs
 
+    set_progress('senate_version.get', progress=20)
+    set_progress('senate_version_500.get', progress=4)
     return students
 
 
@@ -417,6 +435,10 @@ def get_students_details_by_category(level, entry_session, category=None, get_al
     populate_course_list(level)
 
     students = get_students_by_category(level, entry_session, category=category, get_all=get_all)
+
+    set_progress('senate_version.get', description='Formatting student\'s data...')
+    set_increment('senate_version.get', duration=33)
+
     categories = get_categories()
     if get_all:
         students_details = {}
@@ -435,6 +457,7 @@ def get_students_details_by_category(level, entry_session, category=None, get_al
             dets = list(map(lambda stud: get_student_details_for_cat(stud, level, session), students[db_name]))
             students_details.extend(dets)
 
+    set_progress('senate_version.get', progress=53)
     return students_details
 
 
@@ -481,6 +504,7 @@ def filter_students_by_degree_class(degree_class, db_name, students):
             details['cgpa'] = float(cgpa)
             studs.append(details)
             students.remove(stud)
+        update_progress('senate_version_500.get')
 
     return studs
 
@@ -500,6 +524,10 @@ def get_final_year_students_by_category(entry_session, category=None, get_all=Fa
     populate_course_list(500)
 
     students_categories = get_students_by_category(500, entry_session, category=category, get_all=get_all)
+
+    set_progress('senate_version_500.get', description='Formatting student\'s data...')
+    set_increment('senate_version_500.get', duration=92.7)
+
     all_students_by_category = group_students_by_category(students_categories)
     if get_all:
         all_students = {}
@@ -533,6 +561,7 @@ def get_final_year_students_by_category(entry_session, category=None, get_all=Fa
                     lambda mat_no: get_other_students_details(mat_no, session, group), other_students[db_name])))
             all_students[group] = studs
 
+        set_progress('senate_version_500.get', progress=96.7)
         return all_students
     # else:
     #     group = tuple(map(lambda x: x[0] == category, get_groups_cats()))[0]
