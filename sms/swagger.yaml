@@ -1140,15 +1140,15 @@ definitions:
   CourseDetails:
     type: object
     properties:
-      course_code:
+      code:
         type: string
-      course_title:
+      title:
         type: string
-      course_credit:
+      credit:
         type: integer
-      course_semester:
+      semester:
         type: integer
-      course_level:
+      level:
         type: integer
       teaching_dept:
         type: string
