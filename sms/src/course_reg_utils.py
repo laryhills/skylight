@@ -50,20 +50,8 @@ def course_reg_for_session(mat_no, session, reg_poll=None):
         return {}
     index, c_reg = ret_val[0]
     c_reg['table'] = 'CourseReg{}'.format(100 * (index + 1))
+    while '0' in c_reg['courses']: c_reg['courses'].remove('0')
     return c_reg
-
-
-# to be deprecated
-def get_course_reg_at_acad_session(acad_session, full_course_reg=None, mat_no=None):
-    if not full_course_reg:
-        from sms.src.utils import get_registered_courses
-        full_course_reg = get_registered_courses(mat_no)
-    course_reg = {}
-    for reg in full_course_reg:
-        if full_course_reg[reg]['courses'] and full_course_reg[reg]['course_reg_session'] == acad_session:
-            course_reg = full_course_reg[reg]
-            break
-    return course_reg
 
 
 def fetch_carryovers(mat_no, current_level):

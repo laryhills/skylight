@@ -203,10 +203,10 @@ def _get_multiple_results_stats(acad_session, level):
     return result_details, 200
 
 
-def _get_single_results_stats(mat_no, level, acad_session):
+def _get_single_results_stats(mat_no, acad_session):
     info = personal_info.get(mat_no)
     name = info['surname'] + ' ' + info['othernames']
-    reg_courses = utils.get_registered_courses(mat_no, level)[level]
+    reg_courses = course_reg_utils.course_reg_for_session(mat_no, acad_session)
     reg_course_codes = reg_courses.get('courses', [])
     tcr = reg_courses.get('tcr', 0)
     res, _ = utils.get_result_at_acad_session(acad_session, mat_no=mat_no)
@@ -303,40 +303,30 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
     course_credit = course_dets['credit']
     course_level = course_dets['level']
     is_unusual = False
-    full_course_reg = utils.get_registered_courses(mat_no)
-    course_registration = course_reg_utils.get_course_reg_at_acad_session(session_taken, full_course_reg)
+    course_registration = course_reg_utils.course_reg_for_session(mat_no, session_taken)
 
     if course_registration == {}:
-        course_registration = {'course_reg_level': current_level, 'courses': []}
+        course_registration = {'level': current_level, 'courses': []}
         is_unusual = True
         error_log = handle_errors('No course registration found for {0} at index {1} for the {2}/{3} '
-                      'session'.format(mat_no, index, session_taken, session_taken + 1), error_log)
+                                  'session'.format(mat_no, index, session_taken, session_taken + 1), error_log)
 
     courses_registered = course_registration['courses']
     if not is_unusual and course_code not in courses_registered:
         is_unusual = True
-        error_log = handle_errors('{0} at index {1} did not register {2} in the {3}/{4} '
-                                  'session'.format(mat_no, index, course_code, session_taken, session_taken + 1), error_log)
+        error_log = handle_errors('{0} at index {1} did not register {2} in the {3}/{4} session'
+                                  ''.format(mat_no, index, course_code, session_taken, session_taken + 1), error_log)
 
-    try:
-        db_name = utils.get_DB(mat_no)
-        session = utils.load_session(db_name)
-    except ImportError:
-        handle_errors('Student {} not found in database'.format(mat_no))
-        return error_log
-
-    level_written = course_registration['course_reg_level']
+    level_written = course_registration['level']
     res_poll = utils.result_poll(mat_no)
     result_record, table_to_populate = utils.get_result_at_acad_session(session_taken, res_poll)
 
+    session = utils.load_session(utils.get_DB(mat_no))
     try:
         result_xxx_schema = getattr(session, table_to_populate + 'Schema')()
     except AttributeError:
         # table_to_populate is empty, this would be redefined
         pass
-    except ImportError:
-        handle_errors('{} table does not exist'.format(table_to_populate))
-        return error_log
 
     if not result_record:
         if is_unusual and grade == 'ABS':
@@ -459,20 +449,20 @@ def delete_if_empty(res_record, result_record, db_session):
 # =========================================================================================
 
 def get_table_to_populate(session_course_reg, full_res_poll):
-    level_written = session_course_reg['course_reg_level']
-    # selecting Result table for a fresh input (first result entered for the student for the session)
+    """selecting Result table for a fresh input (first result entered for the student for the session)
 
+       - use table corresponding to course reg table if available
+       - else use table corresponding to result level if available
+       - otherwise find the first free table from Result100 to Result800
+    """
+    level_written = session_course_reg['level']
     if session_course_reg['courses'] and not full_res_poll[utils.ltoi(int(session_course_reg['table'][-3:]))]:
-        # use table corresponding to course reg table if available
         table_to_populate = 'Result' + session_course_reg['table'][-3:]
-
     elif not full_res_poll[utils.ltoi(level_written)]:
-        # use table corresponding to result level if available
         table_to_populate = 'Result' + str(level_written)
-
     else:
-        # find the first free table from Result100 to Result800
-        table_to_populate = 'Result' + str(100 * ([ind for ind, result in enumerate(full_res_poll) if not result][0] + 1))
+        index = [ind for ind, x in enumerate(full_res_poll) if not x]
+        table_to_populate = 'Result' + str(100 * (index[0] + 1))
 
     return table_to_populate
 
