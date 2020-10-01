@@ -251,11 +251,11 @@ def get_kwargs(func, args, kwargs):
 def get_current_user():
     try:
         token = request.headers["token"]
-        user_params = get_token(token['token'])
+        user_params = get_token(token)
     except KeyError:
         return User.query.filter_by(username="ucheigbeka").first()
     if user_params:
-        username = user_params.get('username')
+        username = user_params.get('user')
         return User.query.filter_by(username=username).first()
     else:
         return None
