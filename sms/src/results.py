@@ -263,7 +263,7 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
         table_to_populate = get_table_to_populate(course_registration, res_poll)
         result_xxx_schema = getattr(session, table_to_populate + 'Schema')()
         params = mat_no, session_taken, courses_registered, result_xxx_schema, level_written
-        result_record = prepare_new_results_table(*params)
+        result_record = prepare_new_results_table(params)
     else:
         result_xxx_schema = getattr(session, table_to_populate + 'Schema')()
 
@@ -402,9 +402,8 @@ def get_table_to_populate(session_course_reg, full_res_poll):
     return table_to_populate
 
 
-def prepare_new_results_table(mat_no, session_taken, courses_registered, result_xxx_schema, level_written):
-    # preparing the new table
-
+def prepare_new_results_table(params):
+    mat_no, session_taken, courses_registered, result_xxx_schema, level_written = params
     table_columns = result_xxx_schema.load_fields.keys()
     result_record = {'mat_no': mat_no, 'session': session_taken, 'level': level_written, 'category': None,
                      'carryovers': '', 'unusual_results': '', 'tcp': 0}
@@ -469,6 +468,7 @@ def check_owed_courses_exists(mat_no, level_written, grade, course_dets):
 
 
 def refine_results(res_from_stmt):
+    """post processing of result object from result_statement"""
     lvl_norm = min(500, res_from_stmt['level'])  # normalise the level
     regulars, carryovers, unusuals = [{'first_sem': {}, 'second_sem': {}} for _ in range(3)]
     for sem in ('first_sem', 'second_sem'):
