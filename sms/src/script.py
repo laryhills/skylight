@@ -347,7 +347,7 @@ def get_students_by_level(entry_session, level, is_course_adviser=False, retDB=F
         other_students = list(map(lambda stud: stud.mat_no, other_students))
         students.extend(other_students)
 
-    return sorted(list(set(students)))
+    return students
 
 
 def filter_students_by_category(level, category, db_name, students):
@@ -391,6 +391,7 @@ def get_students_by_category(level, entry_session, category=None, get_all=False)
     set_increment('senate_version_500.get', duration=3.8)
 
     mat_no_dict = get_students_by_level(entry_session, level, retDB=True)
+    acad_session = get_session_from_level(entry_session, level)
     if get_all:
         students = dict.fromkeys(mat_no_dict)
         categories = get_categories(final_year=(level == 500))
@@ -400,8 +401,8 @@ def get_students_by_category(level, entry_session, category=None, get_all=False)
             students[db_name] = cat_dict.copy()
             session = load_session(db_name)
             for mat_no in mat_no_dict[db_name]:
-                level = level if level != 500 else get_level(mat_no)  # Accounts for spillover students
-                cat = get_category(mat_no, level)
+                # level = level if level != 500 else get_level(mat_no)  # Accounts for spillover students
+                cat = get_category(mat_no, level, acad_session, session)
                 if students[db_name].get(cat):
                     students[db_name][cat].append(mat_no)
                 else:

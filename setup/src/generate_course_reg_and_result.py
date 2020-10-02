@@ -452,8 +452,11 @@ def populate_db(conn, mat_no, entry_session, mod):
 
         course_reg_df['PROBATION'] = on_probation
         num_probation += on_probation
-        total_credits = total_level_credits(entry_session, mod, count)
         total_credits_registered = total_registered_credits(count, course_reg_df)
+        if (count - num_probation) <= 5:
+            total_credits = total_level_credits(entry_session, mod, count)
+        else:
+            total_credits = total_credits_registered
         total_credits_passed = get_passed_credits(entry_session, count, student_result)
         # category = get_category(entry_session, count, mod, on_probation, total_credits_registered, total_credits_passed)
         category = get_category(entry_session, count, mod, on_probation, total_credits, total_credits_passed)

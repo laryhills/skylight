@@ -269,7 +269,7 @@ def login(token):
             token_dict = {'token': token['token']}
             add_token(token['token'], stored_user.username, loads(stored_user.permissions))
             token_dict['title'] = stored_user.title
-            start_redis_worker(stored_user)
+            # start_redis_worker(stored_user)
             log(user['username'], 'users.login', login, [], [])
             return token_dict, 200
         return None, 401
@@ -281,7 +281,8 @@ def login(token):
 def logout(token):
     user = get_current_user()
     if user:
-        stop_redis_worker(user)
+        # stop_redis_worker(user)
+        pass
     remove_token(token['token'])
     return None, 200
 

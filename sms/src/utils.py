@@ -229,16 +229,28 @@ def compute_category(tcr, Result):
     return category
 
 
-def get_category(mat_no, table):
-    "Retrieves the category of a students with mat_no `mat_no` from the database"
-    result = result_poll(mat_no, table)[0]
-    if result:
-        return result["category"]
-    crs_reg = course_reg_poll(mat_no, table)[0]
-    if crs_reg["courses"]:
-        return ["H", "K"][crs_reg["level"] < 500]
-    level = personal_info.get(mat_no)["level"]
-    return ["B", "G"][level < 500]
+def get_category(mat_no, level, acad_session, session=None):
+    if not session:
+        db_name = get_DB(mat_no)
+        session = load_session(db_name)
+    start_level = level
+    while start_level <= 800:
+        res_obj = eval('session.Result{}'.format(start_level))
+        student = res_obj.query.filter_by(mat_no=mat_no).first()
+        if not student:
+            break
+        if student.session == acad_session:
+            return student.category
+        start_level += 100
+    else:
+        # guys who could never have sat for the exam in `acad_session` session
+        return ['H', 'K'][level < 500]
+    course_reg_obj = eval('session.CourseReg{}'.format(start_level))
+    registered_courses = bool(course_reg_obj.query.filter_by(mat_no=mat_no).first())
+    if registered_courses:
+        return ['B', 'G'][level < 500]
+    else:
+        return ['H', 'K'][level < 500]
 
 
 # NOT YET REFACTORED
