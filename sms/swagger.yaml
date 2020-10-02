@@ -561,6 +561,10 @@ paths:
           name: acad_session
           type: integer
           required: true
+        - in: query
+          name: include_reg
+          type: boolean
+          required: false
       responses:
         200:
           description: Success
@@ -576,6 +580,7 @@ paths:
           description: No results found
         440:
           description: Session expired, login again
+          
     post:
       tags: [Results]
       operationId: sms.src.results.post
@@ -1214,12 +1219,24 @@ definitions:
     properties:
       mat_no:
         type: string
+      name:
+        type: string
+      entry_session:
+        type: integer
       table:
         type: string
-      session_written:
-        type: integer
       level_written:
         type: integer
+      session_written:
+        type: integer
+      tcp:
+        type: integer
+      category:
+        type: string
+      level_gpa:
+        type: number
+      cgpa:
+        type: number
       regular_courses:
         type: object
         properties:
@@ -1232,10 +1249,6 @@ definitions:
         type: object
         properties:
           items: {}
-      tcp:
-        type: integer
-      category:
-        type: string
 
   Results_post:
     type: object

@@ -39,7 +39,7 @@ def get(acad_session, level=None, first_sem_only=False, raw_score=False, to_prin
     registered_students_for_session = get_filtered_student_by_level(acad_session, level)
     print('student list fetched in', perf_counter() - start)
 
-    index_to_display = 0 if raw_score else 1
+    index_to_display = 2 if raw_score else 3
     file_dir = token_hex(8)
     zip_path = os.path.join(CACHE_BASE_DIR, file_dir)
 
@@ -226,7 +226,7 @@ def enrich_mat_no_list(mat_nos, acad_session, level, level_courses):
         result_details['othernames'] = personal_info['othernames']
         result_details['surname'] = personal_info['surname']
         result_details['grad_status'] = personal_info['grad_status']
-        result_details['cgpa'] = round(float(gpa_credits_poll(mat_no)[-1]), 2)
+        result_details['cgpa'] = round(float(result_details['cgpa']), 2)
         result_details['degree_class'] = get_degree_class(mat_no, cgpa=result_details['cgpa'])
 
         # fetch previously passed level results (100 and 500 level)
@@ -238,7 +238,7 @@ def enrich_mat_no_list(mat_nos, acad_session, level, level_courses):
             result_details['regular_courses'] = prev_written_courses
 
         # compute stats
-        sem_tcp, sem_tcr, sem_tcf, failed_courses = sum_semester_credits(result_details, grade_index=1, credit_index=2)
+        sem_tcp, sem_tcr, sem_tcf, failed_courses = sum_semester_credits(result_details, 3, 1)
         result_details['semester_tcp'] = sem_tcp
         result_details['semester_tcr'] = sem_tcr
         result_details['semester_tcf'] = sem_tcf
@@ -292,12 +292,12 @@ def get_prev_level_results(mat_no, broadsheet_level, level_written, acad_session
         for sem_idx, semester in enumerate(['first_sem', 'second_sem']):
             for index in range(len(results[session][semester])):
                 course_dets = results[session][semester][index]
-                course, course_dets = course_dets[1], [course_dets[idx] for idx in (4, 5, 3, 6)]
+                course, course_dets = course_dets[1], list(course_dets[2:7])
                 # add course
                 if course in level_courses[semester]:  # and (course_dets[1] not in ['F', 'ABS']):
                     # add an asterisk to the score and grade to indicate it's out of session
-                    course_dets[0] = str(course_dets[0]) + ' *'
-                    course_dets[1] += ' *'
+                    course_dets[2] = str(course_dets[2]) + ' *'
+                    course_dets[3] += ' *'
                     regular_courses[semester][course] = course_dets
                     # replace old option with new one if necessary
                     if level_courses[semester][course][1] > 0 and course != option[semester]:

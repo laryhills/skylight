@@ -51,8 +51,8 @@ def get_multiple_results_stats(acad_session, level):
 
 
 @access_decorator
-def get(mat_no, acad_session):
-    return get_results_for_acad_session(mat_no, acad_session)
+def get(mat_no, acad_session, include_reg=False):
+    return get_results_for_acad_session(mat_no, acad_session, include_reg)
 
 
 @access_decorator
@@ -81,27 +81,48 @@ def post(data, superuser=False):
 #                                  Core functions
 # ==============================================================================================
 
-def get_results_for_acad_session(mat_no, acad_session):
+def get_results_for_acad_session(mat_no, acad_session, include_reg=False):
     """
     return object with empty fields instead of 404 if return_empty is True
     """
     res_stmt = result_statement.get(mat_no)
     res_idx = [(idx, res) for idx, res in enumerate(res_stmt['results']) if res['session'] == acad_session]
-    if not res_idx:
+    if not res_idx and not include_reg:
         return 'No result available for entered session', 404
-    
-    res_idx, results = res_idx[0]
-    regular_courses, carryovers, unusual_results = refine_results(results)
 
+    res_idx, results = res_idx[0] if res_idx else ('', {'first_sem': [], 'second_sem': []})
+    if include_reg:
+        from sms.src.course_reg import get_existing_course_reg
+        reg, ret_code = get_existing_course_reg(mat_no, acad_session)
+        if ret_code != 200:
+            return reg, ret_code
+
+        # include courses from course_reg not present
+        for sem in ('first_sem', 'second_sem'):
+            entered_res = list(zip(*results[sem]))[1] if results[sem] else []
+            to_be_entered = list(filter(lambda x: x[0] not in entered_res, reg['courses'][sem]))
+            results[sem].extend([['', *crs[:3], '', '', *crs[3:]] for crs in to_be_entered])
+
+        if res_idx == '':
+            results['level'] = reg['course_reg_level']
+            results['session'] = reg['course_reg_session']
+            results['table'] = int(reg['table_to_populate'][-3:])
+
+    regular_courses, carryovers, unusual_results = refine_results(results)
+    gpa_credits = utils.gpa_credits_poll(mat_no)
     frame = {'mat_no': mat_no,
-             'table': results['session'],
+             'name': res_stmt['name'].replace(',', ''),
+             'entry_session': res_stmt['entry_session'],
+             'table': 'Result{}'.format(100 * (res_idx + 1)) if res_idx != '' else res_idx,
              'level_written': results['level'],
              'session_written': acad_session,
-             'tcp': res_stmt['credits'][res_idx][1],
+             'tcp': res_stmt['credits'][res_idx][1] if res_idx else 0,
+             'category': res_stmt['category'][res_idx] if res_idx else '',
+             'level_gpa': gpa_credits[utils.ltoi(min(results['level'], 500))][0],
+             'cgpa': gpa_credits[-1],
              'regular_courses': regular_courses,
              'carryovers': carryovers,
-             'unusual_results': unusual_results,
-             'category': res_stmt['category'][res_idx],
+             'unusual_results': unusual_results
              }
     return frame, 200
 
@@ -524,13 +545,11 @@ def check_owed_courses_exists(mat_no, level_written, grade, course_dets):
 
 
 def refine_results(res_from_stmt):
-    # normalise the level
-    lvl_norm = 500 if res_from_stmt['level'] > 500 else res_from_stmt['level']
+    lvl_norm = min(500, res_from_stmt['level'])  # normalise the level
     regulars, carryovers, unusuals = [{'first_sem': {}, 'second_sem': {}} for _ in range(3)]
-    fields = (1, 4, 5, 3, 6)  # course details indices: code, score, grade, credit, level
-    for sem in regulars.keys():
+    for sem in ('first_sem', 'second_sem'):
         for res in utils.multisort(res_from_stmt[sem], key_idx=1):
-            [carryovers, regulars][res[6] == lvl_norm][sem].update(utils.dictify([[res[idx] for idx in fields]]))
+            [carryovers, regulars][res[6] == lvl_norm][sem].update(utils.dictify(list([res[1:7]])))
     return regulars, carryovers, unusuals
 
 
