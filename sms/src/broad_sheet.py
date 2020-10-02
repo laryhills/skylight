@@ -293,7 +293,6 @@ def get_prev_level_results(mat_no, broadsheet_level, level_written, acad_session
             for index in range(len(results[session][semester])):
                 course_dets = results[session][semester][index]
                 course, course_dets = course_dets[1], [course_dets[idx] for idx in (4, 5, 3, 6)]
-                course_dets.insert(3, sem_idx+1)
                 # add course
                 if course in level_courses[semester]:  # and (course_dets[1] not in ['F', 'ABS']):
                     # add an asterisk to the score and grade to indicate it's out of session
