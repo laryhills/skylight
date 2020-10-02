@@ -21,7 +21,7 @@ get_current_session = config.get_current_session
 # LAMBDAS
 ltoi = lambda x: x//100 - 1
 dictify = lambda flat_list: {x[0]:x[1:] for x in flat_list}
-multisort = lambda iters: sorted(iters, key=lambda x:x[0][3]+x[0])
+multisort = lambda iters, key_idx=0: sorted(iters, key=lambda x:x[key_idx][3]+x[key_idx])
 query = lambda cls, col, key: cls.query.filter(col == key).first()
 csv_fn = lambda csv, fn=lambda x:x: list(map(fn, csv.split(","))) if csv else []
 spc_fn = lambda spc, fn=lambda x:x: list(map(fn, spc.split(" "))) if spc else []
@@ -261,24 +261,3 @@ def multiprocessing_wrapper(func, iterable, context, use_workers=True, max_worke
         max_workers = max_workers if max_workers else min(len(iterable), 4)
         with ProcessPoolExecutor(max_workers=max_workers) as executor:
             [executor.submit(func, item, *context) for item in iterable]
-
-
-# DEPRECATED
-def get_result_at_acad_session(acad_session, res_poll=None, mat_no=None):
-    # TODO deprecate and use result_poll in a list comprehension
-    # preferably result statement instead if can be helped
-    """
-    Get results for a specific session
-
-    :param acad_session: the session for which to fetch results
-    :param res_poll: result of result_poll()
-    :param mat_no:  (optional) supply this only if res_poll is not given
-    :return: a tuple: (result dictionary, table fetched from)
-    """
-    if not res_poll:
-        res_poll = result_poll(mat_no)
-    for index, result in enumerate(res_poll):
-        if result and result['session'] == acad_session:
-            table = 'Result' + str((index + 1) * 100)
-            return result, table
-    return {}, ''
