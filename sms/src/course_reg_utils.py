@@ -1,5 +1,5 @@
 from sms.src import personal_info, course_details
-from sms.src.utils import get_carryovers, get_dept, multisort
+from sms.src.utils import course_reg_poll, get_carryovers, get_dept, multisort, ltoi
 
 
 def process_personal_info(mat_no):
@@ -23,41 +23,31 @@ def get_probation_status_and_prev_category(res_poll, acad_session):
 
 
 def get_table_to_populate(current_level, acad_session, res_poll, course_reg):
+    """- Get table corr. to results table for acad_session if it exists
+       - else check for table corr to current level
+       - otherwise search for the first available table
+    """
     table_to_populate = ''
-    # use table corresponding to results table for the session if it exists
     index = [ind for ind, x in enumerate(res_poll) if x and x['session'] == acad_session]
-    if index and not course_reg[100 * (index[0] + 1)]['courses']:
-        # check if table corresponding to level is free
+    if index and not course_reg[index[0]]['courses']:
         table_to_populate = 'CourseReg' + str(100 * (index[0] + 1))
-    elif not course_reg[current_level]['courses']:
-        table_to_populate = course_reg[current_level]['table']
+    elif not course_reg[ltoi(current_level)]['courses']:
+        table_to_populate = 'CourseReg' + str(current_level)
     else:
-        # otherwise search for the first available table
-        for key in range(100, 900, 100):
-            if not course_reg[key]['courses']:
-                table_to_populate = course_reg[key]['table']
-                break
+        index = [ind for ind, x in enumerate(course_reg) if not x['courses']]
+        if index: table_to_populate = 'CourseReg' + str(100 * (index[0] + 1))
     return table_to_populate
 
 
-def get_course_reg_at_acad_session(acad_session, full_course_reg=None, mat_no=None):
-    """
-
-    :param acad_session:
-    :param full_course_reg:
-    :param mat_no:
-    :return:
-    """
-    if not full_course_reg:
-        from sms.src.utils import get_registered_courses
-        full_course_reg = get_registered_courses(mat_no)
-
-    course_reg = {}
-    for reg in full_course_reg:
-        if full_course_reg[reg]['courses'] and full_course_reg[reg]['course_reg_session'] == acad_session:
-            course_reg = full_course_reg[reg]
-            break
-    return course_reg
+def course_reg_for_session(mat_no, session, reg_poll=None):
+    if not reg_poll: reg_poll = course_reg_poll(mat_no)
+    ret_val = [[ind, c_reg] for ind, c_reg in enumerate(reg_poll) if c_reg['courses'] and c_reg['session'] == session]
+    if not ret_val:
+        return {}
+    index, c_reg = ret_val[0]
+    c_reg['table'] = 'CourseReg{}'.format(100 * (index + 1))
+    while '0' in c_reg['courses']: c_reg['courses'].remove('0')
+    return c_reg
 
 
 def fetch_carryovers(mat_no, current_level):
@@ -68,7 +58,7 @@ def fetch_carryovers(mat_no, current_level):
     :param current_level:
     :return: first_sem_carryover_courses, second_sem_carryover_courses
     """
-    carryover_courses = get_carryovers(mat_no)
+    carryover_courses = get_carryovers(mat_no, current_level)
     if carryover_courses['first_sem']:
         first_sem_carryover_courses = list(list(zip(*carryover_courses['first_sem']))[0])
     else:
@@ -86,7 +76,7 @@ def fetch_carryovers(mat_no, current_level):
     return first_sem_carryover_courses, second_sem_carryover_courses
 
 
-def enrich_course_list(course_list, fields=('code', 'title', 'credit')):
+def enrich_course_list(course_list, fields=('code', 'title', 'credit', 'level')):
     """
     Add details to courses supplied in course_list
 
@@ -107,37 +97,38 @@ def enrich_course_list(course_list, fields=('code', 'title', 'credit')):
     return enriched_course_list
 
 
-def sum_credits(course_objects, index_for_credits=None):
+def sum_credits(course_objects, credits_index=None):
     """
     :param course_objects: [('course_code_1', <some_other_detail>, <>,..),
                             ('course_code_2', <some_other_detail>, <>,..), ...]
-    :param index_for_credits: <int>: (optional) index of course object that contains the course_credits
+    :param credits_index: <int>: (optional) index of course object that contains the course_credits
     :return: <int: the sum of credits>
     """
     tot = 0
     for course_object in course_objects:
-        if index_for_credits:
-            tot += int(course_object[index_for_credits])
+        if credits_index:
+            tot += int(course_object[credits_index])
         else:
             tot += int(course_details.get(course_object[0])['credit'])
     return tot
 
 
-def sum_credits_many(*args, index_for_credits=None):
+def sum_credits_many(*args, credits_index=None):
     """
     wrapper for sum_credits; gives the sum for more than one list of courses
 
     :param args: list of list of courses
-    :param index_for_credits: <int>: (optional) index of course object that contains the course_credits
-    :return: <int>: the sum of credits
+    :param credits_index: <int>: (optional) index of course object that contains the course_credits
     """
     tot_many = 0
     for arg in args:
-        tot_many += sum_credits(arg, index_for_credits)
+        tot_many += sum_credits(arg, credits_index)
     return tot_many
 
 
 def get_optional_courses(level=None):
+    if level and level > 500:
+        level = 500
     level_courses = course_details.get_all(level=level, options=True)
     first_sem_options = multisort([(x['code'], x['credit'], x['options']) for x in level_courses if
                                    x['semester'] == 1 and x['options'] == 1])

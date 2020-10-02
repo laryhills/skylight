@@ -251,11 +251,11 @@ def get_kwargs(func, args, kwargs):
 def get_current_user():
     try:
         token = request.headers["token"]
-        user_params = get_token(token['token'])
+        user_params = get_token(token)
     except KeyError:
         return User.query.filter_by(username="ucheigbeka").first()
     if user_params:
-        username = user_params.get('username')
+        username = user_params.get('user')
         return User.query.filter_by(username=username).first()
     else:
         return None
@@ -395,4 +395,10 @@ fn_props.update({
     "grading_rules.get": {"perms": {"levels", "read"},
                           "logs": lambda user, params: "{} requested for the grading rules for the {} academic session".format(user, params.get('acad_session'))
                           },
+    "props.get_dynamic_props": {"perms": {"superuser", "read"},
+                                "logs": lambda user, params: "{} requested administrative staff names for the session".format(user)
+                                },
+    "props.update_dynamic_props": {"perms": {"superuser", "write"},
+                                   "logs": lambda user, params: "{} updated administrative staff names for the session".format(user)
+                                   },
 })

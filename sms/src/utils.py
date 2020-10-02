@@ -33,7 +33,7 @@ def get_dept(full=True):
     return dept[full]
 
 
-def get_maximum_credits_for_course_reg(conditional=False):
+def get_max_reg_credits(conditional=False):
     key = ["MaxRegCredits", "CondMaxRegCredits500"][conditional]
     return Props.query.filter_by(key=key).first().valueint
 
@@ -189,23 +189,6 @@ def compute_grade(score, session):
     return ''
 
 
-def compute_gpa(mat_no):
-    # TODO is this ever used? If not why?, add docstring
-    # TODO test handle ABS after DB regenerated
-    mode_of_entry = personal_info.get(mat_no)["mode_of_entry"]
-    gpas = [0] * (6 - mode_of_entry)
-    level_credits = get_credits(mat_no, mode_of_entry)
-    grade_weight = get_grading_point(get_DB(mat_no))
-    # TODO probation still counts towards GPA, fix
-    for result in result_statement.get(mat_no)["results"]:
-        for record in (result["first_sem"] + result["second_sem"]):
-            (course, credit, grade, course_level) = (record[1], record[3], record[5], record[6])
-            lvl = int(course_level / 100) - 1
-            product = int(grade_weight[grade]) * credit
-            gpas[lvl] += (product / level_credits[lvl])
-    return gpas
-
-
 def get_degree_class(mat_no=None, cgpa=None, acad_session=None):
     "Get the degree-class text for student"
     # TODO only lower limit is used, why both boundaries stored?
@@ -311,73 +294,3 @@ def get_result_at_acad_session(acad_session, res_poll=None, mat_no=None):
             table = 'Result' + str((index + 1) * 100)
             return result, table
     return {}, ''
-
-
-def get_registered_courses(mat_no, table=None):
-    "Get courses registered from all course reg tables if table=None else from CourseReg<table>"
-    # TODO deprecate favor crs_reg_poll
-    # TODO check if list better option than dict
-    session, courses_registered = load_session(get_DB(mat_no)), {}
-
-    for table in [table] if table else range(100,900,100):
-        courses_regd_tbl = getattr(session, f"CourseReg{table}").query.filter_by(mat_no=mat_no).first()
-        courses_regd = getattr(session, f"CourseReg{table}Schema")().dump(courses_regd_tbl)
-        # TODO If index same as table property in dict, why re-store?
-        courses_registered[table] = {"courses": [], "table": f"CourseReg{table}"}
-        if not courses_regd:
-            # TODO after last valid course reg, right pad as no gaps expected
-            continue
-
-        courses_regd.pop('mat_no')
-        carryovers = courses_regd.pop('carryovers')
-        # TODO why remove them and reassign back?
-        courses_registered[table]['course_reg_session'] = courses_regd.pop('session')
-        courses_registered[table]['course_reg_level'] = courses_regd.pop('level')
-        for field in ['probation', 'fees_status', 'others', 'tcr']:
-            courses_registered[table][field] = courses_regd.pop(field)
-
-        for course in courses_regd:
-            # TODO use correct type
-            if courses_regd[course] in [1, '1']:
-                courses_registered[table]['courses'].append(course)
-
-        courses_registered[table]['courses'] = sorted(courses_registered[table]['courses'])
-        # TODO use proper type checking
-        if carryovers and carryovers not in [0, '0', '']:
-            courses_registered[table]['courses'].extend(sorted(carryovers.split(',')))
-
-    return courses_registered
-
-
-def compute_category_deprecated(mat_no, level_written, session_taken, tcr, tcp, owed_courses_exist=True):
-    # TODO Handle condition for transfer
-    entry_session = personal_info.get(mat_no)["session_admitted"]
-
-    res_poll = result_poll(mat_no)
-    prev_probated = "C" in [x['category'] for x in res_poll if x and x['session'] < session_taken]
-    level_credits = get_credits(mat_no, lpad=True)[ltoi(level_written)]
-
-    # add previous tcp to current for 100 level probation students
-    if level_written == 100 and prev_probated:
-        tcp += sum([x['tcp'] for x in res_poll if x and x['level'] == level_written and x['session'] < session_taken])
-
-    if level_written >= 500:
-        if tcp == tcr and not owed_courses_exist: return 'A'
-        else: return 'B'
-    else:
-        if tcr == 0:
-            retval = 'D' if not prev_probated else 'E'
-            return retval
-        elif tcp == tcr:
-            return 'A'
-        elif level_written == 100 and entry_session >= 2014:
-            if tcp >= 36: return 'B'
-            elif 23 <= tcp < 36: return 'C'
-            elif not prev_probated: return 'D'
-            else: return 'E'
-        else:
-            percent_passed = tcp / level_credits * 100
-            if percent_passed >= 50: return 'B'
-            elif 25 <= percent_passed < 50: return 'C'
-            elif not prev_probated: return 'D'
-            else: return 'E'
