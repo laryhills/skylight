@@ -50,3 +50,4 @@ class UserSchema(ma.ModelSchema):
     class Meta:
         model = User
         sqla_session = db.session
+        exclude = ['tasks']
