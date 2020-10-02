@@ -14,10 +14,10 @@ from colorama import init, Fore, Style
 
 from sms.config import db
 from sms.models.master import Props
-from sms.src.course_reg_utils import course_reg_for_session, enrich_course_list
+from sms.src.course_reg_utils import course_reg_for_session
 from sms.src.script import get_students_for_course_adviser
 from sms.src.users import access_decorator
-from sms.src import personal_info, course_details, utils
+from sms.src import result_statement, personal_info, course_details, utils
 
 init()  # initialize colorama
 
@@ -81,39 +81,27 @@ def post(data, superuser=False):
 #                                  Core functions
 # ==============================================================================================
 
-def get_results_for_acad_session(mat_no, acad_session, return_empty=False):
+def get_results_for_acad_session(mat_no, acad_session):
     """
-
-    :param mat_no:
-    :param acad_session:
-    :param return_empty: return object with empty fields instead of 404
-    :return:
+    return object with empty fields instead of 404 if return_empty is True
     """
-    res_poll = utils.result_poll(mat_no)
-    results, table_to_populate = utils.get_result_at_acad_session(acad_session, res_poll)
-
-    if results:
-        # remove extra fields from results
-        result, level_written, tcp, category = refine_res_poll_item(results)
-    elif return_empty:
-        result = {'regular_courses': [], 'carryovers': [], 'unusual_results': []}
-        level_written, tcp, category = '', 0, ''
-    else:
+    res_stmt = result_statement.get(mat_no)
+    res_idx = [(idx, res) for idx, res in enumerate(res_stmt['results']) if res['session'] == acad_session]
+    if not res_idx:
         return 'No result available for entered session', 404
-
-    regular_courses = split_courses_by_semester(utils.multisort(result['regular_courses']), 4)
-    carryovers = split_courses_by_semester(utils.multisort(result['carryovers']), 4)
-    unusual_results = split_courses_by_semester(utils.multisort(result['unusual_results']), 4)
+    
+    res_idx, results = res_idx[0]
+    regular_courses, carryovers, unusual_results = refine_results(results)
 
     frame = {'mat_no': mat_no,
-             'table': table_to_populate,
-             'level_written': level_written,
+             'table': results['session'],
+             'level_written': results['level'],
              'session_written': acad_session,
-             'tcp': tcp,
+             'tcp': res_stmt['credits'][res_idx][1],
              'regular_courses': regular_courses,
              'carryovers': carryovers,
              'unusual_results': unusual_results,
-             'category': category,
+             'category': res_stmt['category'][res_idx],
              }
     return frame, 200
 
@@ -125,7 +113,7 @@ def get_results(mat_no, acad_session):
     if return_code != 200:
         return reg, return_code
 
-    res, _ = utils.get_result_at_acad_session(acad_session, mat_no=mat_no)
+    res, _ = res_poll_for_session(acad_session, mat_no=mat_no)
     if not res:
         session = reg.pop('course_reg_session')
         level = reg.pop('course_reg_level')
@@ -206,13 +194,12 @@ def _get_multiple_results_stats(acad_session, level):
 
 
 def _get_single_results_stats(mat_no, level, acad_session):
-    # TODO: Is level necessary?
     info = personal_info.get(mat_no)
     name = info['surname'] + ' ' + info['othernames']
     reg_courses = course_reg_for_session(mat_no, acad_session)
     reg_course_codes = reg_courses.get('courses', [])
     tcr = reg_courses.get('tcr', 0)
-    res, _ = utils.get_result_at_acad_session(acad_session, mat_no=mat_no)
+    res, _ = res_poll_for_session(acad_session, mat_no=mat_no)
     tce, carryovers_dict, remark = 0, {}, ''
 
     if res:
@@ -306,31 +293,24 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
     course_credit = course_dets['credit']
     course_level = course_dets['level']
     is_unusual = False
-    course_registration = course_reg_for_session(mat_no, session_taken)
 
-    if course_registration == {}:
-        course_registration = {'level': current_level, 'courses': []}
+    # Get course reg
+    course_registration = course_reg_for_session(mat_no, session_taken) or {'level': current_level, 'courses': []}
+    courses_registered = course_registration['courses']
+    level_written = course_registration['level']
+    if not courses_registered:
         is_unusual = True
         error_log = handle_errors('No course registration found for {0} at index {1} for the {2}/{3} '
                                   'session'.format(mat_no, index, session_taken, session_taken + 1), error_log)
-
-    courses_registered = course_registration['courses']
-    if not is_unusual and course_code not in courses_registered:
+    elif course_code not in courses_registered:
         is_unusual = True
         error_log = handle_errors('{0} at index {1} did not register {2} in the {3}/{4} session'
                                   ''.format(mat_no, index, course_code, session_taken, session_taken + 1), error_log)
 
-    level_written = course_registration['level']
+    # Get the result table for the session
     res_poll = utils.result_poll(mat_no)
-    result_record, table_to_populate = utils.get_result_at_acad_session(session_taken, res_poll)
-
+    result_record, table_to_populate = res_poll_for_session(session_taken, res_poll)
     session = utils.load_session(utils.get_DB(mat_no))
-    try:
-        result_xxx_schema = getattr(session, table_to_populate + 'Schema')()
-    except AttributeError:
-        # table_to_populate is empty, this would be redefined
-        pass
-
     if not result_record:
         if is_unusual and grade == 'ABS':
             return handle_errors('Unregistered course {} with grade "ABS" cannot be added for '
@@ -339,6 +319,8 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
         result_xxx_schema = getattr(session, table_to_populate + 'Schema')()
         params = mat_no, session_taken, courses_registered, result_xxx_schema, level_written
         result_record = prepare_new_results_table(*params)
+    else:
+        result_xxx_schema = getattr(session, table_to_populate + 'Schema')()
 
     # Check if a previous entry for the course exists in the current session and updates the value
     # of "previous_grade" while logging the changes to be made
@@ -381,7 +363,7 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
     db_session = result_xxx_schema.Meta.sqla_session
     db_session.add(res_record)
     if grade == 'ABS':
-        delete_if_empty(res_record, result_record, db_session)
+        delete_if_empty(res_record, result_xxx_schema)
     db_session.commit()
     db_session.close()
 
@@ -438,13 +420,18 @@ def update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_leve
     return ''
 
 
-def delete_if_empty(res_record, result_record, db_session):
-    retval = strip_res_poll_item(result_record)
-    regulars_exist = any([res for res in retval[0] if retval[0][res] and retval[0][res] != '-1,ABS'])
-    exists = lambda idx: any([res[0] for res in retval[idx] if res[2] != 'ABS'])
-    carryovers_exist, unusual_results_exist = [exists(idx) for idx in (4, 5)]
+def delete_if_empty(res_record, result_xxx_schema):
+    regulars = result_xxx_schema.dump(res_record)
+    [regulars.pop(key) for key in ['mat_no', 'session', 'category', 'tcp', 'level']]
+    carrys = [utils.spc_fn(x) for x in utils.csv_fn(regulars.pop('carryovers'))]
+    unusuals = [utils.spc_fn(x) for x in utils.csv_fn(regulars.pop('unusual_results'))]
+
+    regulars_exist = any([res for res in regulars if regulars[res] and regulars[res] != '-1,ABS'])
+    exists = lambda crs_list: any([res[0] for res in crs_list if res[2] != 'ABS'])
+    carryovers_exist, unusual_results_exist = [exists(crs_list) for crs_list in (carrys, unusuals)]
     if not any([regulars_exist, carryovers_exist, unusual_results_exist]):
-        db_session.delete(res_record)
+        # delete the db entry
+        result_xxx_schema.Meta.sqla_session.delete(res_record)
 
 
 # =========================================================================================
@@ -476,7 +463,6 @@ def prepare_new_results_table(mat_no, session_taken, courses_registered, result_
     table_columns = result_xxx_schema.load_fields.keys()
     result_record = {'mat_no': mat_no, 'session': session_taken, 'level': level_written, 'category': None,
                      'carryovers': '', 'unusual_results': '', 'tcp': 0}
-
     # prefill -1,ABS for courses in course_reg for new table
     for course in courses_registered:
         if course in table_columns:
@@ -537,59 +523,15 @@ def check_owed_courses_exists(mat_no, level_written, grade, course_dets):
     return True
 
 
-def split_courses_by_semester(course_list, semester_value_index):
-    """
-
-    :param course_list: [ ('course_code', 'some_other_detail', ...), (..), ... ]
-    :param semester_value_index: the index of each course where the semester value can be found
-    :return:
-    """
-    split_course_list = [list(filter(lambda x: x[semester_value_index] == sem, course_list)) for sem in (1, 2)]
-    dic = {
-        'first_sem': utils.dictify(split_course_list[0]),
-        'second_sem': utils.dictify(split_course_list[1]),
-    }
-    return dic
-
-
-def refine_res_poll_item(res_poll_item):
-    stripped_res_poll, category, tcp, level_written, carryovers, unusual_results = strip_res_poll_item(res_poll_item)
-
-    # flatten the result dictionary
-    regular_courses = [[crse_code] + stripped_res_poll[crse_code].split(',') for crse_code in stripped_res_poll if stripped_res_poll[crse_code]]
-    regular_courses.extend(carryovers)
-
-    # enrich the course lists
-    fields = ('credit', 'semester', 'level')
-    regular_courses = enrich_course_list(regular_courses, fields=fields)
-    unusual_results = enrich_course_list(unusual_results, fields=fields)
-
-    # get the actual carryovers
-    # use a normalized level_written to account for spillover students (treated as 500 level students)
-    level_written_alpha = 500 if level_written > 500 else level_written
-    carryovers = list(filter(lambda x: x[5] < level_written_alpha, regular_courses))
-    regular_courses = list(filter(lambda x: x[5] == level_written_alpha, regular_courses))
-
-    [unusual_results[index].append('Course not registered') for index in range(len(unusual_results))]
-    [regular_courses[index].append('') for index in range(len(regular_courses))]
-
-    results = {
-        'regular_courses': regular_courses,
-        'carryovers': carryovers,
-        'unusual_results': unusual_results
-    }
-    return results, level_written, tcp, category
-
-
-def strip_res_poll_item(res_poll_item):
-    res_poll_item = res_poll_item.copy()
-    [res_poll_item.pop(key) for key in ['mat_no', 'session']]
-    category = res_poll_item.pop('category')
-    tcp = res_poll_item.pop('tcp')
-    level_written = res_poll_item.pop('level')
-    carryovers = [utils.spc_fn(x) for x in utils.csv_fn(res_poll_item.pop('carryovers'))]
-    unusual_results = [utils.spc_fn(x) for x in utils.csv_fn(res_poll_item.pop('unusual_results'))]
-    return res_poll_item, category, tcp, level_written, carryovers, unusual_results
+def refine_results(res_from_stmt):
+    # normalise the level
+    lvl_norm = 500 if res_from_stmt['level'] > 500 else res_from_stmt['level']
+    regulars, carryovers, unusuals = [{'first_sem': {}, 'second_sem': {}} for _ in range(3)]
+    fields = (1, 4, 5, 3, 6)  # course details indices: code, score, grade, credit, level
+    for sem in regulars.keys():
+        for res in utils.multisort(res_from_stmt[sem], key_idx=1):
+            [carryovers, regulars][res[6] == lvl_norm][sem].update(utils.dictify([[res[idx] for idx in fields]]))
+    return regulars, carryovers, unusuals
 
 
 def handle_errors(error_text, error_log_array=None, error_file=None, result_details=None):
@@ -597,3 +539,11 @@ def handle_errors(error_text, error_log_array=None, error_file=None, result_deta
     if error_log_array is not None: error_log_array.append(error_text)
     if error_text != '': print(Fore.RED, '[WARNING]: ', error_text, Style.RESET_ALL)
     return error_log_array or []
+
+
+def res_poll_for_session(acad_session, res_poll=None, mat_no=None):
+    """supply mat_no if res_poll is not given"""
+    if not res_poll: res_poll = utils.result_poll(mat_no)
+    ind_res = [[ind, res] for ind, res in enumerate(res_poll) if res and res['session'] == acad_session]
+    ind_res = ({}, '') if not ind_res else (ind_res[0][1], 'Result{}'.format(100 * (ind_res[0][0] + 1)))
+    return ind_res
