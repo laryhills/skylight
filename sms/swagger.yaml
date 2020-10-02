@@ -641,36 +641,6 @@ paths:
           schema:
             type: integer
 
-  /results_single:
-    get:
-      tags: [Results]
-      operationId: sms.src.results.get_result_details
-      description: Gets the result details of a particular student for the entered session
-      parameters:
-        - in: query
-          name: mat_no
-          type: string
-          required: true
-        - in: query
-          name: acad_session
-          type: integer
-          required: true
-      responses:
-        200:
-          description: Success
-          schema:
-            $ref: '#/definitions/Results_Single_get'
-        400:
-          description: Bad request
-        401:
-          description: Unauthorised
-        403:
-          description: Forbidden
-        404:
-          description: No results found
-        440:
-          description: Session expired, login again
-
   /results_stats_single:
     get:
       tags: [Results]
@@ -1263,32 +1233,6 @@ definitions:
     example:
       level: 500
       list_of_results: [[course_code_1, session_1, mat_no_1, score_1], [course_code_2, session_2, mat_no_2, score_2]]
-
-  Results_Single_get:
-    type: object
-    properties:
-      mat_no:
-        type: string
-      name:
-        type: string
-      level:
-        type: integer
-      session:
-        type: integer
-      entry_session:
-        type: integer
-      result:
-        type: array
-        items: {}
-      carryovers:
-        type: array
-        items: {}
-      unusual_results:
-        type: string
-      level_gpa:
-        type: number
-      cgpa:
-        type: number
 
   Accounts_post:
     type: object

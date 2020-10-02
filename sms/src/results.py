@@ -36,11 +36,6 @@ def set_resultedit(state):
 
 
 @access_decorator
-def get_result_details(mat_no, acad_session):
-    return get_results(mat_no, acad_session)
-
-
-@access_decorator
 def get_single_results_stats(mat_no, level, acad_session):
     return _get_single_results_stats(mat_no, level, acad_session)
 
@@ -125,77 +120,6 @@ def get_results_for_acad_session(mat_no, acad_session, include_reg=False):
              'unusual_results': unusual_results
              }
     return frame, 200
-
-
-def get_results(mat_no, acad_session):
-    from sms.src.course_reg import get_existing_course_reg
-
-    reg, return_code = get_existing_course_reg(mat_no, acad_session)
-    if return_code != 200:
-        return reg, return_code
-
-    res, _ = res_poll_for_session(acad_session, mat_no=mat_no)
-    if not res:
-        session = reg.pop('course_reg_session')
-        level = reg.pop('course_reg_level')
-        carryovers = []
-        unusual_results = ''
-    else:
-        session = res.pop('session')
-        level = res.pop('level')
-        carryovers = res.pop('carryovers')
-        unusual_results = res.pop('unusual_results')
-
-    details = reg['personal_info']
-    regular_reg_courses = reg['courses']['first_sem'] + reg['courses']['second_sem']
-    carryover_reg_courses = reg['choices']['first_sem'] + reg['choices']['second_sem']
-
-    carryovers_dict = {}
-    carryovers_list = [] if not carryovers else carryovers.split(',')
-    for course in carryovers_list:
-        course_code, score, grade = course.split(' ')
-        carryovers_dict[course_code] = [int(score), grade]
-
-    for course_dets in regular_reg_courses:
-        course_code = course_dets[0]
-        course_level = course_dets[-1]
-        if course_level != level:
-            carryover_reg_courses.append(course_dets)
-            continue
-        _score_grade = res.get(course_code, ',') or ','
-        score, grade = _score_grade.split(',')
-        if not (score and grade):
-            score, grade = carryovers_dict.get(course_code, ['', ''])
-        score, grade = ('', '') if score == '-1' else (score, grade)
-        # score = score if not score.isdecimal() else int(score)
-        course_dets.pop()
-        course_dets.extend([score, grade])
-
-    for course_dets in carryover_reg_courses:
-        if course_dets in regular_reg_courses:
-            regular_reg_courses.remove(course_dets)
-        course_code = course_dets[0]
-        score, grade = carryovers_dict.get(course_code, ['', ''])
-        score, grade = ('', '') if score == '-1' else (score, grade)
-        course_dets.pop()
-        course_dets.extend([score, grade])
-
-    gpa_credits = utils.gpa_credits_poll(mat_no)
-
-    result_details = {
-        'mat_no': mat_no,
-        'name': details['surname'] + ' ' + details['othernames'],
-        'level': level,
-        'session': session,
-        'entry_session': details['session_admitted'],
-        'result': regular_reg_courses,
-        'carryovers': carryover_reg_courses,
-        'unusual_results': unusual_results,
-        'level_gpa': gpa_credits[utils.ltoi(level)][0],
-        'cgpa': gpa_credits[-1]
-    }
-
-    return result_details, 200
 
 
 def _get_multiple_results_stats(acad_session, level):
