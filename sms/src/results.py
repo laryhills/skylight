@@ -203,11 +203,16 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
     :param level: the level for which results is being entered
     :return:
     """
-    course_code, session_taken, mat_no, score = result_details
-    session_taken, score = map(int, [session_taken, score])
-    grade = utils.compute_grade(score, utils.get_DB(mat_no))
-    current_level = utils.get_level(mat_no)
     error_log = []
+    try:
+        course_code, session_taken, mat_no, score = result_details
+        session_taken, score = map(int, [session_taken, score])
+        entry_session = utils.get_DB(mat_no)
+    except:
+        return handle_errors('Invalid_inputs: {}'.format(str(result_details)), error_log, result_errors_file, result_details)
+
+    grade = utils.compute_grade(score, entry_session)
+    current_level = utils.get_level(mat_no)
 
     # Error check on level, grade and score
     error_text = ''
