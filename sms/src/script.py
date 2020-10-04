@@ -31,7 +31,7 @@ def populate_course_list(level):
     """
     global course_list
     course_list = []
-
+    # TODO use course_details to query level courses
     level = 500 if level > 500 else level
     course_objs = Courses.query.filter_by(level=level).all()
     for obj in course_objs:

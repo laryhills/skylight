@@ -186,7 +186,6 @@ def compute_grade(score, session):
     for grade, weight, cutoff in [x.split() for x in grading_rules]:
         if 100 >= score >= int(cutoff):
             return grade
-    return ''
 
 
 def get_degree_class(mat_no=None, cgpa=None, acad_session=None):
@@ -217,7 +216,7 @@ def compute_category(tcr, Result):
         return ["H", "K"][level < 500]
     # TODO pull categories from DB, Handle owed_courses_exist, Handle condition for transfer
     categories = {x: {100:[(78.26,"B"), (50,"C"), (0,"D")]} for x in range(2014,get_current_session()+1)}
-    catg_rule = {**categories.get(entry_session), 500:[(0, "B")]}.get(level,[(50,"B"), (25,"C"), (0,"D")])
+    catg_rule = {500:[(0, "B")], **categories.get(entry_session, {})}.get(level,[(50,"B"), (25,"C"), (0,"D")])
     percent_passed = tcp / level_credits * 100
     for lower, catg in catg_rule:
         if percent_passed >= lower:

@@ -12,6 +12,7 @@ required = all_fields - {'grad_status', 'session_grad'}
 
 @access_decorator
 def get_exp(mat_no):
+    # TODO remove 404 from exposed fns where check done in access decorator
     output = get(mat_no)
     if output:
         output.pop("is_symlink")
