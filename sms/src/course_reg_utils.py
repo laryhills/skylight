@@ -22,19 +22,19 @@ def get_probation_status_and_prev_category(res_poll, acad_session):
     return probation_status, previous_category
 
 
-def get_table_to_populate(current_level, acad_session, res_poll, course_reg):
+def get_table_to_populate(current_level, acad_session, res_poll, reg_poll):
     """- Get table corr. to results table for acad_session if it exists
        - else check for table corr to current level
        - otherwise search for the first available table
     """
     table_to_populate = ''
     index = [ind for ind, x in enumerate(res_poll) if x and x['session'] == acad_session]
-    if index and not course_reg[index[0]]['courses']:
+    if index and not reg_poll[index[0]]['courses']:
         table_to_populate = 'CourseReg' + str(100 * (index[0] + 1))
-    elif not course_reg[ltoi(current_level)]['courses']:
+    elif not reg_poll[ltoi(current_level)]['courses']:
         table_to_populate = 'CourseReg' + str(current_level)
     else:
-        index = [ind for ind, x in enumerate(course_reg) if not x['courses']]
+        index = [ind for ind, x in enumerate(reg_poll) if not x['courses']]
         if index: table_to_populate = 'CourseReg' + str(100 * (index[0] + 1))
     return table_to_populate
 

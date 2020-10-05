@@ -388,7 +388,7 @@ def delete_if_empty(res_record, result_xxx_schema):
 #                                   Utility functions
 # =========================================================================================
 
-def get_table_to_populate(session_course_reg, full_res_poll):
+def get_table_to_populate(session_course_reg, res_poll):
     """selecting Result table for a fresh input (first result entered for the student for the session)
 
        - use table corresponding to course reg table if available
@@ -396,12 +396,12 @@ def get_table_to_populate(session_course_reg, full_res_poll):
        - otherwise find the first free table from Result100 to Result800
     """
     level_written = session_course_reg['level']
-    if session_course_reg['courses'] and not full_res_poll[utils.ltoi(int(session_course_reg['table'][-3:]))]:
+    if session_course_reg['courses'] and not res_poll[utils.ltoi(int(session_course_reg['table'][-3:]))]:
         table_to_populate = 'Result' + session_course_reg['table'][-3:]
-    elif not full_res_poll[utils.ltoi(level_written)]:
+    elif not res_poll[utils.ltoi(level_written)]:
         table_to_populate = 'Result' + str(level_written)
     else:
-        index = [ind for ind, x in enumerate(full_res_poll) if not x]
+        index = [ind for ind, x in enumerate(res_poll) if not x]
         table_to_populate = 'Result' + str(100 * (index[0] + 1))
 
     return table_to_populate
