@@ -376,7 +376,7 @@ paths:
   /senate_version:
     get:
       tags: [Sheets]
-      operationId: sms.src.senate_version_get
+      operationId: sms.src.senate_version.get
       produces:
         - application/pdf
       parameters:
