@@ -1,25 +1,3 @@
-"""
-    Senate version generating script
-    ================================
-
-        Profiling Results For 100 to 400 Level
-        ======================================
-        # Data Retrieval - 18%
-        # Data parsing = 33%
-        # Template pre-processing = 47%
-            # Sheet generation = 42%
-        # Initialization = 2%
-
-
-        Profiling Results For 500 Level
-        ======================================
-        # Data Retrieval - 3.8%
-        # Data parsing = 92.7%
-        # Template pre-processing = 3.3%
-            # Sheet generation = 2.8
-        # Initialization = .2%
-"""
-
 import os
 import time
 import secrets
@@ -28,7 +6,6 @@ from num2words import num2words
 from jinja2 import Template
 from flask import render_template, send_from_directory
 
-from sms.src.jobs import set_progress
 from sms.src.users import access_decorator
 from sms.src.script import get_students_details_by_category, get_final_year_students_by_category
 from sms.models.master import Category, Category500
@@ -111,8 +88,6 @@ def load_cat_section_500(cat, students, session):
 
 
 def generate_header(file_name, params):
-    set_progress('senate_version.get', description='Generating pdf header...')
-    set_progress('senate_version_500.get', description='Generating pdf header...')
     header_temp_path = os.path.join(CACHE_BASE_DIR, file_name + '_header.html')
     with app.app_context():
         header_template = render_template('senate_version_header.html', **params)
@@ -121,18 +96,10 @@ def generate_header(file_name, params):
     return header_temp_path
 
 
-def generate_pdf(html_template, filename, options):
-    pdfkit.from_string(html_template, os.path.join(CACHE_BASE_DIR, filename), options=options)
-    set_progress('senate_version.get', progress=95, description='Pdf generated')
-    set_progress('senate_version_500.get', progress=99.5, description='Pdf generated')
-
-
 def get_100_to_400(entry_session, level):
     start_time = time.time()
-    set_progress('senate_version.get', progress=2)
     stud_categories = get_students_details_by_category(level, entry_session, get_all=True)
     data, acad_session = '', get_session_from_level(entry_session, level)
-    set_progress('senate_version.get', description='Preparing templates...')
     for cat in stud_categories:
         data += load_cat_section(cat, stud_categories[cat], acad_session)
 
@@ -195,20 +162,16 @@ def get_100_to_400(entry_session, level):
     html = template.render(**params)
     file_name = secrets.token_hex(8) + '.pdf'
     options['header-html'] = generate_header(file_name, header_params)
-    set_progress('senate_version.get', description='Generating pdf...')
-    generate_pdf(html, file_name, options)
+    pdfkit.from_string(html, os.path.join(CACHE_BASE_DIR, file_name), options=options)
     print(f'Senate version generated in {time.time() - start_time} seconds')
 
-    set_progress('senate_version.get', progress=100, description='Done')
-    return file_name, 200
+    return send_from_directory(CACHE_BASE_DIR, file_name, as_attachment=True), 200
 
 
 def get_500(entry_session):
     start_time = time.time()
-    set_progress('senate_version_500.get', progress=.2)
     acad_session = get_session_from_level(entry_session, 500)
     all_students = get_final_year_students_by_category(entry_session, get_all=True)
-    set_progress('senate_version_500.get', description='Preparing templates...')
     groups_dict = get_groups_dict()
     students_sum, total_students = dict(), 0
     percent_distribution = dict()
@@ -321,18 +284,14 @@ def get_500(entry_session):
         total_num_of_referred_students))
     file_name = secrets.token_hex(8) + '.pdf'
     options['header-html'] = generate_header(file_name, header_params)
-    set_progress('senate_version.get', description='Generating pdf...')
-    generate_pdf(html, file_name, options)
+    pdfkit.from_string(html, os.path.join(CACHE_BASE_DIR, file_name), options=options)
     print(f'Senate version generated in {time.time() - start_time} seconds')
 
-    set_progress('senate_version.get', progress=100, description='Done')
-    return file_name, 200
+    return send_from_directory(CACHE_BASE_DIR, file_name, as_attachment=True), 200
 
 
 @access_decorator
 def get(acad_session, level):
-    set_progress('senate_version.get', 0, 'Initializing...')
-    set_progress('senate_version_500.get', 0, 'Initializing...')
     entry_session = get_session_from_level(acad_session, level, True)
 
     if level == 500:
