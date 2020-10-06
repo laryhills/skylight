@@ -5,7 +5,6 @@ import connexion
 from flask_sqlalchemy import SQLAlchemy
 from flask_marshmallow import Marshmallow
 from flask_bcrypt import Bcrypt
-from redis import Redis
 
 base_dir = os.path.dirname(__file__)
 
@@ -40,12 +39,10 @@ app.config['SECRET_KEY'] = secrets.token_hex(16)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(DB_DIR, 'accounts.db')
 app.config['SQLALCHEMY_BINDS'] = sqlalchemy_binds
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
-app.config['REDIS_URL'] = 'redis://localhost:6379'
 
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 bcrypt = Bcrypt(app)
-redis_conn = Redis.from_url(app.config['REDIS_URL'])
 tokens = {}
 
 scheduler = None
