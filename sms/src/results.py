@@ -319,19 +319,12 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
 
     # update GPA - Credits table
     if not is_unusual:
-        ret_str = update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_level)
-        if ret_str: error_log.append(ret_str)
+        update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_level)
 
     return error_log
 
 
 def update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_level):
-    try:
-        db_name = utils.get_DB(mat_no)
-        session = utils.load_session(db_name)
-    except ImportError:
-        return 'Student not found in database'
-
     gpa_credits = utils.gpa_credits_poll(mat_no)[:-1]
     index = utils.ltoi(course_level)
     level_gpa = gpa_credits[index][0] if gpa_credits[index][0] else 0
@@ -362,12 +355,13 @@ def update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_leve
     for key, idx in [('level{}00'.format(lev+1), lev) for lev in range(5)]:
         gpa_record.update({key: ','.join(list(map(str, gpa_credits[idx]))) if gpa_credits[idx][0] else None})
 
+    session = utils.load_session(utils.get_DB(mat_no))
     gpa_record = session.GPACreditsSchema().load(gpa_record)
     db_session = session.GPACreditsSchema().Meta.sqla_session
     db_session.add(gpa_record)
     db_session.commit()
     db_session.close()
-    return ''
+    return 'Success'
 
 
 def delete_if_empty(res_record, result_xxx_schema):
@@ -403,7 +397,6 @@ def get_table_to_populate(session_course_reg, res_poll):
     else:
         index = [ind for ind, x in enumerate(res_poll) if not x]
         table_to_populate = 'Result' + str(100 * (index[0] + 1))
-
     return table_to_populate
 
 
@@ -459,14 +452,13 @@ def get_previous_grade_and_log_changes(result_details, result_record, is_unusual
 
 def check_owed_courses_exists(mat_no, level_written, grade, course_dets):
     if level_written >= 500:
-        # we search for carryovers with param level=900 to bypass get_carryovers ignoring unregistered
-        # 500 level courses when the when the student's level is 500
+        # we search for carryovers with param level=900 to bypass get_carryovers ignoring
+        #  unregistered 500 level courses when the when the student's level is 500
         owed_courses = utils.get_carryovers(mat_no, level=900)
         owed_courses = utils.dictify(owed_courses['first_sem']), utils.dictify(owed_courses['second_sem'])
         course_code, course_semester = course_dets['code'], course_dets['semester']
         if course_code in owed_courses[course_semester - 1]:
             owed_courses[course_semester - 1].pop(course_code)
-
         if not owed_courses[0] and not owed_courses[1] and grade not in ['F', 'ABS']:
             return False
     return True
@@ -479,6 +471,7 @@ def refine_results(res_from_stmt):
     for sem in ('first_sem', 'second_sem'):
         for res in utils.multisort(res_from_stmt[sem], key_idx=1):
             [carryovers, regulars][res[6] == lvl_norm][sem].update(utils.dictify(list([res[1:7]])))
+    # TODO process unusual results when it gets added to result statement
     return regulars, carryovers, unusuals
 
 
