@@ -16,7 +16,7 @@ def get_dynamic_props():
 @access_decorator
 def update_dynamic_props(dynamic_props):
     if any([key for key in dynamic_props if key not in props_dic]):
-        return 'Please remove foreign additions', 403
+        return 'Please remove foreign additions', 400
     for key, value in dynamic_props.items():
         prop = Props.query.filter_by(key=key).first()
         setattr(prop, props_dic[prop.key], value)

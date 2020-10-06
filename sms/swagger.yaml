@@ -146,8 +146,8 @@ paths:
           description: Update Successful
         401:
           description: Authentication failed
-        403:
-          description: Forbidden
+        400:
+          description: Invalid field supplied
         440:
           description: Session expired, login again
 
