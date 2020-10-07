@@ -20,6 +20,7 @@ get_current_session = config.get_current_session
 
 # LAMBDAS
 ltoi = lambda x: x//100 - 1
+s_int = lambda x: int(x) if x.isdigit() else x
 dictify = lambda flat_list: {x[0]:x[1:] for x in flat_list}
 multisort = lambda iters, key_idx=0: sorted(iters, key=lambda x:x[key_idx][3]+x[key_idx])
 query = lambda cls, col, key: cls.query.filter(col == key).first()
@@ -151,13 +152,12 @@ def get_carryovers(mat_no, level=None, next_level=False):
         second_sem |= set(course[1])
 
     person_options = csv_fn(personal_info.get(mat_no)["option"])
-    if person_options:
-        for choice in person_options:
-            for option in course_details.get_options():
-                if choice in option["members"]:
-                    idx = option["semester"] - 1
-                    [first_sem, second_sem][idx] -= set(option["members"])
-                    [first_sem, second_sem][idx] |= {choice}
+    for pair in person_options:
+        group, choice = spc_fn(pair, s_int)
+        option = course_details.get_options(group)
+        idx = option["semester"] - 1
+        [first_sem, second_sem][idx] -= set(option["members"])
+        [first_sem, second_sem][idx] |= {choice}
 
     results = result_statement.get(mat_no)["results"]
     res_first_sem, res_second_sem = [], []
