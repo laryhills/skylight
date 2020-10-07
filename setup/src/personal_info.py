@@ -21,7 +21,7 @@ curr_session = 2019
 
 def format_options(data):
     if isinstance(data, float): return np.nan
-    return '{},{}2'.format(data, data[:-1])
+    return '1 {},2 {}2'.format(data, data[:-1])
 
 
 def create_props():
