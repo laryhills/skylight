@@ -78,7 +78,7 @@ except sqlite3.OperationalError: pass
 
 create_table_schema()
 
-sessions = range(start_session, curr_session)
+sessions = range(start_session, curr_session + 1)
 for session in sessions:
     curr_db = '{0}-{1}.db'.format(session, session + 1)
     conn = sqlite3.connect(os.path.join(db_base_dir, curr_db))

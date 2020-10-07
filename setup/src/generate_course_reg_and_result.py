@@ -33,7 +33,7 @@ def create_table_schema():
     for course_list in courses:
         course_list.append('CARRYOVERS')
 
-    sessions = range(start_session, curr_session)
+    sessions = range(start_session, curr_session + 1)
     for session in sessions:
         curr_db = '{}-{}.db'.format(session, session + 1)
         result_stmt = 'CREATE TABLE Result{}(MATNO TEXT PRIMARY KEY, {}, LEVEL INTEGER, SESSION INTEGER, CATEGORY ' \

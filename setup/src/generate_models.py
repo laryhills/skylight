@@ -1,7 +1,10 @@
 import os
 from imports import model_template_path, models_dir
 
-sessions = range(2003, 2020)
+start_session = 2003
+curr_session = 2019
+
+sessions = range(start_session, curr_session + 1)
 for session in sessions:
     model = open(os.path.join(models_dir, '_{0}_{1}.py'.format(session, session + 1)), 'w')
     model_template = open(model_template_path)

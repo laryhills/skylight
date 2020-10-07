@@ -67,7 +67,7 @@ def generate_courses_and_credits_table(conn, session):
 
 
 if __name__ == '__main__':
-    for session in range(start_session, curr_session):
+    for session in range(start_session, curr_session + 1):
         curr_db = '{}-{}.db'.format(session, session + 1)
         conn = sqlite3.connect(os.path.join(db_base_dir, curr_db))
         generate_courses_and_credits_table(conn, session)
