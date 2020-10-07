@@ -1,18 +1,20 @@
 from sms.src import personal_info, course_details, utils
 from json import dumps
 
+s_int = lambda x: int(x) if x.isdigit() else x
+csv_fn = lambda csv, fn=lambda x:x: list(map(fn, csv.split(","))) if csv else []
+spc_fn = lambda spc, fn=lambda x:x: list(map(fn, spc.split(" "))) if spc else []
 
 def get(mat_no, retJSON=False):
     person = personal_info.get(mat_no=mat_no)
-    
+    # TODO replace category with categories for uniformity
     student_details = {"name": "{}, {}".format(person['surname'], person['othernames']), "dept": utils.get_dept(),
                        "dob": person['date_of_birth'], "mode_of_entry": person['mode_of_entry'], "results": [], "credits": [],
-                       "category": [], "entry_session": person['session_admitted'], "grad_session": person['session_grad']}
+                       "category": [], "unusual_results": [], "entry_session": person['session_admitted'], "grad_session": person['session_grad']}
     
     results = utils.result_poll(mat_no)
     finalResults = []
     tcps = []   # This may be useful
-    
     for lvl in range(8):
         result = results[lvl]
         if result:
@@ -20,22 +22,15 @@ def get(mat_no, retJSON=False):
             session = result.pop('session')
             level = result.pop('level')
             category = result.pop('category')
-            result.pop('unusual_results')
+            unusual_results = result.pop('unusual_results')
             tcps.append(result.pop('tcp'))
-            # if lvl:
             carryovers = result.pop('carryovers')
             if carryovers:
                 carryovers = carryovers.split(',')
                 for co in carryovers:
-                    # coSplit = co.split()
-                    # # Special cases, del on fix DB
-                    # if len(coSplit)==4:
-                    #     coSplit.remove('nan')
-                    #     co = " ".join(coSplit)
-                    # if len(coSplit) == 2:
-                    #     co = " ".join(coSplit+["F"])
                     (course, score, grade) = co.split()
                     result[course] = ",".join([score, grade])
+            unusual_results = ([spc_fn(x, s_int) for x in csv_fn(unusual_results)])
             credits_passed = credits_failed = credits_total = 0
             lvlResult = {"first_sem": [], "second_sem": [], 'level': level, 'session': session, "table": (lvl+1)*100}
             for course in result:
@@ -65,6 +60,7 @@ def get(mat_no, retJSON=False):
             finalResults.append(lvlResult)
             student_details["credits"].append((credits_total,credits_passed,credits_failed))
             student_details["category"].append(category)
+            student_details["unusual_results"].append(unusual_results)
     student_details["results"] = finalResults
     if retJSON:
         return dumps(student_details)
