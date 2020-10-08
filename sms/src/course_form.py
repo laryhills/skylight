@@ -7,7 +7,7 @@ from flask import render_template, send_from_directory
 from sms.src import course_reg
 from sms.config import app, CACHE_BASE_DIR
 from sms.src.users import access_decorator
-from sms.src.utils import get_current_session
+from sms.src.utils import get_current_session, get_dept
 
 base_dir = os.path.dirname(__file__)
 uniben_logo_path = 'file:///' + os.path.join(os.path.split(base_dir)[0], 'templates', 'static', 'Uniben_logo.png')
@@ -19,13 +19,10 @@ def get(mat_no=None, session=None, to_print=False):
     session = session if session else current_session
 
     if mat_no:
-        check = course_reg.check_registration_eligibility(mat_no, current_session)
-        if session == current_session and check[1] == 200:
-            course_registration = course_reg.init_new_course_reg(*check[0])
-        elif session != current_session or check[0] == 'Course Registration already exists':
+        course_registration = course_reg.init_new_course_reg(mat_no)
+        if session != current_session or course_registration[0] == 'Course Registration already exists':
             course_registration = course_reg.get_existing_course_reg(mat_no, session)
-        else:
-            course_registration = check
+
         if course_registration[1] != 200:
             return course_registration
 
@@ -59,7 +56,7 @@ def get(mat_no=None, session=None, to_print=False):
         html = render_template('course_form_template.htm', mat_no=mat_no, uniben_logo_path=uniben_logo_path,
                                session='{}/{}'.format(session, session + 1),
                                surname=person['surname'], othernames=person['othernames'].upper(),
-                               dept=person['department'], mode_of_entry=person['mode_of_entry'],
+                               dept=get_dept(), mode_of_entry=person['mode_of_entry_text'],
                                level=level, phone_no=person['phone_no'], sex=person['sex'],
                                email=person['email_address'], state=person['state_of_origin'],
                                lga=person['lga'],

@@ -103,7 +103,7 @@ def init_new_course_reg(mat_no):
     table_to_populate, current_level, probation_status, s_personal_info = ret_tuple[0]
 
     carryovers = course_reg_utils.fetch_carryovers(mat_no, current_level)
-    mode_of_entry = s_personal_info.pop('mode_of_entry_numeric')
+    mode_of_entry = s_personal_info['mode_of_entry']
     # populating choices
     index = utils.ltoi(int(current_level))
     if index > 4: index = 4
