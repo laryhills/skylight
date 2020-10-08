@@ -25,7 +25,10 @@ BACKUPS_TO_RETAIN = 20
 # Make dirs
 [os.makedirs(path) for path in (CACHE_DIR, BACKUP_DIR, DB_DIR, TEMP_DIR) if not os.path.exists(path)]
 
-# Setup Flask app
+
+# ===========================================================
+#                    SETUP FLASK APP
+# ===========================================================
 connex_app = connexion.App(__name__, specification_dir=base_dir)
 app = connex_app.app
 app.config['SECRET_KEY'] = secrets.token_hex(16)
@@ -37,7 +40,6 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 bcrypt = Bcrypt(app)
-
 
 # Initialize global vars
 tokens = {}

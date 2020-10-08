@@ -325,7 +325,7 @@ fn_props.update({
                     "logs": lambda user, params: "{} queried results for {}".format(user, params.get("mat_no"))
                     },
     "results.post": {"perms": {"levels", "write", "result_edit"},
-                     "logs": lambda user, params: "{} added {} result entries:-\n{}".format(user, len(params.get("data")), dict_render(params))
+                     "logs": lambda user, params: "{} added {} result entries:-\n{}".format(user, len(params.get("data", {}).get('list_of_results', [])), dict_render(params))
                      },
     "results.set_resultedit": {"perms": {"superuser", "write"},
                                "logs": lambda user, params: "{} {} result edit mode".format(user, ['closed', 'opened'][bool(params.get('state'))])
