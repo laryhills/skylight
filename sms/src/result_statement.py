@@ -5,13 +5,12 @@ s_int = lambda x: int(x) if x.isdigit() else x
 csv_fn = lambda csv, fn=lambda x:x: list(map(fn, csv.split(","))) if csv else []
 spc_fn = lambda spc, fn=lambda x:x: list(map(fn, spc.split(" "))) if spc else []
 
-def get(mat_no, retJSON=False):
+def get(mat_no, sep_carryovers=False):
     person = personal_info.get(mat_no=mat_no)
     # TODO replace category with categories for uniformity
-    student_details = {"name": "{}, {}".format(person['surname'], person['othernames']), "dept": utils.get_dept(),
-                       "dob": person['date_of_birth'], "mode_of_entry": person['mode_of_entry'], "results": [], "credits": [],
-                       "category": [], "unusual_results": [], "entry_session": person['session_admitted'], "grad_session": person['session_grad']}
-    
+    student_details = {"dept": utils.get_dept(), "results": [], "credits": [],"category": [], "unusual_results": []}
+    keys = ["date_of_birth", "mode_of_entry", "session_admitted", "session_grad", "grad_status", "sex", "is_symlink", "othernames", "surname"]
+    student_details.update({key: person[key] for key in keys})
     results = utils.result_poll(mat_no)
     finalResults = []
     tcps = []   # This may be useful
@@ -62,6 +61,4 @@ def get(mat_no, retJSON=False):
             student_details["category"].append(category)
             student_details["unusual_results"].append(unusual_results)
     student_details["results"] = finalResults
-    if retJSON:
-        return dumps(student_details)
     return student_details

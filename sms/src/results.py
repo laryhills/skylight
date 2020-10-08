@@ -106,8 +106,8 @@ def get_results_for_acad_session(mat_no, acad_session, include_reg=False):
     regular_courses, carryovers, unusual_results = refine_results(results)
     gpa_credits = utils.gpa_credits_poll(mat_no)
     frame = {'mat_no': mat_no,
-             'name': res_stmt['name'].replace(',', ''),
-             'entry_session': res_stmt['entry_session'],
+             'name': res_stmt["surname"] + " " + res_stmt["othernames"],
+             'entry_session': res_stmt["session_admitted"],
              'table': 'Result{}'.format(100 * (res_idx + 1)) if res_idx != '' else res_idx,
              'level_written': results['level'],
              'session_written': acad_session,

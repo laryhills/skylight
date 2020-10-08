@@ -20,12 +20,12 @@ from sms.src.utils import get_level_weightings, get_carryovers, gpa_credits_poll
 def get(mat_no, raw_score=False, to_print=False):
     result_stmt = result_statement.get(mat_no)
 
-    name = result_stmt['name'].replace(',', '')
-    dept = capwords(result_stmt['dept'])
-    dob = result_stmt['dob']
+    name = result_stmt["surname"] + " " + result_stmt["othernames"]
+    dept = capwords(result_stmt["dept"])
+    dob = result_stmt["date_of_birth"]
     mod = ['PUTME', 'DE(200)', 'DE(300)'][result_stmt['mode_of_entry'] - 1]
-    entry_session = result_stmt['entry_session']
-    grad_session = result_stmt['grad_session']
+    entry_session = result_stmt['session_admitted']
+    grad_session = result_stmt['session_grad']
     results = multisort(result_stmt['results'])
     no_of_pages = len(results) + 1
     credits = result_stmt['credits']
