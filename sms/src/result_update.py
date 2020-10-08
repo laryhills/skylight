@@ -10,13 +10,10 @@ from zipfile import ZipFile, ZIP_DEFLATED
 from flask import render_template, send_from_directory
 
 from sms.src import result_statement
-from sms.config import app as current_app, CACHE_BASE_DIR
+from sms.config import app as current_app, CACHE_BASE_DIR, UNIBEN_LOGO_PATH
 from sms.src.users import access_decorator
 from sms.src.ext.html_parser import split_html
 from sms.src.utils import get_level_weightings, get_carryovers, gpa_credits_poll, ltoi
-
-base_dir = os.path.dirname(__file__)
-uniben_logo_path = 'file:///' + os.path.join(os.path.split(base_dir)[0], 'templates', 'static', 'Uniben_logo.png')
 
 
 @access_decorator
@@ -45,7 +42,7 @@ def get(mat_no, raw_score=False, to_print=False):
         gpa_check[index] = '*'
 
     with current_app.app_context():
-        html = render_template('result_update_template.htm', uniben_logo_path=uniben_logo_path, any=any,
+        html = render_template('result_update_template.htm', uniben_logo_path=UNIBEN_LOGO_PATH, any=any,
                                no_of_pages=no_of_pages, mat_no=mat_no, name=name, dept=dept, dob=dob,
                                mode_of_entry=mod, entry_session=entry_session, grad_session=grad_session,
                                results=results, credits=credits, gpas=gpas, level_weightings=level_weightings,
