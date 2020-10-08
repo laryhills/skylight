@@ -19,36 +19,33 @@ TEMP_DIR = os.path.join(tempfile.gettempdir(), 'sms', 'mechanical')
 CACHE_BASE_DIR = TEMP_DIR
 
 # others
+UNIBEN_LOGO_PATH = 'file:///' + os.path.join(base_dir, 'templates', 'static', 'Uniben_logo.png')
 BACKUPS_TO_RETAIN = 20
 
+# Make dirs
 [os.makedirs(path) for path in (CACHE_DIR, BACKUP_DIR, DB_DIR, TEMP_DIR) if not os.path.exists(path)]
 
-start_session = 2003
-end_session = 2019  # TODO query current_session from master DB, (don't use utils)
-                    #          is this even important?
-
-sqlalchemy_binds = {'master': 'sqlite:///' + os.path.join(DB_DIR, 'master.db'),
-                    'courses': 'sqlite:///' + os.path.join(DB_DIR, 'courses.db'),
-                    'logs': 'sqlite:///' + os.path.join(DB_DIR, 'logs.db')}
-sqlalchemy_binds.update({'{}-{}'.format(num, num + 1): 'sqlite:///' + os.path.join(DB_DIR, '{}-{}.db'.format(num, num + 1)) for num in range(start_session, end_session + 1)})
-
+# Setup Flask app
 connex_app = connexion.App(__name__, specification_dir=base_dir)
 app = connex_app.app
-
 app.config['SECRET_KEY'] = secrets.token_hex(16)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(DB_DIR, 'accounts.db')
-app.config['SQLALCHEMY_BINDS'] = sqlalchemy_binds
+app.config['SQLALCHEMY_BINDS'] = {key: 'sqlite:///' + os.path.join(DB_DIR, f'{key}.db') for key in ('master', 'courses', 'logs')}
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = True
 
+# Initialize extensions
 db = SQLAlchemy(app)
 ma = Marshmallow(app)
 bcrypt = Bcrypt(app)
+
+
+# Initialize global vars
 tokens = {}
-
-scheduler = None
 jobs = []
+scheduler = None
 
 
+# funcs to work on global vars
 def add_token(token, username, permissions):
     tokens[token] = {"user": username, "perms": permissions}
 
@@ -69,8 +66,19 @@ def get_current_session():
     return int(current_session)
 
 
+# Update sqlalchemy binds
+def update_binds(start_session=2003, current_session=get_current_session()):
+    for num in range(start_session, current_session + 1):
+        app.config['SQLALCHEMY_BINDS'].update({
+            f'{num}-{num+1}': 'sqlite:///' + os.path.join(DB_DIR, f'{num}-{num+1}.db')
+        })
+
+
 @app.before_first_request
 def start_jobs():
     from sms.src.ext.jobs import start_scheduled_jobs
     global scheduler, jobs
     scheduler, jobs = start_scheduled_jobs()
+
+
+update_binds()
