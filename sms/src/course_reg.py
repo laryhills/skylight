@@ -195,7 +195,7 @@ def post_course_reg(data):
             courses.append(course_obj[0])
             tcr[idx] += course_obj[2]
             if course_obj[0] in level_options:
-                person_options.append(course_obj[0])
+                person_options.append('{} {}'.format(idx+1, course_obj[0]))
     courses = sorted(courses)
     mat_no = data['mat_no']
     table_to_populate = data['table_to_populate']
