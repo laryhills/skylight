@@ -55,11 +55,17 @@ def post(data, superuser=False):
     level = data.get('level', None)
     list_of_results = data.get('list_of_results', [])
 
-    if not list_of_results: return 'No result record supplied', 400
-    if level is None: return 'Result entry level was not supplied', 400
+    # check inputs
+    if level is None:
+        return 'Result entry level was not supplied', 400
+    try:
+        result_acad_sessions = list(map(int, list(set(list(zip(*list_of_results))[1]))))
+    except ValueError:
+        return 'At least one invalid entry for session present', 400
+    except IndexError:
+        return 'No result record supplied', 400
 
     if not superuser:
-        result_acad_sessions = list(set(list(zip(*list_of_results))[1]))
         current_session = utils.get_current_session()
         if len(result_acad_sessions) > 1:
             return 'You are only authorised to add results for the current session {}/{}. \nRemove entries from other' \
@@ -198,13 +204,11 @@ def add_result_records(list_of_results, level=None):
 
 def add_single_result_record(index, result_details, result_errors_file, course_details_dict, level=None):
     """
-
     :param index: position of entry in the larger list --for tracking
     :param result_details: [course_code, session_written, mat_no, score]
     :param result_errors_file: file object in write or append mode for logging important errors
     :param course_details_dict:
-    :param level: the level for which results is being entered
-    :return:
+    :param level: student's course-adviser assigned level
     """
     error_log = []
     try:
@@ -212,7 +216,7 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
         session_taken, score = map(int, [session_taken, score])
         entry_session = utils.get_DB(mat_no)
     except:
-        return handle_errors('Invalid_inputs: {}'.format(str(result_details)), error_log, result_errors_file, result_details)
+        return handle_errors('Invalid inputs at index {}'.format(index), error_log, result_errors_file, result_details)
 
     grade = utils.compute_grade(score, entry_session)
     current_level = utils.get_level(mat_no)
