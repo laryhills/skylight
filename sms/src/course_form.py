@@ -27,9 +27,11 @@ def get(mat_no=None, session=None, to_print=False):
             return course_registration
 
         course_registration = course_registration[0]
+        department = get_dept()
 
     else:
         mat_no = ''
+        department = ''
         course_registration = {
             'personal_info': defaultdict(str),
             'course_reg_session': session,
@@ -56,7 +58,7 @@ def get(mat_no=None, session=None, to_print=False):
         html = render_template('course_form_template.htm', mat_no=mat_no, uniben_logo_path=uniben_logo_path,
                                session='{}/{}'.format(session, session + 1),
                                surname=person['surname'], othernames=person['othernames'].upper(),
-                               dept=get_dept(), mode_of_entry=person['mode_of_entry_text'],
+                               dept=department, mode_of_entry=person['mode_of_entry_text'],
                                level=level, phone_no=person['phone_no'], sex=person['sex'],
                                email=person['email_address'], state=person['state_of_origin'],
                                lga=person['lga'],
