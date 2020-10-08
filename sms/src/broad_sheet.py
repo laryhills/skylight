@@ -12,12 +12,12 @@ from flask import render_template, send_from_directory, url_for
 
 from sms.config import app as current_app, CACHE_BASE_DIR
 from sms.src import course_details, result_statement
-from sms.src.course_reg_utils import process_personal_info, get_optional_courses
+from sms.src.course_reg_utils import get_optional_courses
 from sms.src.results import get_results_for_acad_session
 from sms.src.script import get_students_by_level
 from sms.src.users import access_decorator
-from sms.src.utils import multiprocessing_wrapper, get_degree_class, dictify, multisort, \
-    get_dept, gpa_credits_poll, get_session_from_level
+from sms.src.utils import multiprocessing_wrapper, get_degree_class, dictify, multisort, get_dept, \
+    get_session_from_level
 
 init()  # initialize colorama
 
@@ -106,16 +106,14 @@ def render_html(item, acad_session, index_to_display, file_dir, first_sem_only=F
         'first_sem': dictify(first_sem_courses + first_sem_options),
         'second_sem': dictify(second_sem_courses + second_sem_options)
     }
-    students, len_first_sem_carryovers, len_second_sem_carryovers = enrich_mat_no_list(
-        mat_nos, acad_session, level, courses)
+    students, len_first_sem_carrys, len_second_sem_carrys = enrich_mat_no_list(mat_nos, acad_session, level, courses)
     students = tuple(students.items())
 
     fix_table_column_width_error = 8 if first_sem_only else 4
+    len_first_sem_carrys = max(len_first_sem_carrys, fix_table_column_width_error)
+    len_second_sem_carrys = max(len_second_sem_carrys, fix_table_column_width_error)
 
-    len_first_sem_carryovers = max(len_first_sem_carryovers, fix_table_column_width_error)
-    len_second_sem_carryovers = max(len_second_sem_carryovers, fix_table_column_width_error)
-
-    if first_sem_only or len_first_sem_carryovers + len_second_sem_carryovers < 18: pagination = 15
+    if first_sem_only or len_first_sem_carrys + len_second_sem_carrys < 18: pagination = 15
     elif len(second_sem_courses) == 1: pagination = 15
     else: pagination = 18
 
@@ -129,7 +127,7 @@ def render_html(item, acad_session, index_to_display, file_dir, first_sem_only=F
         with current_app.app_context():
             html = render_template(
                 'broad_sheet.html', enumerate=enumerate, sum=sum, int=int, url_for=url_for, start_index=left,
-                len_first_sem_carryovers=len_first_sem_carryovers, len_second_sem_carryovers=len_second_sem_carryovers,
+                len_first_sem_carryovers=len_first_sem_carrys, len_second_sem_carryovers=len_second_sem_carrys,
                 index_to_display=index_to_display, empty_value=empty_value, color_map=color_map,
                 first_sem_courses=first_sem_courses, second_sem_courses=second_sem_courses,
                 first_sem_options=first_sem_options, second_sem_options=second_sem_options,
@@ -203,18 +201,13 @@ def enrich_mat_no_list(mat_nos, acad_session, level, level_courses):
     for mat_no in mat_nos:
 
         result_details = get_results_for_acad_session(mat_no, acad_session)
-
-        if result_details[1] != 200:
-            # print(Fore.RED + mat_no, 'has no results' + Style.RESET_ALL)
-            continue
-
+        if result_details[1] != 200: continue
         result_details = result_details[0]
         level_written = result_details['level_written']
 
         if (level_written != level) and not (level_written > 500 and level == 500):
             # print(mat_no, "result level", result_details[0]['level_written'], '!=', level)
             continue
-
         # remove students with no course_reg (only has results in 'unusual_results')
         for key in ['regular_courses', 'carryovers']:
             if result_details[key]['first_sem'] or result_details[key]['second_sem']: break
@@ -222,15 +215,15 @@ def enrich_mat_no_list(mat_nos, acad_session, level, level_courses):
             print(Fore.RED + mat_no, 'has no course_reg' + Style.RESET_ALL)
             continue
 
-        personal_info = process_personal_info(mat_no)
-        result_details['othernames'] = personal_info['othernames']
-        result_details['surname'] = personal_info['surname']
-        result_details['grad_status'] = personal_info['grad_status']
+        person = result_details['personal_info']
+        result_details['othernames'] = person['othernames']
+        result_details['surname'] = person['surname'] + ["", " (Miss)"][person["sex"] == 'F']
+        result_details['grad_status'] = person['grad_status']
         result_details['cgpa'] = round(float(result_details['cgpa']), 2)
         result_details['degree_class'] = get_degree_class(mat_no, cgpa=result_details['cgpa'])
 
         # fetch previously passed level results (100 and 500 level)
-        if (level_written > 500 and level == 500) or (level_written == 100 and personal_info['is_symlink'] == 1):
+        if (level_written > 500 and level == 500) or (level_written == 100 and person['is_symlink'] == 1):
             # todo: refactor this when symlinks has been updated to store history
             prev_written_courses = get_prev_level_results(mat_no, level, level_written, acad_session, level_courses)
             prev_written_courses['first_sem'].update(result_details['regular_courses']['first_sem'])

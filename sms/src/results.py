@@ -77,8 +77,9 @@ def post(data, superuser=False):
 # ==============================================================================================
 
 def get_results_for_acad_session(mat_no, acad_session, include_reg=False):
-    """
-    return object with empty fields instead of 404 if return_empty is True
+    """includes registered but unentered results if "include_reg" is True.
+
+    Score and grade in such case are empty strings
     """
     res_stmt = result_statement.get(mat_no)
     res_idx = [(idx, res) for idx, res in enumerate(res_stmt['results']) if res['session'] == acad_session]
@@ -105,19 +106,21 @@ def get_results_for_acad_session(mat_no, acad_session, include_reg=False):
 
     regular_courses, carryovers, unusual_results = refine_results(results)
     gpa_credits = utils.gpa_credits_poll(mat_no)
+    personal_info_keys = ('surname', 'othernames', 'sex', 'grad_status', 'is_symlink', 'mode_of_entry')
     frame = {'mat_no': mat_no,
              'name': res_stmt["surname"] + " " + res_stmt["othernames"],
+             'personal_info': {key: res_stmt[key] for key in personal_info_keys},
              'entry_session': res_stmt["session_admitted"],
              'table': 'Result{}'.format(100 * (res_idx + 1)) if res_idx != '' else res_idx,
              'level_written': results['level'],
-             'session_written': acad_session,
+             'session_written': results['session'],
              'tcp': res_stmt['credits'][res_idx][1] if res_idx else 0,
              'category': res_stmt['category'][res_idx] if res_idx else '',
              'level_gpa': gpa_credits[utils.ltoi(min(results['level'], 500))][0],
              'cgpa': gpa_credits[-1],
              'regular_courses': regular_courses,
              'carryovers': carryovers,
-             'unusual_results': unusual_results
+             'unusual_results': utils.dictify(utils.multisort(res_stmt['unusual_results'][res_idx]))
              }
     return frame, 200
 
