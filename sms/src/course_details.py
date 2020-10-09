@@ -1,6 +1,7 @@
 from sms.config import db
 from sms.src.users import access_decorator
 from sms.models.courses import Courses, CoursesSchema
+# TODO add mode_of_entry param to handle GST
 
 
 def get(course_code):

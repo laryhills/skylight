@@ -164,8 +164,8 @@ def get_carryovers(mat_no, level=None, next_level=False):
     if results:
         res_first_sem = reduce(add, [result["first_sem"] for result in results])
         res_second_sem = reduce(add, [result["second_sem"] for result in results])
-    first_sem -= set([record[1] for record in res_first_sem if record[5] not in ("F", "ABS")])
-    second_sem -= set([record[1] for record in res_second_sem if record[5] not in ("F", "ABS")])
+    first_sem -= set([record[0] for record in res_first_sem if record[4] not in ("F", "ABS")])
+    second_sem -= set([record[0] for record in res_second_sem if record[4] not in ("F", "ABS")])
 
     category = ([None] + result_statement.get(mat_no)["categories"])[-1]
     if category == "C" and level in (200, 300, 400):
@@ -200,23 +200,6 @@ def get_degree_class(mat_no=None, cgpa=None, acad_session=None):
             return deg_class
 
 
-def compute_gpa(mat_no):
-    # TODO is this ever used? If not why?, add docstring
-    # TODO test handle ABS after DB regenerated
-    mode_of_entry = personal_info.get(mat_no)["mode_of_entry"]
-    gpas = [0] * (6 - mode_of_entry)
-    level_credits = get_credits(mat_no, mode_of_entry)
-    grade_weight = get_grading_point(get_DB(mat_no))
-    # TODO probation still counts towards GPA, fix
-    for result in result_statement.get(mat_no)["results"]:
-        for record in (result["first_sem"] + result["second_sem"]):
-            (course, credit, grade, course_level) = (record[1], record[3], record[5], record[6])
-            lvl = int(course_level / 100) - 1
-            product = int(grade_weight[grade]) * credit
-            gpas[lvl] += (product / level_credits[lvl])
-    return gpas
-
-
 def compute_category(tcr, Result):
     entry_session = int(get_DB(Result.mat_no)[:4])
     results = result_statement.get(Result.mat_no)
@@ -245,6 +228,7 @@ def compute_category(tcr, Result):
     return category
 
 
+# NOT YET REFACTORED
 def get_category(mat_no, level, acad_session, session=None):
     if not session:
         db_name = get_DB(mat_no)
@@ -269,7 +253,26 @@ def get_category(mat_no, level, acad_session, session=None):
         return ['H', 'K'][level < 500]
 
 
-# NOT YET REFACTORED
+def compute_gpa(mat_no):
+    # TODO is this ever used? If not why?, add docstring
+    # TODO test handle ABS after DB regenerated
+    # TODO handle GST course level accruing to 100L for DE
+    mode_of_entry = personal_info.get(mat_no)["mode_of_entry"]
+    gpas = [0] * (6 - mode_of_entry)
+    level_credits = get_credits(mat_no, mode_of_entry)
+    grade_weight = get_grading_point(get_DB(mat_no))
+    # TODO probation still counts towards GPA, fix
+    # TODO poll all courses, then index here, handle inactive too
+    # {x["code"] : x["level"] for x in course_details.get_all()}
+    for result in result_statement.get(mat_no)["results"]:
+        for record in (result["first_sem"] + result["second_sem"]):
+            (course, credit, grade, course_level) = (record[1], record[3], record[5], record[6])
+            lvl = int(course_level / 100) - 1
+            product = int(grade_weight[grade]) * credit
+            gpas[lvl] += (product / level_credits[lvl])
+    return gpas
+
+
 def multiprocessing_wrapper(func, iterable, context, use_workers=True, max_workers=None):
     """
     use multiprocessing to call a function on members of an iterable
