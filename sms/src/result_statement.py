@@ -1,4 +1,5 @@
 from re import match
+from copy import deepcopy
 from sms.src import personal_info, course_details, utils
 
 itol = lambda x: (x+1) * 100
@@ -30,9 +31,15 @@ def get(mat_no, sep_carryovers=False):
     student_details.update({key: person[key] for key in keys})
     for idx, result in enumerate(results):
         if result:
-            result_arr = []
-            co_result = {"first_sem": [], "second_sem": [], 'level': result["level"], 'session': result["session"], "table": itol(idx)}
-            lvl_result = {"first_sem": [], "second_sem": [], 'level': result["level"], 'session': result["session"], "table": itol(idx)}
+            # Handle unregistered results courses
+            unregd_result = {"first_sem": [], "second_sem": [], 'level': result["level"], 'session': result["session"], "table": itol(idx)}
+            unregd_arr = [spc_fn(x) for x in csv_fn(result["unregd"])]
+            unregd_formatted = format_results(unregd_arr)
+            unregd_result["first_sem"] += unregd_formatted[0][0]
+            unregd_result["second_sem"] += unregd_formatted[0][1]
+            student_details["unregd"].append(unregd_result)
+            # Handle registered results courses
+            result_arr, lvl_result, co_result = [], deepcopy(unregd_result), deepcopy(unregd_result)
             for code in [key for key in result if match("[A-Z][A-Z][A-Z][0-9][0-9][0-9]", key) and result[key]]:
                 result_arr.append((code, *csv_fn(result[code])))
             co_arr = [spc_fn(x) for x in csv_fn(result["carryovers"])]
@@ -47,6 +54,7 @@ def get(mat_no, sep_carryovers=False):
             lvl_result["first_sem"] += formatted[0][0]
             lvl_result["second_sem"] += formatted[0][1]
             student_details["results"].append(lvl_result)
+
             student_details["credits"].append((formatted[1], formatted[2], formatted[3]))
             student_details["categories"].append(result["category"])
     return student_details
