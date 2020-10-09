@@ -75,7 +75,7 @@ class Result100(Base):
     carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
     tcp = db.Column('TCP', db.Integer)
-    unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
+    unregd = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
 class Result200(Base):
@@ -103,7 +103,7 @@ class Result200(Base):
     carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
     tcp = db.Column('TCP', db.Integer)
-    unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
+    unregd = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
 class Result300(Base):
@@ -134,7 +134,7 @@ class Result300(Base):
     carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
     tcp = db.Column('TCP', db.Integer)
-    unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
+    unregd = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
 class Result400(Base):
@@ -157,7 +157,7 @@ class Result400(Base):
     carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
     tcp = db.Column('TCP', db.Integer)
-    unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
+    unregd = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
 class Result500(Base):
@@ -193,7 +193,7 @@ class Result500(Base):
     carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
     tcp = db.Column('TCP', db.Integer)
-    unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
+    unregd = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
 class Result600(Base):
@@ -205,7 +205,7 @@ class Result600(Base):
     carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
     tcp = db.Column('TCP', db.Integer)
-    unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
+    unregd = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
 class Result700(Base):
@@ -217,7 +217,7 @@ class Result700(Base):
     carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
     tcp = db.Column('TCP', db.Integer)
-    unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
+    unregd = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
 class Result800(Base):
@@ -229,7 +229,7 @@ class Result800(Base):
     carryovers = db.Column('CARRYOVERS', db.Text)
     category = db.Column('CATEGORY', db.Text)
     tcp = db.Column('TCP', db.Integer)
-    unusual_results = db.Column('UNUSUAL_RESULTS', db.Text)
+    unregd = db.Column('UNUSUAL_RESULTS', db.Text)
 
 
 class Courses(Base):
