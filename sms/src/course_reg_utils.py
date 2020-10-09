@@ -11,7 +11,7 @@ def process_personal_info(mat_no):
 
 
 def get_probation_status_and_prev_category(res_poll, acad_session):
-    previous_categories = [x['category'] for x in res_poll if x and x['category'] and x['session'] < acad_session]
+    previous_categories = [x['categories'] for x in res_poll if x and x['categories'] and x['session'] < acad_session]
     previous_category = previous_categories[-1] if len(previous_categories) > 0 else ''
     probation_status = 1 if previous_category == 'C' else 0
     return probation_status, previous_category

@@ -8,7 +8,7 @@ spc_fn = lambda spc, fn=lambda x:x: list(map(fn, spc.split(" "))) if spc else []
 def get(mat_no, sep_carryovers=False):
     person = personal_info.get(mat_no=mat_no)
     # TODO replace category with categories for uniformity
-    student_details = {"dept": utils.get_dept(), "results": [], "credits": [],"category": [], "unusual_results": []}
+    student_details = {"dept": utils.get_dept(), "results": [], "credits": [],"categories": [], "unusual_results": []}
     keys = ["date_of_birth", "mode_of_entry", "session_admitted", "session_grad", "grad_status", "sex", "is_symlink", "othernames", "surname"]
     student_details.update({key: person[key] for key in keys})
     results = utils.result_poll(mat_no)
@@ -58,7 +58,7 @@ def get(mat_no, sep_carryovers=False):
 
             finalResults.append(lvlResult)
             student_details["credits"].append((credits_total,credits_passed,credits_failed))
-            student_details["category"].append(category)
+            student_details["categories"].append(category)
             student_details["unusual_results"].append(unusual_results)
     student_details["results"] = finalResults
     return student_details

@@ -167,7 +167,7 @@ def get_carryovers(mat_no, level=None, next_level=False):
     first_sem -= set([record[1] for record in res_first_sem if record[5] not in ("F", "ABS")])
     second_sem -= set([record[1] for record in res_second_sem if record[5] not in ("F", "ABS")])
 
-    category = ([None] + result_statement.get(mat_no)["category"])[-1]
+    category = ([None] + result_statement.get(mat_no)["categories"])[-1]
     if category == "C" and level in (200, 300, 400):
         # Handle probation carryovers
         first_sem |= set(get_courses(mat_no)[ltoi(level)][0])
@@ -223,7 +223,7 @@ def compute_category(tcr, Result):
     tcp, session, level = Result.tcp, Result.session, Result.level
     level_credits = get_credits(Result.mat_no, lpad=True)[ltoi(level)]
     tables = [ltoi(x["table"]) for x in results["results"] if x["session"] < session]
-    prev_probated = "C" in [results["category"][i] for i in tables]
+    prev_probated = "C" in [results["categories"][i] for i in tables]
     # Add previous passed credits for 100L probated students
     if level == 100 and prev_probated:
         tcp += sum([results["credits"][i][1] for i in tables])

@@ -121,7 +121,7 @@ def get_results_for_acad_session(mat_no, acad_session, include_reg=False):
              'level_written': results['level'],
              'session_written': results['session'],
              'tcp': res_stmt['credits'][res_idx][1] if res_idx else 0,
-             'category': res_stmt['category'][res_idx] if res_idx else '',
+             'category': res_stmt["categories"][res_idx] if res_idx else '',
              'level_gpa': gpa_credits[utils.ltoi(min(results['level'], 500))][0],
              'cgpa': gpa_credits[-1],
              'regular_courses': regular_courses,
