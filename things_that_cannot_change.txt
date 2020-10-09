@@ -33,4 +33,6 @@ Also just in case of revisions, add why this is necessary
 14) If Category C obtained in 100 or 500, only rewrite failed courses as carryovers; if in 200-400, rewrite all level courses as carryovers
    * Used in get_carryovers utility function
 15) In DB, Degree Classes and Grading Rule should be stored in highest to lowest order
-   * Avoid re-sorting for each call
+   * Avoids re-sorting for each call
+16) Course codes must be three letter characters followed by three digits
+   * Regular expression used in filtering courses depends on this

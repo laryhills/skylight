@@ -15,7 +15,7 @@ INSERT INTO `Props` VALUES ('DegreeClass','First_class_honours 4.5 5.0,Second_cl
 INSERT INTO `Props` VALUES ('ResultEdit',NULL,1);
 INSERT INTO `Props` VALUES ('LevelPercent','10 15 20 25 30,10 20 30 40,25 35 40',NULL);
 INSERT INTO `Props` VALUES ('Department','MEE,MECHANICAL ENGINEERING',NULL);
-INSERT INTO `Props` VALUES ('MandCourses','GST*',NULL);
+INSERT INTO `Props` VALUES ('MandCourses','GST.*',NULL);
 INSERT INTO `Props` VALUES ('NumPrizeWinners', NULL, 1);
 INSERT INTO `Props` VALUES ('ViceChancellor', NULL, NULL);
 INSERT INTO `Props` VALUES ('Dean', NULL, NULL);

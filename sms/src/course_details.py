@@ -1,7 +1,10 @@
+from re import match
 from sms.config import db
+from sms.models.master import Props
 from sms.src.users import access_decorator
 from sms.models.courses import Courses, CoursesSchema
-# TODO add mode_of_entry param to handle GST
+
+mand = Props.query.filter_by(key="MandCourses").first().valuestr
 
 
 def get(course_code):
@@ -20,7 +23,7 @@ def get_options(group=None):
     return groups[0] if group != None and len(groups) else groups
 
 
-def get_all(level=None, options=True, inactive=False):
+def get_all(level=None, options=True, inactive=False, mode_of_entry=1):
     courses = Courses.query
     if level:
         courses = courses.filter_by(level=level)
@@ -34,7 +37,13 @@ def get_all(level=None, options=True, inactive=False):
             option_member = courses.filter_by(options=option_group).first()
             if option_member:
                 course_list += [option_member]
-    return CoursesSchema(many=True).dump(course_list)
+    crs_dump = CoursesSchema(many=True).dump(course_list)
+    # Modify level of mandatory courses for DE students
+    if mode_of_entry != 1:
+        for course in crs_dump:
+            if match(mand, course["code"]):
+                course["level"] = mode_of_entry * 100
+    return crs_dump
 
 
 def get_course_details(course_code=None, level=None, options=True, inactive=False):
