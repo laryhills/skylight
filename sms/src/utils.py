@@ -20,7 +20,7 @@ get_current_session = config.get_current_session
 
 # LAMBDAS
 ltoi = lambda x: x//100 - 1
-s_int = lambda x: int(x) if x[-1].isdigit() else x
+s_int = lambda x: int(x) if (x[1:]+x[-1]).isdigit() else x
 dictify = lambda flat_list: {x[0]:x[1:] for x in flat_list}
 multisort = lambda iters, key_idx=0: sorted(iters, key=lambda x:x[key_idx][3]+x[key_idx])
 query = lambda cls, col, key: cls.query.filter(col == key).first()
