@@ -20,7 +20,7 @@ get_current_session = config.get_current_session
 
 # LAMBDAS
 ltoi = lambda x: x//100 - 1
-s_int = lambda x: int(x) if x.isdigit() else x
+s_int = lambda x: int(x) if x[-1].isdigit() else x
 dictify = lambda flat_list: {x[0]:x[1:] for x in flat_list}
 multisort = lambda iters, key_idx=0: sorted(iters, key=lambda x:x[key_idx][3]+x[key_idx])
 query = lambda cls, col, key: cls.query.filter(col == key).first()
@@ -50,10 +50,10 @@ def get_num_of_prize_winners():
     return Props.query.filter_by(key="NumPrizeWinners").first().valueint
 
 
-def get_grading_point(session):
-    # TODO use spc_fn and/or csv_fn, dict values should be int not str
-    grading_rules = load_session(session).GradingRule.query.first().rule.split(",")
-    return dict(map(lambda x: x.split()[:-1], grading_rules))
+def get_grading_point(session, weight=True):
+    stop, step = [[None, 2], [2,None]][weight]
+    grading_rules = load_session(session).GradingRule.query.first().rule
+    return dict([spc_fn(x,s_int)[:stop:step] for x in csv_fn(grading_rules)])
 
 
 def get_level_weightings(mode_of_entry, lpad=True):
@@ -182,9 +182,8 @@ def get_carryovers(mat_no, level=None, next_level=False):
 
 
 def compute_grade(score, session):
-    grading_rules = load_session(session).GradingRule.query.first().rule.split(",")
-    for grade, weight, cutoff in [x.split() for x in grading_rules]:
-        if 100 >= score >= int(cutoff):
+    for grade, cutoff in get_grading_point(session,0).items():
+        if 100 >= score >= cutoff:
             return grade
 
 
@@ -253,23 +252,24 @@ def get_category(mat_no, level, acad_session, session=None):
         return ['H', 'K'][level < 500]
 
 
-def compute_gpa(mat_no):
+def compute_gpa(mat_no, mode_of_entry=None, entry_session=None, lpad=True):
     # TODO is this ever used? If not why?, add docstring
-    # TODO test handle ABS after DB regenerated
-    # TODO handle GST course level accruing to 100L for DE
-    mode_of_entry = personal_info.get(mat_no)["mode_of_entry"]
-    gpas = [0] * (6 - mode_of_entry)
-    level_credits = get_credits(mat_no, mode_of_entry)
-    grade_weight = get_grading_point(get_DB(mat_no))
+    entry_session = entry_session or get_DB(mat_no)
+    grade_weight = get_grading_point(entry_session)
+    mode_of_entry = mode_of_entry or personal_info.get(mat_no)["mode_of_entry"]
+    level_credits = get_credits(mode_of_entry=mode_of_entry, session=entry_session, lpad=True)
     # TODO probation still counts towards GPA, fix
-    # TODO poll all courses, then index here, handle inactive too
-    # {x["code"] : x["level"] for x in course_details.get_all()}
+    gpas = [0] * 5
+    courses = course_details.get_all(inactive=True, mode_of_entry=mode_of_entry)
+    course_levels = {x["code"] : x["level"] for x in courses}
     for result in result_statement.get(mat_no)["results"]:
         for record in (result["first_sem"] + result["second_sem"]):
-            (course, credit, grade, course_level) = (record[1], record[3], record[5], record[6])
-            lvl = int(course_level / 100) - 1
-            product = int(grade_weight[grade]) * credit
-            gpas[lvl] += (product / level_credits[lvl])
+            (course, credit, grade) = (record[0], record[2], record[4])
+            product = grade_weight[grade] * credit
+            lvl_idx = ltoi(course_levels[course])
+            gpas[lvl_idx] += (product / level_credits[lvl_idx])
+    if lpad:
+        return gpas[mode_of_entry-1:]
     return gpas
 
 

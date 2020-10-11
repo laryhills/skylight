@@ -341,6 +341,7 @@ def update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_leve
         creds = utils.get_credits(mat_no, lpad=True)
         level_credits = creds[index]
         grading_point_rule = utils.get_grading_point(utils.get_DB(mat_no))
+        # TODO this now returns a dict of value int and not string, no need to recast anymore
         grading_point = int(grading_point_rule[grade])
         grading_point_old = int(grading_point_rule[previous_grade]) if previous_grade else 0
 
