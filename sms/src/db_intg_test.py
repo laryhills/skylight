@@ -1,6 +1,6 @@
 from sms.src import utils, personal_info, course_details, result_statement
 
-start = 2016
+start = 2003
 stop = 2019
 
 crs_lvl=[0,0,0,0]
@@ -37,4 +37,25 @@ def rule_1():
     print ("Rule 1 defaulters")
     print (bad_mat)
 
+
+def rule_2_3():   
+    bad_mat_1 = set()
+    bad_mat_2 = set()
+    for session in range(start, stop):
+        sess = utils.load_session(session)
+        mats = [x.mat_no for x in sess.PersonalInfo.query.all()]
+        for mat_no in mats:
+            # print(mat_no)
+            catg = result_statement.get(mat_no)["categories"]
+            if catg.count("C") > 1:
+                bad_mat_1.add(mat_no)
+            d_idx = (catg + ["D"]).index("D")
+            if (catg + ["D"])[d_idx+1:]:
+                bad_mat_2.add(mat_no)
+    print ("Rule 2 defaulters")
+    print (bad_mat_1)
+    print ("Rule 3 defaulters")
+    print (bad_mat_2)
+
 rule_1()
+rule_2_3()
