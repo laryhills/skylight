@@ -96,10 +96,7 @@ def course_reg_poll(mat_no, table=None):
 def result_poll(mat_no, table=None):
     """Get the results of a student as seen in Results Table.
     Specify table for particular table, else returns from all Result tables"""
-    db_name = get_DB(mat_no)
-    if not db_name:
-        return None
-    session, results = load_session(db_name), []
+    session, results = load_session(get_DB(mat_no)), []
     for table in [table] if table else range(100,900,100):
         res_tbl = getattr(session, f"Result{table}").query.filter_by(mat_no=mat_no).first()
         result = getattr(session, f"Result{table}Schema")().dump(res_tbl)
@@ -168,7 +165,7 @@ def get_carryovers(mat_no, level=None, next_level=False):
     second_sem -= set([record[0] for record in res_second_sem if record[4] not in ("F", "ABS")])
 
     category = ([None] + result_statement.get(mat_no)["categories"])[-1]
-    if category == "C" and level in (200, 300, 400):
+    if category == "C" and 200 <= level <= 400:
         # Handle probation carryovers
         first_sem |= set(get_courses(mat_no)[ltoi(level)][0])
         second_sem |= set(get_courses(mat_no)[ltoi(level)][1])
@@ -187,12 +184,12 @@ def compute_grade(score, session):
             return grade
 
 
-def get_degree_class(mat_no=None, cgpa=None, acad_session=None):
+def get_degree_class(mat_no=None, cgpa=None, entry_session=None):
     "Get the degree-class text for student"
     # TODO only lower limit is used, why both boundaries stored?
-    acad_session = acad_session or get_DB(mat_no)
+    entry_session = entry_session or get_DB(mat_no)
     cgpa = cgpa or gpa_credits_poll(mat_no)[-1]
-    session = load_session(acad_session)
+    session = load_session(entry_session)
     deg_classes = [(csv_fn(x.limits,loads)[0], x.cls) for x in session.DegreeClass.query.all()]
     for cutoff, deg_class in deg_classes:
         if cgpa >= cutoff:
@@ -227,10 +224,10 @@ def compute_category(tcr, Result):
     return category
 
 
-def compute_gpa(mat_no, mode_of_entry=None, entry_session=None, lpad=True):
-    entry_session = entry_session or get_DB(mat_no)
+def compute_gpa(mat_no, lpad=True):
+    entry_session = get_DB(mat_no)
     grade_weight = get_grading_point(entry_session)
-    mode_of_entry = mode_of_entry or personal_info.get(mat_no)["mode_of_entry"]
+    mode_of_entry = personal_info.get(mat_no)["mode_of_entry"]
     level_credits = get_credits(mode_of_entry=mode_of_entry, session=entry_session, lpad=True)
     gpas = [0] * 5
     courses = course_details.get_all(inactive=True, mode_of_entry=mode_of_entry)
