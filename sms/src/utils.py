@@ -227,6 +227,31 @@ def compute_category(tcr, Result):
     return category
 
 
+def compute_gpa(mat_no, mode_of_entry=None, entry_session=None, lpad=True):
+    entry_session = entry_session or get_DB(mat_no)
+    grade_weight = get_grading_point(entry_session)
+    mode_of_entry = mode_of_entry or personal_info.get(mat_no)["mode_of_entry"]
+    level_credits = get_credits(mode_of_entry=mode_of_entry, session=entry_session, lpad=True)
+    gpas = [0] * 5
+    courses = course_details.get_all(inactive=True, mode_of_entry=mode_of_entry)
+    course_levels = {x["code"] : x["level"] for x in courses}
+    res_stmt = result_statement.get(mat_no)
+    categories = res_stmt["categories"]
+    for idx, result in enumerate(res_stmt["results"]):
+        for record in (result["first_sem"] + result["second_sem"]):
+            (course, credit, grade) = (record[0], record[2], record[4])
+            product = grade_weight[grade] * credit
+            lvl_idx = ltoi(course_levels[course])
+            gpas[lvl_idx] += (product / level_credits[lvl_idx])
+        # If probated and rewrites later, reset accrued GPA for probating level
+        probated, more = categories[idx] == "C", categories[idx+1:]
+        if probated and 200 <= result["level"] <= 400 and more:
+            gpas[ltoi(result["level"])] = 0
+    if lpad:
+        return gpas[mode_of_entry-1:]
+    return gpas
+
+
 # NOT YET REFACTORED
 def get_category(mat_no, level, acad_session, session=None):
     if not session:
@@ -250,27 +275,6 @@ def get_category(mat_no, level, acad_session, session=None):
         return ['B', 'G'][level < 500]
     else:
         return ['H', 'K'][level < 500]
-
-
-def compute_gpa(mat_no, mode_of_entry=None, entry_session=None, lpad=True):
-    # TODO is this ever used? If not why?, add docstring
-    entry_session = entry_session or get_DB(mat_no)
-    grade_weight = get_grading_point(entry_session)
-    mode_of_entry = mode_of_entry or personal_info.get(mat_no)["mode_of_entry"]
-    level_credits = get_credits(mode_of_entry=mode_of_entry, session=entry_session, lpad=True)
-    # TODO probation still counts towards GPA, fix
-    gpas = [0] * 5
-    courses = course_details.get_all(inactive=True, mode_of_entry=mode_of_entry)
-    course_levels = {x["code"] : x["level"] for x in courses}
-    for result in result_statement.get(mat_no)["results"]:
-        for record in (result["first_sem"] + result["second_sem"]):
-            (course, credit, grade) = (record[0], record[2], record[4])
-            product = grade_weight[grade] * credit
-            lvl_idx = ltoi(course_levels[course])
-            gpas[lvl_idx] += (product / level_credits[lvl_idx])
-    if lpad:
-        return gpas[mode_of_entry-1:]
-    return gpas
 
 
 def multiprocessing_wrapper(func, iterable, context, use_workers=True, max_workers=None):
