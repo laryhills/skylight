@@ -3,6 +3,7 @@ RULES
 
 1) No DE student (mode_of_entry=2) should have courses from 100L in results apart from mandatory courses
 2) No Student should category C more than once
+3) No movement after category D
 3) Write courses higher than their level
 
 MINOR
@@ -14,8 +15,14 @@ MINOR
 5) First table entry in table mode_of_entry * 100
 6) Score matches grade in Results table
 7) No gaps in between used tables
+8) Must be present in Master.db
+9) Courses not registered should be in unregd col, Results table
 
 DEFAULTERS
 ==========
-ENG1406165 (Rules: 1 (actually transfer student, not DE as DB says))
+ENG1406165 (Rules: 1 (MTH110, actually transfer student, not DE as DB says))
+ENG1002580 (Rules: 1 (CHM111, DE guy not supposed to write but wrote)) [Graduated]
+ENG1604420 (Rules: 1 (CHM111))
+ENG1709712 (Rules: 1 (CHM111, actually not DE student, may be transfer or just incorrectly placed))
+
 ENG1507785 (Rules: 2, 3)
