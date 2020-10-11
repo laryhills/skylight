@@ -3,8 +3,8 @@ from json import loads
 from sms import config
 from operator import add
 from functools import reduce
+from sms.models.master import Props
 from concurrent.futures.process import ProcessPoolExecutor
-from sms.models.master import Category, Category500, Props
 from sms.src import personal_info, course_details, result_statement, users
 
 '''
@@ -235,15 +235,13 @@ def compute_gpa(mat_no, lpad=True):
     res_stmt = result_statement.get(mat_no)
     categories = res_stmt["categories"]
     for idx, result in enumerate(res_stmt["results"]):
-        for record in (result["first_sem"] + result["second_sem"]):
-            (course, credit, grade) = (record[0], record[2], record[4])
-            product = grade_weight[grade] * credit
-            lvl_idx = ltoi(course_levels[course])
-            gpas[lvl_idx] += (product / level_credits[lvl_idx])
-        # If probated and rewrites later, reset accrued GPA for probating level
         probated, more = categories[idx] == "C", categories[idx+1:]
-        if probated and 200 <= result["level"] <= 400 and more:
-            gpas[ltoi(result["level"])] = 0
+        if not (probated and 200 <= result["level"] <= 400 and more):
+            for record in (result["first_sem"] + result["second_sem"]):
+                (course, credit, grade) = (record[0], record[2], record[4])
+                product = grade_weight[grade] * credit
+                lvl_idx = ltoi(course_levels[course])
+                gpas[lvl_idx] += (product / level_credits[lvl_idx])
     if lpad:
         return gpas[mode_of_entry-1:]
     return gpas
