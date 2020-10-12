@@ -120,10 +120,7 @@ def init_new_course_reg(mat_no):
     choices, carryovers = course_lists[:2], course_lists[2:]
 
     # Getting maximum possible credits to register
-    level_max_credits = max(
-        utils.get_max_reg_credits(),
-        utils.get_credits(mat_no, lpad=True)[index]
-    )
+    level_max_credits = utils.get_max_reg_credits()
 
     # Handle any case where carryover course credits exceeds the limit
     credit_sum = course_reg_utils.sum_credits_many(*carryovers, credits_index=2)
