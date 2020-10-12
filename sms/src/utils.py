@@ -154,19 +154,14 @@ def get_carryovers(mat_no, level=None, next_level=False):
         [first_sem, second_sem][idx] -= set(option["members"])
         [first_sem, second_sem][idx] |= {choice}
 
-    results = result_statement.get(mat_no)["results"]
+    res_stmt = result_statement.get(mat_no)
+    results, categories = res_stmt["results"], res_stmt["categories"]
     res_first_sem, res_second_sem = [], []
     if results:
-        res_first_sem = reduce(add, [result["first_sem"] for result in results])
-        res_second_sem = reduce(add, [result["second_sem"] for result in results])
+        res_first_sem = reduce(add, [result["first_sem"] for idx,result in enumerate(results) if not (categories[idx] in "CD" and 200 <= result["level"] <= 400)])
+        res_second_sem = reduce(add, [result["second_sem"] for idx,result in enumerate(results) if not (categories[idx] in "CD" and 200 <= result["level"] <= 400)])
     first_sem -= set([record[0] for record in res_first_sem if record[4] not in ("F", "ABS")])
     second_sem -= set([record[0] for record in res_second_sem if record[4] not in ("F", "ABS")])
-
-    category = ([None] + result_statement.get(mat_no)["categories"])[-1]
-    if category == "C" and 200 <= level <= 400:
-        # Handle probation carryovers
-        first_sem |= set(get_courses(mat_no)[ltoi(level)][0])
-        second_sem |= set(get_courses(mat_no)[ltoi(level)][1])
 
     carryovers = {"first_sem":[],"second_sem":[]}
     courses = [("first_sem", course) for course in first_sem] + [("second_sem", course) for course in second_sem]
