@@ -196,7 +196,7 @@ def get_degree_class(mat_no=None, cgpa=None, entry_session=None):
             return deg_class
 
 
-def compute_category(tcr, Result):
+def compute_category(tcr, Result, owed_courses_exist):
     entry_session = int(get_DB(Result.mat_no)[:4])
     results = result_statement.get(Result.mat_no)
     tcp, session, level = Result.tcp, Result.session, Result.level
@@ -206,13 +206,13 @@ def compute_category(tcr, Result):
     # Add previous passed credits for 100L probated students
     if level == 100 and prev_probated:
         tcp += sum([results["credits"][i][1] for i in tables])
-    if tcp == tcr:
+    if tcp == tcr and (level < 500 or not owed_courses_exist):
         return "A"
     if tcr == 0:
         return ["H", "K"][level < 500]
     # TODO pull categories from DB, Handle owed_courses_exist, Handle condition for transfer
-    categories = {x: {100:[(78.26,"B"), (50,"C"), (0,"D")]} for x in range(2014,get_current_session()+1)}
-    catg_rule = {500:[(0, "B")], **categories.get(entry_session, {})}.get(level,[(50,"B"), (25,"C"), (0,"D")])
+    categories = {x: {100: [(78.26, "B"), (50, "C"), (0, "D")]} for x in range(2014, get_current_session()+1)}
+    catg_rule = {500: [(0, "B")], **categories.get(entry_session, {})}.get(level, [(50, "B"), (25, "C"), (0, "D")])
     percent_passed = tcp / level_credits * 100
     for lower, catg in catg_rule:
         if percent_passed >= lower:
