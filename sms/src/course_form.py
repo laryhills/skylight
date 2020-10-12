@@ -33,12 +33,12 @@ def get(mat_no=None, session=None, to_print=False):
             'personal_info': defaultdict(str),
             'course_reg_session': session,
             'course_reg_level': '',
-            'courses': {'first_sem': [], 'second_sem': []}
+            'carryovers': {'first_sem': [], 'second_sem': []}
         }
     session = course_registration['course_reg_session']
     person = course_registration['personal_info']
     level = list(str(course_registration['course_reg_level']))
-    courses = course_registration['courses']
+    courses = course_registration['carryovers']
 
     first_sem_courses, _, first_sem_credits = list(zip(*courses['first_sem']))[:3] or ([], [], [])
     second_sem_courses, _, second_sem_credits = list(zip(*courses['second_sem']))[:3] or ([], [], [])

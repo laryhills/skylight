@@ -104,21 +104,19 @@ def init_new_course_reg(mat_no):
 
     carryovers = course_reg_utils.fetch_carryovers(mat_no, current_level)
     mode_of_entry = s_personal_info['mode_of_entry']
-    # populating choices
-    index = utils.ltoi(int(current_level))
-    if index > 4: index = 4
+    index = utils.ltoi(min(int(current_level), 500))
 
     level_courses = utils.get_courses(mat_no, mode_of_entry)
     options = course_reg_utils.get_optional_courses(current_level)
-
     # get the optional courses credit sum less one optional course which should be returned in level courses
     abridged_options_credit_sum = course_reg_utils.sum_credits_many(options[0][1:], options[1][1:], credits_index=1)
 
+    # TODO remove any optional course from carryovers and ensure it is in choices
     options = [[crs[0] for crs in options[sem]] for sem in (0, 1)]
     level_courses[index] = [list(set(level_courses[index][sem] + (options[sem]))) for sem in (0, 1)]
 
     course_lists = [*level_courses[index], *carryovers]
-    course_lists = list(map(course_reg_utils.enrich_course_list, course_lists))
+    course_lists = [utils.multisort(course_reg_utils.enrich_course_list(lis)) for lis in course_lists]
     choices, carryovers = course_lists[:2], course_lists[2:]
 
     # Getting maximum possible credits to register
@@ -131,7 +129,7 @@ def init_new_course_reg(mat_no):
     credit_sum = course_reg_utils.sum_credits_many(*carryovers, credits_index=2)
     if credit_sum > level_max_credits or max(len(carryovers[0]), len(carryovers[1])) > 12:
         # dump everything to choices
-        [choices[sem].extend(carryovers[sem]) for sem in (0, 1)]
+        choices = [carryovers[sem] + choices[sem] for sem in (0, 1)]
         carryovers = [[], []]
 
     # Implementing the "clause of 51"
@@ -148,10 +146,8 @@ def init_new_course_reg(mat_no):
                         'course_reg_session': current_session,
                         'course_reg_level': current_level,
                         'max_credits': level_max_credits,
-                        'courses': {'first_sem': utils.multisort(carryovers[0]),
-                                    'second_sem': utils.multisort(carryovers[1])},
-                        'choices': {'first_sem': utils.multisort(choices[0]),
-                                    'second_sem': utils.multisort(choices[1])},
+                        'regulars': {'first_sem': choices[0], 'second_sem': choices[1]},
+                        'carryovers': {'first_sem': carryovers[0], 'second_sem': carryovers[1]},
                         'probation_status': probation_status,
                         'fees_status': 0,
                         'others': ''}
@@ -165,9 +161,10 @@ def get_existing_course_reg(mat_no, acad_session):
         return 'No course registration for entered session', 404
 
     fields = ('code', 'title', 'credit', 'semester', 'level')
-    courses_registered = course_reg_utils.enrich_course_list(c_reg['courses'], fields=fields)
-    courses = [[], []]  # first_sem, second_sem
-    [courses[course.pop(3) - 1].append(course) for course in courses_registered]
+    courses_regd = utils.multisort(course_reg_utils.enrich_course_list(c_reg['courses'], fields=fields))
+    lvl_norm = min(c_reg['level'], 500)
+    carryovers, regulars = [[[], []] for _ in range(2)]  # first_sem, second_sem
+    [[carryovers, regulars][course[4] == lvl_norm][course.pop(3) - 1].append(course) for course in courses_regd]
 
     course_reg_frame = {'mat_no': mat_no,
                         'personal_info': s_personal_info,
@@ -175,10 +172,8 @@ def get_existing_course_reg(mat_no, acad_session):
                         'course_reg_session': c_reg['session'],
                         'course_reg_level': c_reg['level'],
                         'max_credits': utils.get_max_reg_credits(),
-                        'courses': {'first_sem': utils.multisort(courses[0]),
-                                    'second_sem': utils.multisort(courses[1])},
-                        'choices': {'first_sem': [],
-                                    'second_sem': []},
+                        'regulars': {'first_sem': regulars[0], 'second_sem': regulars[1]},
+                        'carryovers': {'first_sem': carryovers[0], 'second_sem': carryovers[1]},
                         'probation_status': c_reg['probation'],
                         'fees_status': c_reg['fees_status'],
                         'others': c_reg['others']}
@@ -255,6 +250,7 @@ def delete_course_reg_entry(mat_no, acad_session):
 
     session = utils.load_session(utils.get_DB(mat_no))
     courses_reg_schema = getattr(session, course_reg['table'] + 'Schema')
+    # TODO reset optional course in personal info if set here
 
     courses_reg = courses_reg_schema.Meta.model.query.filter_by(mat_no=mat_no).first()
     db_session = courses_reg_schema.Meta.sqla_session
