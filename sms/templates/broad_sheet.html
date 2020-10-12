@@ -823,17 +823,17 @@ style='font-size:4.5pt'></span></p>
   <td width="1%" style='width:1.4%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
       border-right:solid windowtext 1.0pt;padding:0 0 0 0;height:43.2pt'>
       <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US style='font-size:9.0pt;
-      font-family:"Calibri",sans-serif;color:black'>{{ students[student]['semester_tcp'][0] }}</span></p>
+      font-family:"Calibri",sans-serif;color:black'>{{ students[student]['tcp'][0] }}</span></p>
   </td>
   <td width="1%" style='width:1.44%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
       border-right:solid windowtext 1.0pt;padding:0 0 0 0;height:43.2pt'>
       <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US style='font-size:9.0pt;
-      font-family:"Calibri",sans-serif;color:black'>{{ students[student]['semester_tcf'][0] }}</span></p>
+      font-family:"Calibri",sans-serif;color:black'>{{ students[student]['tcf'][0] }}</span></p>
   </td>
   <td width="1%" style='width:1.46%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
       border-right:solid windowtext 1.0pt;padding:0 0 0 0;height:43.2pt'>
       <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US style='font-size:9.0pt;
-      font-family:"Calibri",sans-serif;color:black'>{{ students[student]['semester_tcr'][0] }}</span></p>
+      font-family:"Calibri",sans-serif;color:black'>{{ students[student]['tcr'][0] }}</span></p>
   </td>
 
 
@@ -922,17 +922,17 @@ style='font-size:4.5pt'></span></p>
   <td width="1%" style='width:1.4%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
       border-right:solid windowtext 1.0pt;padding:0 0 0 0;height:43.2pt'>
       <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US style='font-size:9.0pt;
-      font-family:"Calibri",sans-serif;color:black'>{{ students[student]['semester_tcp'][1] }}</span></p>
+      font-family:"Calibri",sans-serif;color:black'>{{ students[student]['tcp'][1] }}</span></p>
   </td>
   <td width="1%" style='width:1.44%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
       border-right:solid windowtext 1.0pt;padding:0 0 0 0;height:43.2pt'>
       <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US style='font-size:9.0pt;
-      font-family:"Calibri",sans-serif;color:black'>{{ students[student]['semester_tcf'][1] }}</span></p>
+      font-family:"Calibri",sans-serif;color:black'>{{ students[student]['tcf'][1] }}</span></p>
   </td>
   <td width="1%" style='width:1.46%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
       border-right:solid windowtext 1.0pt;padding:0 0 0 0;height:43.2pt'>
       <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US style='font-size:9.0pt;
-      font-family:"Calibri",sans-serif;color:black'>{{ students[student]['semester_tcr'][1] }}</span></p>
+      font-family:"Calibri",sans-serif;color:black'>{{ students[student]['tcr'][1] }}</span></p>
   </td>
 
   {% endif %}
@@ -944,26 +944,26 @@ style='font-size:4.5pt'></span></p>
   <td width="1%" style='width:1.16%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
       border-right:solid windowtext 1.0pt;padding:0 0 0 0;height:43.2pt'>
       <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US style='font-size:9.0pt;
-      font-family:"Calibri",sans-serif;color:black'>{{ sum(students[student]['semester_tcp']) }}</span></p>
+      font-family:"Calibri",sans-serif;color:black'>{{ sum(students[student]['tcp']) }}</span></p>
   </td>
   <td width="1%" style='width:1.16%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
       border-right:solid windowtext 1.0pt;padding:0 0 0 0;height:43.2pt'>
       <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US style='font-size:9.0pt;
-      font-family:"Calibri",sans-serif;color:black'>{{ sum(students[student]['semester_tcf']) }}</span></p>
+      font-family:"Calibri",sans-serif;color:black'>{{ sum(students[student]['tcf']) }}</span></p>
   </td>
   <td width="1%" style='width:1.16%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
       border-right:solid windowtext 1.0pt;padding:0 0 0 0;height:43.2pt'>
       <p class=MsoNormal align=center style='text-align:center'><span lang=EN-US style='font-size:9.0pt;
-      font-family:"Calibri",sans-serif;color:black'>{{ sum(students[student]['semester_tcr']) }}</span></p>
+      font-family:"Calibri",sans-serif;color:black'>{{ sum(students[student]['tcr']) }}</span></p>
   </td>
   {% endif %}
 
 
   {% set grad_status = students[student]['grad_status'] %}
 
-  {% set failed_courses = students[student]['sem_failed_courses'][0] %}
+  {% set failed_courses = students[student]['failed_courses'][0] %}
   {% if not first_sem_only %}
-      {% set failed_courses = students[student]['sem_failed_courses'][0] + students[student]['sem_failed_courses'][1] %}
+      {% set failed_courses = students[student]['failed_courses'][0] + students[student]['failed_courses'][1] %}
   {% endif %}
   <td width="11%" style='width:11.18%;border-top:none;border-left:none;border-bottom:solid windowtext 1.0pt;
       border-right:solid windowtext 1.0pt;padding:0 0 0 0;height:43.2pt'>

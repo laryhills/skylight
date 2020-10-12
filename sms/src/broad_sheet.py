@@ -231,11 +231,10 @@ def enrich_mat_no_list(mat_nos, acad_session, level, level_courses):
             result_details['regular_courses'] = prev_written_courses
 
         # compute stats
-        sem_tcp, sem_tcr, sem_tcf, failed_courses = sum_semester_credits(result_details, 3, 1)
-        result_details['semester_tcp'] = sem_tcp
-        result_details['semester_tcr'] = sem_tcr
-        result_details['semester_tcf'] = sem_tcf
-        result_details['sem_failed_courses'] = failed_courses
+        # sem_tcp, sem_tcr, sem_tcf, failed_courses = sum_semester_credits(result_details, 3, 1)
+        result_details['tcr'] = result_details['credits'][0]
+        result_details['tcp'] = result_details['credits'][1]
+        result_details['tcf'] = result_details['credits'][2]
 
         if len(result_details['carryovers']['first_sem']) > max_len_first_sem_carryovers:
             max_len_first_sem_carryovers = len(result_details['carryovers']['first_sem'])
@@ -245,29 +244,6 @@ def enrich_mat_no_list(mat_nos, acad_session, level, level_courses):
 
         students[mat_no] = result_details
     return students, max_len_first_sem_carryovers, max_len_second_sem_carryovers
-
-
-def sum_semester_credits(result_details, grade_index, credit_index):
-    tcp = [0, 0]  # total credits passed
-    tcr = [0, 0]  # total credits registered
-    tcf = [0, 0]  # total credits failed
-    failed_courses = [[], []]
-
-    for index, sem in enumerate(['first_sem', 'second_sem']):
-        courses = {**result_details['regular_courses'][sem], **result_details['carryovers'][sem]}
-        for course in courses:
-            credit = courses[course][credit_index]
-            if credit == '': continue
-            elif isinstance(credit, str): credit = int(credit.replace(' *', ''))
-
-            if courses[course][grade_index] not in ['F', 'ABS', 'F *', 'ABS *']:
-                tcp[index] += credit
-            else:
-                tcf[index] += credit
-                failed_courses[index].append(course)
-            tcr[index] += credit
-
-    return tcp, tcr, tcf, failed_courses
 
 
 def get_prev_level_results(mat_no, broadsheet_level, level_written, acad_session, level_courses):

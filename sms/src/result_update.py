@@ -13,7 +13,7 @@ from sms.src import result_statement
 from sms.config import app as current_app, CACHE_BASE_DIR, UNIBEN_LOGO_PATH
 from sms.src.users import access_decorator
 from sms.src.ext.html_parser import split_html
-from sms.src.utils import get_level_weightings, get_carryovers, gpa_credits_poll, ltoi
+from sms.src.utils import get_level_weightings, get_carryovers, gpa_credits_poll, ltoi, multisort
 
 
 @access_decorator
@@ -26,9 +26,9 @@ def get(mat_no, raw_score=False, to_print=False):
     mod = ['PUTME', 'DE(200)', 'DE(300)'][result_stmt['mode_of_entry'] - 1]
     entry_session = result_stmt['session_admitted']
     grad_session = result_stmt['session_grad']
-    results = multisort(result_stmt['results'])
+    results = res_sort(result_stmt['results'])
     no_of_pages = len(results) + 1
-    credits = result_stmt['credits']
+    credits = [list(map(sum, creds)) for creds in result_stmt['credits']]
     gpas, level_credits = list(zip(*gpa_credits_poll(mat_no)[:-1]))
     gpas, level_credits = [list(map(lambda x: x if x else 0, item)) for item in (gpas, level_credits)]
     level_weightings = get_level_weightings(result_stmt['mode_of_entry'])
@@ -101,23 +101,13 @@ def get(mat_no, raw_score=False, to_print=False):
     return resp, 200
 
 
-def multisort(results):
-    for session in range(len(results)):
-        semesters = ['first_sem', 'second_sem'] if 'second_sem' in results[session] else ['first_sem']
-        for semester in semesters:
-            fail_indices = [ind for ind, crs in enumerate(results[session][semester]) if crs[5] in ['F', 'ABS']]
-            fails = []
-            if fail_indices:
-                fail_indices = sorted(fail_indices, reverse=True)
-                fails = [results[session][semester].pop(ind) for ind in fail_indices]
-
-            results[session][semester] = sorted(results[session][semester], key=lambda x: x[1])
-            results[session][semester] = sorted(results[session][semester], key=lambda x: x[1][3])
-
-            if fails:
-                fails = sorted(fails, key=lambda x: x[1])
-                fails = sorted(fails, key=lambda x: x[1][3])
-                results[session][semester].extend(fails)
+def res_sort(results):
+    for idx in range(len(results)):
+        semesters = ['first_sem', 'second_sem'] if 'second_sem' in results[idx] else ['first_sem']
+        for sem in semesters:
+            fail_indices = sorted([ind for ind, crs in enumerate(results[idx][sem]) if crs[4] in ['F', 'ABS']], reverse=True)
+            fails = [results[idx][sem].pop(ind) for ind in fail_indices]
+            results[idx][sem] = multisort(results[idx][sem]) + multisort(fails)
     return results
 
 
