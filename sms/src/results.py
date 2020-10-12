@@ -10,6 +10,8 @@ well as updating gpa record of the student
 
 """
 import os.path
+from copy import deepcopy
+
 from colorama import init, Fore, Style
 
 from sms.config import db
@@ -87,46 +89,54 @@ def get_results_for_acad_session(mat_no, acad_session, include_reg=False):
 
     Score and grade in such case are empty strings
     """
-    res_stmt = result_statement.get(mat_no)
-    res_idx = [(idx, res) for idx, res in enumerate(res_stmt['results']) if res['session'] == acad_session]
+    res_stmt = result_statement.get(mat_no, sep_carryovers=True)
+    res_idx = [idx for idx, res in enumerate(res_stmt['results']) if res['session'] == acad_session]
     if not res_idx and not include_reg:
         return 'No result available for entered session', 404
 
-    res_idx, results = res_idx[0] if res_idx else ('', {'first_sem': [], 'second_sem': []})
+    res_idx = res_idx[0] if res_idx else None
     if include_reg:
         from sms.src.course_reg import get_existing_course_reg
         reg, ret_code = get_existing_course_reg(mat_no, acad_session)
         if ret_code != 200:
             return reg, ret_code
 
-        # include courses from course_reg not present
+        # include courses from course_reg not already in results
+        form = {'first_sem': [], 'second_sem': [], 'table': int(reg['table_to_populate'][-3:]),
+                'level': reg['course_reg_level'], 'session': reg['course_reg_session']}
+        if res_idx is not None:
+            result_dict = {key: res_stmt[key][res_idx] for key in ('results', 'carryovers', 'unregd')}
+        else:
+            result_dict = {key: deepcopy(form) for key in ('results', 'carryovers', 'unregd')}
+        result_dict['regulars'] = result_dict.pop('results')
+
         for sem in ('first_sem', 'second_sem'):
-            entered_res = list(zip(*results[sem]))[1] if results[sem] else []
-            to_be_entered = list(filter(lambda x: x[0] not in entered_res, reg['courses'][sem]))
-            results[sem].extend([['', *crs[:3], '', '', *crs[3:]] for crs in to_be_entered])
+            for key in ('regulars', 'carryovers'):
+                entered_res = list(zip(*result_dict[key][sem]))[0] if result_dict[key][sem] else []
+                to_be_entered = list(filter(lambda x: x[0] not in entered_res, reg[key][sem]))
+                [result_dict[key][sem].append([*crs[:3], '', '', *crs[3:]]) for crs in to_be_entered]
+        regulars, carryovers, unregd = [result_dict[key] for key in ('regulars', 'carryovers', 'unregd')]
+    else:
+        regulars, carryovers, unregd = [res_stmt[key][res_idx] for key in ('results', 'carryovers', 'unregd')]
 
-        if res_idx == '':
-            results['level'] = reg['course_reg_level']
-            results['session'] = reg['course_reg_session']
-            results['table'] = int(reg['table_to_populate'][-3:])
-
-    regular_courses, carryovers, unusual_results = refine_results(results)
     gpa_credits = utils.gpa_credits_poll(mat_no)
     personal_info_keys = ('surname', 'othernames', 'sex', 'grad_status', 'is_symlink', 'mode_of_entry')
+    refine = lambda res: {sem: utils.dictify(utils.multisort(res[sem])) for sem in ('first_sem', 'second_sem')}
+
     frame = {'mat_no': mat_no,
-             'name': res_stmt["surname"] + " " + res_stmt["othernames"],
              'personal_info': {key: res_stmt[key] for key in personal_info_keys},
              'entry_session': res_stmt["session_admitted"],
-             'table': 'Result{}'.format(100 * (res_idx + 1)) if res_idx != '' else res_idx,
-             'level_written': results['level'],
-             'session_written': results['session'],
-             'tcp': res_stmt['credits'][res_idx][1] if res_idx else 0,
-             'category': res_stmt["categories"][res_idx] if res_idx else '',
-             'level_gpa': gpa_credits[utils.ltoi(min(results['level'], 500))][0],
+             'table': 'Result{}'.format(100 * (res_idx + 1)) if res_idx is not None else res_idx,
+             'level_written': regulars['level'],
+             'session_written': regulars['session'],
+             'credits': res_stmt['credits'][res_idx] if res_idx is not None else 0,
+             'failed_courses': res_stmt['failed_courses'][res_idx] if res_idx is not None else [[], []],
+             'category': res_stmt["categories"][res_idx] if res_idx is not None else '',
+             'level_gpa': gpa_credits[utils.ltoi(min(regulars['level'], 500))][0],
              'cgpa': gpa_credits[-1],
-             'regular_courses': regular_courses,
-             'carryovers': carryovers,
-             'unusual_results': utils.dictify(utils.multisort(res_stmt['unusual_results'][res_idx]))
+             'regular_courses': refine(regulars),
+             'carryovers': refine(carryovers),
+             'unusual_results': refine(unregd)
              }
     return frame, 200
 
@@ -304,7 +314,6 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
 
     # get the session category
     owed_courses_exist = check_owed_courses_exists(mat_no, level_written, grade, course_dets) if not is_unusual else True
-    # todo: do sth with "owed_courses_exist"
     if not courses_registered:
         tcr, tcp = 0, 0
     else:
@@ -315,7 +324,7 @@ def add_single_result_record(index, result_details, result_errors_file, course_d
         tcr, tcp = course_registration['tcr'], result_record['tcp']
 
     res_record = result_xxx_schema.load(result_record)
-    res_record.category = utils.compute_category(tcr, res_record)
+    res_record.category = utils.compute_category(tcr, res_record, owed_courses_exist)
 
     db_session = result_xxx_schema.Meta.sqla_session
     db_session.add(res_record)
@@ -341,9 +350,8 @@ def update_gpa_credits(mat_no, grade, previous_grade, course_credit, course_leve
         creds = utils.get_credits(mat_no, lpad=True)
         level_credits = creds[index]
         grading_point_rule = utils.get_grading_point(utils.get_DB(mat_no))
-        # TODO this now returns a dict of value int and not string, no need to recast anymore
-        grading_point = int(grading_point_rule[grade])
-        grading_point_old = int(grading_point_rule[previous_grade]) if previous_grade else 0
+        grading_point = grading_point_rule[grade]
+        grading_point_old = grading_point_rule[previous_grade] if previous_grade else 0
 
         diff = grading_point - grading_point_old
         level_gpa = level_gpa + ((course_credit * diff) / level_credits)
@@ -470,17 +478,6 @@ def check_owed_courses_exists(mat_no, level_written, grade, course_dets):
         if not owed_courses[0] and not owed_courses[1] and grade not in ['F', 'ABS']:
             return False
     return True
-
-
-def refine_results(res_from_stmt):
-    """post processing of result object from result_statement"""
-    lvl_norm = min(500, res_from_stmt['level'])  # normalise the level
-    regulars, carryovers, unusuals = [{'first_sem': {}, 'second_sem': {}} for _ in range(3)]
-    for sem in ('first_sem', 'second_sem'):
-        for res in utils.multisort(res_from_stmt[sem], key_idx=1):
-            [carryovers, regulars][res[6] == lvl_norm][sem].update(utils.dictify(list([res[1:7]])))
-    # TODO process unusual results when it gets added to result statement
-    return regulars, carryovers, unusuals
 
 
 def handle_errors(error_text, error_log_array=None, error_file=None, result_details=None):
