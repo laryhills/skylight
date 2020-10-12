@@ -120,11 +120,9 @@ def get_credits(mat_no=None, mode_of_entry=None, session=None, lpad=False):
 
 
 def get_courses(mat_no=None, mode_of_entry=None, session=None, lpad=True):
-    "Returns student/session courses list for all levels"
-    if mat_no:
-        session = get_DB(mat_no)
-        mode_of_entry = mode_of_entry or personal_info.get(mat_no)["mode_of_entry"]
-    session = load_session(session)
+    "Returns student/session courses list for all levels from sessional DB"
+    session = load_session(session or get_DB(mat_no))
+    mode_of_entry = mode_of_entry or personal_info.get(mat_no)["mode_of_entry"]
     Courses, CoursesSchema = session.Courses, session.CoursesSchema
 
     courses = CoursesSchema().dump(Courses.query.filter_by(mode_of_entry=mode_of_entry).first())
