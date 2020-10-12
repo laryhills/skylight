@@ -203,8 +203,8 @@ def enrich_mat_no_list(mat_nos, acad_session, level, level_courses):
         result_details = get_results_for_acad_session(mat_no, acad_session)
         if result_details[1] != 200: continue
         result_details = result_details[0]
-        level_written = result_details['level_written']
 
+        level_written = result_details['level_written']
         if (level_written != level) and not (level_written > 500 and level == 500):
             # print(mat_no, "result level", result_details[0]['level_written'], '!=', level)
             continue
@@ -230,19 +230,15 @@ def enrich_mat_no_list(mat_nos, acad_session, level, level_courses):
             prev_written_courses['second_sem'].update(result_details['regular_courses']['second_sem'])
             result_details['regular_courses'] = prev_written_courses
 
-        # compute stats
         # sem_tcp, sem_tcr, sem_tcf, failed_courses = sum_semester_credits(result_details, 3, 1)
         result_details['tcr'] = result_details['credits'][0]
         result_details['tcp'] = result_details['credits'][1]
         result_details['tcf'] = result_details['credits'][2]
 
-        if len(result_details['carryovers']['first_sem']) > max_len_first_sem_carryovers:
-            max_len_first_sem_carryovers = len(result_details['carryovers']['first_sem'])
-
-        if len(result_details['carryovers']['second_sem']) > max_len_second_sem_carryovers:
-            max_len_second_sem_carryovers = len(result_details['carryovers']['second_sem'])
-
+        max_len_first_sem_carryovers = max(max_len_first_sem_carryovers, len(result_details['carryovers']['first_sem']))
+        max_len_second_sem_carryovers = max(max_len_second_sem_carryovers, len(result_details['carryovers']['second_sem']))
         students[mat_no] = result_details
+
     return students, max_len_first_sem_carryovers, max_len_second_sem_carryovers
 
 
@@ -261,7 +257,7 @@ def get_prev_level_results(mat_no, broadsheet_level, level_written, acad_session
         for sem_idx, semester in enumerate(['first_sem', 'second_sem']):
             for index in range(len(results[session][semester])):
                 course_dets = results[session][semester][index]
-                course, course_dets = course_dets[1], list(course_dets[2:7])
+                course, course_dets = course_dets[0], list(course_dets[1:])
                 # add course
                 if course in level_courses[semester]:  # and (course_dets[1] not in ['F', 'ABS']):
                     # add an asterisk to the score and grade to indicate it's out of session
