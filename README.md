@@ -5,14 +5,11 @@ Engineering, University of Benin.
 ## Setup Instructions
 - **Wkhtmltopdf** is needed for generating the pdfs. Head over to wkhtmltopdf [download page](https://wkhtmltopdf.org/downloads.html) for binary installers
 
-- [**Pipenv**](https://pypi.org/project/pipenv/) is the project's dependency manager. Install with
-```
-python -m pip install pipenv
-```
+- **Pipenv** is the project's dependency manager. Install instructions can be found on the [PyPI page](https://pypi.org/project/pipenv/)
 
-- Create a virtual environment with the python installation
+- Create a virtual environment with python3
 ```
-pipenv --python 3.8
+pipenv --python 3
 ```
 
 - Clone this repo
