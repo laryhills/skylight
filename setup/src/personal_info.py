@@ -51,6 +51,21 @@ def create_table_schema():
     print('PersonalInfo and SymLink table created')
 
 
+def create_logs_db():
+    logs_sql = '''CREATE TABLE IF NOT EXISTS "Logs" (
+                        "ID"	INTEGER NOT NULL,
+                        "USER"	TEXT NOT NULL,
+                        "OPERATION"	TEXT NOT NULL,
+                        "PARAMS"	TEXT,
+                        "TIMESTAMP"	INTEGER NOT NULL,
+                        PRIMARY KEY("ID")
+                    );'''
+    conn = sqlite3.connect(os.path.join(db_base_dir, 'logs.db'))
+    conn.execute(logs_sql)
+    conn.close()
+    print('Logs db created')
+
+
 def populate_db(conn, session):
     curr_frame = frame[frame.SESSION_ADMIT == session]
     curr_frame.drop_duplicates(subset='MATNO', inplace=True)
@@ -77,6 +92,7 @@ try: master.execute('CREATE TABLE Main (MATNO TEXT PRIMARY KEY, SURNAME TEXT, DA
 except sqlite3.OperationalError: pass
 
 create_table_schema()
+create_logs_db()
 
 sessions = range(start_session, curr_session + 1)
 for session in sessions:
