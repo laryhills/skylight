@@ -20,14 +20,14 @@ pipenv --python 3.8
 git clone https://github.com/lordfme/skylight.git
 ```
 
-- Navigate to the project's root and start the virtual environment and 
+- Navigate to the project's root and start a virtual environment 
 ```
 cd skylight
 
 pipenv shell
 ```
 
-- Install all the dependencies with pipenv
+- Install all dependencies
 ```
 pipenv install
 ```
@@ -54,6 +54,6 @@ flask run
 
 
 ###### Note:
-Current data in the `accounts.db`
-    - username = ucheigbeka
-    - password = testing
+Current data in `accounts.db`
+ - username = ucheigbeka
+ - password = testing
