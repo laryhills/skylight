@@ -1,6 +1,5 @@
 # Skylight
-This project represents the server side of the **Student Management System** for the Department of Mechanical 
-Engineering, University of Benin.
+This project represents the server side of the **Student Management System**.
 
 ## Setup Instructions
 - **Wkhtmltopdf** is needed for generating the pdfs. Head over to wkhtmltopdf [download page](https://wkhtmltopdf.org/downloads.html) for binary installers
