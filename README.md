@@ -59,8 +59,8 @@ Current data in `accounts.db`
 
 ---------------------------------------------------------------------------------
 
-Copyright (c) 2019-2020, Skylight Development Team.
+###### Copyright (c) 2019-2020, Skylight Development Team.
  
-Distributed under the terms of the GNU Affero General Public License (Version 3)
+###### Distributed under the terms of the GNU Affero General Public License (Version 3)
  
 ---------------------------------------------------------------------------------
