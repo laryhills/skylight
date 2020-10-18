@@ -36,7 +36,7 @@ setup/setup.bat
 set FLASK_APP=server.py:app
 ```
 
-- Unix
+- Linux
 ```
 setup/setup.sh
 
@@ -54,6 +54,7 @@ Current data in `accounts.db`
  - username = ucheigbeka
  - password = testing
  
+###### .
 
 
 ---------------------------------------------------------------------------------
